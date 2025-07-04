@@ -1,0 +1,94 @@
+import os
+import sys
+# DON'T CHANGE THIS !!!
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from flask import Flask, send_from_directory
+from flask_socketio import SocketIO
+from flask_cors import CORS
+from src.models.user import db
+from src.routes.user import user_bp
+from src.routes.hardware import hardware_bp
+from src.routes.models import models_bp
+from src.routes.optimization import optimization_bp
+from src.routes.websocket import websocket_bp, init_websocket
+from src.routes.openai_api import openai_api_bp
+from src.auth import init_openai_auth
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+app.config['SECRET_KEY'] = 'gerdsen_ai_mlx_manager_secret_key_2025'
+
+# Enable CORS for all routes
+CORS(app, origins="*")
+
+# Initialize SocketIO
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+# Register blueprints
+app.register_blueprint(user_bp, url_prefix='/api')
+app.register_blueprint(hardware_bp, url_prefix='/api/hardware')
+app.register_blueprint(models_bp, url_prefix='/api/models')
+app.register_blueprint(optimization_bp, url_prefix='/api/optimization')
+app.register_blueprint(websocket_bp, url_prefix='/api/websocket')
+app.register_blueprint(openai_api_bp, url_prefix='/')  # OpenAI API at root level
+
+# Initialize WebSocket
+init_websocket(app, socketio)
+
+# Initialize OpenAI authentication
+init_openai_auth(app)
+
+# Database configuration (optional)
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+with app.app_context():
+    db.create_all()
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    static_folder_path = app.static_folder
+    if static_folder_path is None:
+            return "Static folder not configured", 404
+
+    if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
+        return send_from_directory(static_folder_path, path)
+    else:
+        index_path = os.path.join(static_folder_path, 'index.html')
+        if os.path.exists(index_path):
+            return send_from_directory(static_folder_path, 'index.html')
+        else:
+            return "index.html not found", 404
+
+@app.route('/api/health')
+def health_check():
+    """Health check endpoint"""
+    return {
+        'status': 'healthy',
+        'service': 'GerdsenAI MLX Manager',
+        'version': '2.0.0',
+        'timestamp': time.time()
+    }
+
+if __name__ == '__main__':
+    import time
+    print("🚀 Starting GerdsenAI MLX Manager Server")
+    print("=" * 50)
+    print("🌐 Server will be available at: http://localhost:5000")
+    print("🔌 WebSocket endpoint: ws://localhost:5000/socket.io")
+    print("📊 API endpoints:")
+    print("   - Hardware: /api/hardware/*")
+    print("   - Models: /api/models/*")
+    print("   - Optimization: /api/optimization/*")
+    print("   - WebSocket: /api/websocket/*")
+    print("=" * 50)
+    
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)

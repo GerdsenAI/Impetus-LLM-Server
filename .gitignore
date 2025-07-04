@@ -33,6 +33,7 @@ var/
 *.tmp
 *.swp
 *.swo
+*.db
 
 # Submodules or problematic directories
 # gerdsen_ai_server/ (commented out to track changes)

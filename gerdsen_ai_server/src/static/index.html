@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GerdsenAI MLX Model Manager - Real-time</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>GerdsenAI</h1>
+                        <span>MLX Model Manager</span>
+                    </div>
+                </div>
+                <div class="header-controls">
+                    <div class="system-status">
+                        <div class="status-indicator" id="connection-status">
+                            <i class="fas fa-circle"></i>
+                            <span>Connecting...</span>
+                        </div>
+                        <div class="hardware-info">
+                            <i class="fas fa-microchip"></i>
+                            <span id="chip-name">Loading...</span> • <span id="detected-memory">Loading...</span>
+                        </div>
+                    </div>
+                    <button class="settings-btn" id="settingsBtn">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- System Alerts -->
+        <div class="alerts-container" id="system-alerts"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="nav-menu">
+                    <div class="nav-item tab-button active" data-tab="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item tab-button" data-tab="models">
+                        <i class="fas fa-cube"></i>
+                        <span>Models</span>
+                    </div>
+                    <div class="nav-item tab-button" data-tab="performance">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Performance</span>
+                    </div>
+                    <div class="nav-item tab-button" data-tab="hardware">
+                        <i class="fas fa-server"></i>
+                        <span>Hardware</span>
+                    </div>
+                    <div class="nav-item tab-button" data-tab="optimization">
+                        <i class="fas fa-magic"></i>
+                        <span>Optimization</span>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Dashboard Tab -->
+                <div class="tab-content active" id="dashboard">
+                    <div class="dashboard-grid">
+                        <!-- Quick Stats -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-microchip"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 id="cpu-usage">0%</h3>
+                                    <p>CPU Usage</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-memory"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 id="memory-used">0GB</h3>
+                                    <p>Memory Used</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-thermometer-half"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 id="cpu-temperature">--°C</h3>
+                                    <p>Temperature</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-cube"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 id="loaded-models-count">0</h3>
+                                    <p>Loaded Models</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Overview -->
+                        <div class="overview-section">
+                            <div class="section-header">
+                                <h2>System Overview</h2>
+                                <div class="section-controls">
+                                    <button class="refresh-btn" onclick="manager.loadInitialData()">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="overview-grid">
+                                <div class="overview-card">
+                                    <h3>Apple Silicon Status</h3>
+                                    <div class="status-info">
+                                        <div class="status-item">
+                                            <span>Optimization:</span>
+                                            <span id="apple-silicon-status">Loading...</span>
+                                        </div>
+                                        <div class="status-item">
+                                            <span>Neural Engine:</span>
+                                            <span id="neural-engine-status">Loading...</span>
+                                        </div>
+                                        <div class="status-item">
+                                            <span>Metal GPU:</span>
+                                            <span id="gpu-status">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="overview-card">
+                                    <h3>Memory Usage</h3>
+                                    <div class="memory-info">
+                                        <div class="memory-bar">
+                                            <div class="progress-bar" id="memory-progress">
+                                                <div class="progress-fill"></div>
+                                            </div>
+                                        </div>
+                                        <div class="memory-details">
+                                            <span id="memory-used">0GB</span> / <span id="memory-total">0GB</span>
+                                            <span class="memory-pressure">Pressure: <span id="memory-pressure">unknown</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CPU Cores Chart -->
+                        <div class="chart-section">
+                            <div class="section-header">
+                                <h2>CPU Core Usage</h2>
+                            </div>
+                            <div class="cpu-cores-container" id="cpu-cores-chart">
+                                <!-- CPU cores will be dynamically populated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Models Tab -->
+                <div class="tab-content" id="models">
+                    <div class="models-section">
+                        <div class="section-header">
+                            <h2>Model Management</h2>
+                            <button class="primary-btn" onclick="document.getElementById('upload-modal').style.display='block'">
+                                <i class="fas fa-upload"></i>
+                                Upload Model
+                            </button>
+                        </div>
+                        
+                        <div class="models-grid">
+                            <div class="models-card">
+                                <h3>Loaded Models (<span id="loaded-models-count">0</span>)</h3>
+                                <div class="models-list" id="loaded-models-list">
+                                    <!-- Loaded models will be populated here -->
+                                </div>
+                            </div>
+                            
+                            <div class="models-card">
+                                <h3>Cached Models (<span id="cached-models-count">0</span>)</h3>
+                                <div class="models-list" id="cached-models-list">
+                                    <!-- Cached models will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Tab -->
+                <div class="tab-content" id="performance">
+                    <div class="performance-section">
+                        <div class="section-header">
+                            <h2>Performance Metrics</h2>
+                        </div>
+                        
+                        <div class="performance-grid">
+                            <div class="performance-card">
+                                <h3>System Performance</h3>
+                                <div class="metrics-list">
+                                    <div class="metric-item">
+                                        <span>CPU Frequency:</span>
+                                        <span id="cpu-frequency">0MHz</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span>Memory Usage:</span>
+                                        <span id="memory-usage-percent">0%</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span>Thermal State:</span>
+                                        <span id="thermal-state">unknown</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span>Power Source:</span>
+                                        <span id="power-source">unknown</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="performance-card">
+                                <h3>Power Management</h3>
+                                <div class="power-info">
+                                    <div class="power-item">
+                                        <span>Battery Level:</span>
+                                        <span id="battery-level">--</span>
+                                    </div>
+                                    <div class="power-item">
+                                        <span>Power Consumption:</span>
+                                        <span id="power-consumption">--</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hardware Tab -->
+                <div class="tab-content" id="hardware">
+                    <div class="hardware-section">
+                        <div class="section-header">
+                            <h2>Hardware Information</h2>
+                        </div>
+                        
+                        <div class="hardware-grid">
+                            <div class="hardware-card">
+                                <h3>Apple Silicon Chip</h3>
+                                <div class="hardware-details">
+                                    <div class="detail-item">
+                                        <span>Chip:</span>
+                                        <span id="chip-name">Loading...</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>Model:</span>
+                                        <span id="model-identifier">Loading...</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>CPU Cores:</span>
+                                        <span id="cpu-cores">Loading...</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>GPU Cores:</span>
+                                        <span id="gpu-cores">Loading...</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>Neural Engine:</span>
+                                        <span id="neural-engine-cores">Loading...</span> cores
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>Memory:</span>
+                                        <span id="detected-memory">Loading...</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>Memory Bandwidth:</span>
+                                        <span id="memory-bandwidth">Loading...</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>Process Node:</span>
+                                        <span id="process-node">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="hardware-card">
+                                <h3>Framework Support</h3>
+                                <div class="framework-support">
+                                    <div class="framework-item">
+                                        <span>Core ML:</span>
+                                        <span id="coreml-support">Loading...</span>
+                                    </div>
+                                    <div class="framework-item">
+                                        <span>MLX:</span>
+                                        <span id="mlx-support">Loading...</span>
+                                    </div>
+                                    <div class="framework-item">
+                                        <span>Metal:</span>
+                                        <span id="metal-support">Loading...</span>
+                                    </div>
+                                    <div class="framework-item">
+                                        <span>Neural Engine:</span>
+                                        <span id="neural-engine-available">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="hardware-card">
+                                <h3>Real-time Metrics</h3>
+                                <div class="realtime-metrics">
+                                    <div class="metric-item">
+                                        <span>CPU Cores:</span>
+                                        <span id="cpu-cores-total">0</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span>GPU Cores:</span>
+                                        <span id="gpu-cores-count">0</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span>GPU Memory:</span>
+                                        <span id="gpu-memory">0GB</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span>Neural Engine Cores:</span>
+                                        <span id="neural-engine-cores-count">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optimization Tab -->
+                <div class="tab-content" id="optimization">
+                    <div class="optimization-section">
+                        <div class="section-header">
+                            <h2>Apple Silicon Optimization</h2>
+                        </div>
+                        
+                        <div class="optimization-grid">
+                            <div class="optimization-card">
+                                <h3>Framework Capabilities</h3>
+                                <div class="capabilities-list">
+                                    <div class="capability-item">
+                                        <span>Core ML:</span>
+                                        <span id="coreml-available">Loading...</span>
+                                    </div>
+                                    <div class="capability-item">
+                                        <span>MLX:</span>
+                                        <span id="mlx-available">Loading...</span>
+                                    </div>
+                                    <div class="capability-item">
+                                        <span>Metal Performance Shaders:</span>
+                                        <span id="mps-available">Loading...</span>
+                                    </div>
+                                    <div class="capability-item">
+                                        <span>Neural Engine:</span>
+                                        <span id="neural-engine-available">Loading...</span>
+                                    </div>
+                                    <div class="capability-item">
+                                        <span>Metal GPU:</span>
+                                        <span id="metal-gpu-available">Loading...</span>
+                                    </div>
+                                    <div class="capability-item">
+                                        <span>Unified Memory:</span>
+                                        <span id="unified-memory">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="optimization-card">
+                                <h3>Optimization Profiles</h3>
+                                <div class="profiles-container" id="optimization-profiles">
+                                    <!-- Optimization profiles will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Model</h2>
+                <span class="close" onclick="document.getElementById('upload-modal').style.display='none'">&times;</span>
+            </div>
+            <form id="model-upload-form" class="upload-form">
+                <div class="form-group">
+                    <label for="model-file">Select Model File:</label>
+                    <input type="file" id="model-file" name="file" accept=".mlx,.gguf,.safetensors,.bin,.pt,.pth" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="secondary-btn" onclick="document.getElementById('upload-modal').style.display='none'">Cancel</button>
+                    <button type="submit" class="primary-btn">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
