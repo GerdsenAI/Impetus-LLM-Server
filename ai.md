@@ -1,10 +1,24 @@
 # AI Documentation
 
-This file contains documentation and notes related to the AI components of the Impetus-LLM-Server project.
+## Executive Summary
+The Impetus-LLM-Server project aims to provide a model-agnostic AI inference platform optimized for Apple Silicon. As of July 2025, the system is in early development with a robust architecture but placeholder functionality. This document outlines the current state, critical issues, architecture, integration with Model Context Protocol (MCP) tools, and a prioritized roadmap for implementation.
+
+- **Status**: Skeleton implementation with critical initialization bug
+- **Key Issue**: Import error in `IntegratedMLXManager` (line 106, `gerdsen_ai_server/src/integrated_mlx_manager.py`)
+- **Architecture**: Model-agnostic design with Apple Silicon optimization framework
+- **Next Steps**: Fix bug, implement model loading, integrate MCP tools
+
+## Quick Navigation
+- [Implementation Status](#implementation-status)
+- [AI Model Architecture](#ai-model-architecture-model-agnostic-design)
+- [Model Configuration](#model-configuration-system)
+- [Integration & API](#integration)
+- [MCP Integration](#model-context-protocol-mcp-integration)
+- [Roadmap & Next Steps](#implementation-roadmap--next-steps)
 
 ## Overview
 - **Purpose**: To provide a centralized location for AI-related information, models, and configurations used in the project.
-- **Scope**: Covers AI model integration, training, inference, and optimization strategies for Apple Silicon environments.
+- **Scope**: Covers AI model integration, training, inference, optimization strategies for Apple Silicon, and MCP tool integration.
 
 ## Implementation Status
 - **Current State**: As of July 2025, the AI implementation is in an early stage with placeholder functionality.
@@ -12,6 +26,12 @@ This file contains documentation and notes related to the AI components of the I
   - API endpoints return simulated responses rather than real model outputs.
 - **Known Issues**:
   - Critical bug in `IntegratedMLXManager` initialization: attempting to instantiate non-existent `AppleFrameworksIntegration` instead of `EnhancedAppleFrameworksIntegration` (see line 106 in `gerdsen_ai_server/src/integrated_mlx_manager.py`).
+    ```python
+    # Incorrect (line 106):
+    # self.apple_frameworks = AppleFrameworksIntegration()
+    # Correct:
+    self.apple_frameworks = EnhancedAppleFrameworksIntegration()
+    ```
   - Models are not actually loaded during server startup.
 - **Functional Features**:
   - Basic Flask server structure with API endpoints defined.
@@ -21,6 +41,7 @@ This file contains documentation and notes related to the AI components of the I
   - Real model loading and inference for various language models.
   - Performance optimization for Apple Silicon using Core ML, Metal, and Neural Engine.
   - Dynamic model switching based on system state (thermal, power, memory).
+  - MCP server integration for external model providers and resources.
 
 ## AI Model Architecture (Model-Agnostic Design)
 The Impetus-LLM-Server is designed to be model-agnostic, supporting any language model or AI framework through a generic interface and configuration system. Specific models are not hardcoded into the system but are instead defined through configuration.
@@ -40,6 +61,17 @@ The Impetus-LLM-Server is designed to be model-agnostic, supporting any language
     - **Embedding Models**: Generate vector representations of text.
     - **Multimodal Models**: Handle text, image, or other data types (future support planned).
   - Capability flags define what operations a model supports, allowing dynamic selection based on task requirements.
+
+**Architecture Diagram (ASCII)**:
+```
++-------------------+       +-------------------+       +-------------------+
+| Flask API Server  | <---> | IntegratedMLXMgr  | <---> | Model Interface   |
++-------------------+       +-------------------+       +-------------------+
+                                    |                            |
++-------------------+       +-------------------+       +-------------------+
+| MCP Server/Tools  | <---> | Apple Silicon Opt | <---> | Specific Model    |
++-------------------+       +-------------------+       +-------------------+
+```
 
 ## Model Configuration System
 Models are defined through configuration rather than hardcoding, enabling flexibility and extensibility.
@@ -84,6 +116,34 @@ Models are defined through configuration rather than hardcoding, enabling flexib
   - `/api/models/upload`: Allows uploading new models and configurations (placeholder implementation).
   - `/api/models/list`: Lists all loaded models with detailed status.
   - `/api/models/optimize`: Optimizes an existing model for performance based on hints (placeholder).
+
+## Model Context Protocol (MCP) Integration
+The Impetus-LLM-Server supports integration with MCP servers to extend capabilities through external tools and resources. MCP enables connection to model providers, external catalogs, and specialized AI services.
+
+- **MCP Purpose**: Allows the system to access external AI models, configurations, and capabilities without hardcoding specific providers.
+- **MCP Components**:
+  - **MCP Tools**: Executable functions provided by MCP servers for operations like model discovery, loading, and inference.
+    - Example Tool Schema: `get_model_catalog` with parameters `{"provider": "string", "capability": "string"}`
+    - Usage: Tools are invoked via the `use_mcp_tool` API with server name and arguments.
+  - **MCP Resources**: Data sources like model catalogs or configuration repositories.
+    - Example Resource URI: `mcp://model-catalog/huggingface/chat-models`
+    - Usage: Resources are accessed via the `access_mcp_resource` API with server name and URI.
+- **Integration Points**:
+  - **Model Discovery**: MCP tools can populate the `/v1/models` endpoint with external models.
+  - **Model Loading**: MCP tools can handle model downloads or remote inference.
+  - **Configuration**: MCP resources can provide model configuration files for the system.
+  - **API Extension**: MCP tools can add custom endpoints for specialized AI operations.
+- **MCP Server Requirements**:
+  - Must expose tools following the MCP schema for model operations.
+  - Must provide resource URIs for model metadata and configurations.
+  - Should support authentication for secure model access (future feature).
+- **Example MCP Workflow**:
+  ```
+  1. Connect to MCP server "huggingface-models"
+  2. Use tool "search_models" with {"capability": "chat"} to get model list
+  3. Access resource "mcp://huggingface-models/config/model-123" for configuration
+  4. Load model using MCP tool "load_remote_model" with configuration
+  ```
 
 ## API Rules and Workflows
 - **Model Selection and Switching**:
@@ -161,6 +221,59 @@ Models are defined through configuration rather than hardcoding, enabling flexib
   - `auto_optimization`: Boolean to enable/disable automatic Apple Silicon optimizations (default True).
   - `thermal_throttling`: Boolean to enable thermal management adjustments (default True).
   - `power_management`: Boolean to enable power efficiency adjustments (default True).
+
+## Implementation Roadmap & Next Steps
+The following roadmap prioritizes tasks based on dependencies and impact. Each phase includes success criteria and validation steps.
+
+- **Phase 1: Critical Fixes (Immediate)**
+  1. Fix import bug in `integrated_mlx_manager.py` (line 106).
+     - **Dependency**: None
+     - **Validation**: Server starts without import errors.
+     - **Success**: Flask server initializes `IntegratedMLXManager`.
+  2. Test server startup with empty model configuration.
+     - **Dependency**: Step 1
+     - **Validation**: Server responds to `/v1/models` with empty list.
+     - **Success**: API endpoints accessible without crashes.
+
+- **Phase 2: Basic Model Loading (Short-Term)**
+  1. Implement basic model loading for a single model format (MLX or CoreML).
+     - **Dependency**: Phase 1
+     - **Validation**: Load a test model and verify with `/api/models/list`.
+     - **Success**: Model appears in API response with correct metadata.
+  2. Enable placeholder inference returning static responses.
+     - **Dependency**: Step 1 of Phase 2
+     - **Validation**: Call `/v1/chat/completions` and receive response.
+     - **Success**: API returns formatted response without errors.
+
+- **Phase 3: Optimization Features (Medium-Term)**
+  1. Implement Apple Silicon detection and device switching.
+     - **Dependency**: Phase 2
+     - **Validation**: Check logs for device selection based on model size.
+     - **Success**: Models load on appropriate device (CPU/GPU/Neural Engine).
+  2. Add thermal and power state monitoring with throttling.
+     - **Dependency**: Step 1 of Phase 3
+     - **Validation**: Simulate high thermal state and verify performance adjustment.
+     - **Success**: System reduces performance under thermal stress.
+
+- **Phase 4: MCP Integration & Full Features (Long-Term)**
+  1. Connect MCP server for model discovery and configuration.
+     - **Dependency**: Phase 2
+     - **Validation**: Use `use_mcp_tool` to list external models.
+     - **Success**: External models appear in `/v1/models` endpoint.
+  2. Implement remote model loading via MCP tools.
+     - **Dependency**: Step 1 of Phase 4
+     - **Validation**: Load model from MCP resource URI.
+     - **Success**: Remote model loads and responds to inference requests.
+  3. Add capability-based model selection.
+     - **Dependency**: Phase 3
+     - **Validation**: Request model by capability instead of ID.
+     - **Success**: System selects appropriate model automatically.
+
+- **Success Criteria for MVP**:
+  - Server starts without errors.
+  - At least one model format loads successfully.
+  - Basic inference API endpoints return responses.
+  - Apple Silicon optimizations are detected and applied.
 
 ## Future Enhancements
 - **Planned Improvements**:
