@@ -31,6 +31,70 @@ var/
 # Logs and temporary files
 *.log
 *.tmp
+*.swp
+*.swo
 
 # Submodules or problematic directories
-gerdsen_ai_server/
+# gerdsen_ai_server/ (commented out to track changes)
+
+# Node.js and Frontend
+node_modules/
+gerdsen-ai-frontend/node_modules/
+gerdsen-ai-frontend/dist/
+gerdsen-ai-frontend/build/
+gerdsen-ai-frontend/.vite/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.*
+lerna-debug.*
+*.jshintrc
+*.eslintcache
+*.stylelintcache
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Build and dependency directories
+coverage/
+lib-cov/
+htmlcov/
+test-results/
+reports/
+
+# Miscellaneous
+*.seed
+*.pid
+*.pid.lock
+*.env
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
