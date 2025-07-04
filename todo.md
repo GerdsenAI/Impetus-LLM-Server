@@ -2,6 +2,15 @@
 
 This document outlines actionable tasks for the development and maintenance of the Impetus-LLM-Server project, based on the provided README.md documentation. Tasks have been refined with priorities and estimated timelines to align with the project roadmap and guidelines from ai.md.
 
+## Critical Bug Fixes (High Priority)
+
+These tasks address immediate issues preventing proper server initialization and operation.
+
+- [ ] **Fix IntegratedMLXManager Import Error** - **Priority: Critical, Timeline: Immediate**
+  - Fix line 106 in `gerdsen_ai_server/src/integrated_mlx_manager.py`
+  - Change `AppleFrameworksIntegration()` to `EnhancedAppleFrameworksIntegration()`
+  - This is preventing the server from starting properly
+
 ## Development Tasks
 
 These tasks focus on implementing upcoming features as outlined in the project's roadmap. Priorities and timelines are set to focus on immediate needs first.
@@ -15,6 +24,15 @@ These tasks focus on implementing upcoming features as outlined in the project's
   - [ ] Develop FastAPI endpoints in `src/main.py` for dynamic model interaction.
   - [ ] Implement endpoints for model selection and switching under `/v1/chat/completions` and `/v1/models`.
   - [ ] Apply CORS and rate-limiting configurations for security.
+- [ ] **AI Model Initialization** - **Priority: Critical, Timeline: Immediate**
+  - [ ] Implement actual model loading for Llama, Mistral, and Default LLM as described in ai.md.
+  - [ ] Create model files or establish download paths for models.
+  - [ ] Initialize models on server startup with Apple Silicon optimization.
+- [ ] **API Response Implementation** - **Priority: High, Timeline: Next Sprint**
+  - [ ] Replace placeholder responses in `/v1/chat/completions` with actual model outputs.
+  - [ ] Implement real text generation capabilities in `/v1/completions`.
+  - [ ] Add proper embedding generation in `/v1/embeddings`.
+  - [ ] Connect API endpoints to model predictions for meaningful responses.
 - [ ] **Custom Model Training** - **Priority: Medium, Timeline: Next 3-4 Sprints**
   - [ ] Design framework for fine-tuning models on local data using Core ML and MLX.
   - [ ] Create API endpoint or interface for initiating and monitoring training.
@@ -27,6 +45,16 @@ These tasks focus on implementing upcoming features as outlined in the project's
 - [ ] **Plugin System** - **Priority: Low, Timeline: Later Sprints**
   - [ ] Design extensible architecture for third-party integrations.
   - [ ] Document plugin system for community contributions.
+
+## Testing and Validation
+
+These tasks ensure the stability and functionality of the server after critical fixes and implementations.
+
+- [ ] **Server Initialization Testing** - **Priority: Critical, Timeline: Immediate**
+  - [ ] Verify server starts without errors after bug fixes.
+  - [ ] Confirm all models load successfully during initialization.
+  - [ ] Test each API endpoint to ensure they return meaningful responses.
+  - [ ] Validate Apple Silicon optimizations are applied correctly.
 
 ## Documentation Tasks
 
