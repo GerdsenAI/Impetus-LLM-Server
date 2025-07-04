@@ -26,6 +26,7 @@ var/
 .idea/
 *.sublime-project
 *.sublime-workspace
+*.code-workspace
 
 # Logs and temporary files
 *.log
