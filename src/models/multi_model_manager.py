@@ -4,14 +4,39 @@ class MultiModelManager:
     def __init__(self):
         self.models = {}
 
-    def load_model(self, model_name, model_path):
+    def load_model(self, model_name, model_path, model_type=None, optimize_for_apple_silicon=True):
         """
-        Loads a model into the manager.
+        Loads a model into the manager with optional optimization for Apple Silicon.
+        
+        Args:
+            model_name (str): Name of the model to load.
+            model_path (str): Path to the model file or directory.
+            model_type (str, optional): Type of model (e.g., 'llama', 'mistral'). Defaults to None.
+            optimize_for_apple_silicon (bool, optional): Whether to apply Apple Silicon optimizations. Defaults to True.
+        
+        Returns:
+            bool: True if model loading is successful, False otherwise.
         """
         print(f"Loading model: {model_name} from {model_path}")
-        # Placeholder for actual model loading logic
-        self.models[model_name] = {"path": model_path, "status": "loaded"}
-        return True
+        try:
+            # Placeholder for actual model loading logic
+            model_data = {
+                "path": model_path,
+                "status": "loaded",
+                "type": model_type if model_type else "generic",
+                "optimized": optimize_for_apple_silicon
+            }
+            
+            if optimize_for_apple_silicon:
+                print(f"Applying Apple Silicon optimizations for {model_name}")
+                # Placeholder for optimization logic (e.g., model quantization, dynamic batch sizing)
+                model_data["optimization_details"] = "Quantization and batch sizing applied"
+            
+            self.models[model_name] = model_data
+            return True
+        except Exception as e:
+            print(f"Error loading model {model_name}: {str(e)}")
+            return False
 
     def unload_model(self, model_name):
         """
@@ -26,8 +51,17 @@ class MultiModelManager:
     def get_model(self, model_name):
         """
         Retrieves a loaded model.
+        
+        Args:
+            model_name (str): Name of the model to retrieve.
+        
+        Returns:
+            dict: Model data if found, None otherwise.
         """
-        return self.models.get(model_name)
+        model = self.models.get(model_name)
+        if model:
+            print(f"Retrieving model: {model_name} (Type: {model.get('type', 'generic')}, Optimized: {model.get('optimized', False)})")
+        return model
 
     def list_loaded_models(self):
         """
@@ -38,9 +72,9 @@ class MultiModelManager:
 # Example Usage (for testing purposes)
 if __name__ == "__main__":
     manager = MultiModelManager()
-    manager.load_model("model_a", "/path/to/model_a")
-    manager.load_model("model_b", "/path/to/model_b")
+    manager.load_model("llama", "/path/to/llama", model_type="llama", optimize_for_apple_silicon=True)
+    manager.load_model("mistral", "/path/to/mistral", model_type="mistral", optimize_for_apple_silicon=True)
     print("Loaded models:", manager.list_loaded_models())
-    print("Getting model_a:", manager.get_model("model_a"))
-    manager.unload_model("model_a")
+    print("Getting llama model:", manager.get_model("llama"))
+    manager.unload_model("llama")
     print("Loaded models after unload:", manager.list_loaded_models())
