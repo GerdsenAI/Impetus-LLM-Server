@@ -6,7 +6,9 @@ This document outlines actionable tasks for the development and maintenance of t
 
 These tasks focus on implementing upcoming features as outlined in the project's roadmap:
 
-- [ ] **Multi-Model Support**: Develop functionality to load and run multiple models simultaneously.
+- [x] **Multi-Model Support (Initial Setup)**: Basic structure for loading and running multiple models simultaneously has been implemented in `src/models/multi_model_manager.py`.
+- [ ] **Multi-Model Support (Integration)**: Integrate specific AI models (e.g., Llama, Mistral) into the `MultiModelManager` for seamless operation.
+- [ ] **Multi-Model Support (API Endpoints)**: Develop FastAPI endpoints in `src/main.py` to interact with different models dynamically.
 - [ ] **Custom Model Training**: Implement features for fine-tuning models on local data.
 - [ ] **Advanced Scheduling**: Add time-based optimization and task scheduling capabilities.
 - [ ] **Cloud Integration**: Introduce optional cloud model synchronization for enhanced accessibility.

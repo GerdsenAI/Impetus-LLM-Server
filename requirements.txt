@@ -1,2 +1,17 @@
-fastapi
-uvicorn
+# Core dependencies for Impetus-LLM-Server
+fastapi==0.92.0
+uvicorn==0.20.0
+pydantic==1.10.5
+
+# Additional dependencies for AI model management
+transformers==4.26.1
+torch==1.13.1
+numpy==1.24.2
+
+# Dependencies for Apple Silicon optimization
+# Note: Ensure torch is built for Apple Silicon (M1/M2) compatibility
+
+# Development and testing dependencies
+pytest==7.2.1
+black==23.1.0
+isort==5.12.0
