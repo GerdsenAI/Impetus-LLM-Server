@@ -39,12 +39,6 @@ system_metrics = {
 # Initialize AI Model Manager
 ai_manager = IntegratedMLXManager()
 
-# Load demo models
-with app.app_context():
-    demo_models = ai_manager.apple_frameworks.create_demo_models()
-    for name, model_id in demo_models.items():
-        print(f"Loaded demo model '{name}' with ID: {model_id}")
-
 
 @app.route('/')
 def index():

@@ -131,7 +131,31 @@ class IntegratedMLXManager:
         self.silicon_detector.register_power_callback(self._handle_power_event)
         
         self.logger.info("Integrated MLX Manager initialized with Apple frameworks")
+        self._load_models_from_config()
     
+    def _load_models_from_config(self, config_dir: str = "config/models"):
+        """Load all models from the specified configuration directory."""
+        config_path = Path(config_dir)
+        if not config_path.exists():
+            self.logger.warning(f"Model configuration directory not found: {config_dir}")
+            return
+
+        for filename in os.listdir(config_path):
+            if filename.endswith(".json"):
+                file_path = os.path.join(config_path, filename)
+                with open(file_path, "r") as f:
+                    try:
+                        model_config = json.load(f)
+                        self.load_model(
+                            model_path=model_config["path"],
+                            model_name=model_config["display_name"],
+                            framework=model_config["framework"],
+                        )
+                    except json.JSONDecodeError:
+                        self.logger.error(f"Invalid JSON in model config: {file_path}")
+                    except KeyError as e:
+                        self.logger.error(f"Missing key in model config {file_path}: {e}")
+
     def load_model(self, 
                    model_path: str, 
                    model_name: str = None,
