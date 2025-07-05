@@ -76,27 +76,32 @@ These tasks focus on implementing upcoming features as outlined in the project's
   - [ ] Implement endpoints for model selection and switching under `/v1/chat/completions` and `/v1/models`.
   - [ ] Apply CORS and rate-limiting configurations for security.
 - [ ] **Universal Local Model Support for VS Code/Cline Integration** - **Priority: Critical, Timeline: Immediate**
+  - [x] GGUF format support (.gguf files) - Most common for quantized models
+    - Created GGUF loader in model_loaders/gguf_loader.py
+    - Integrated with IntegratedMLXManager
+    - Created GGUF inference engine with streaming support
   - [ ] Implement dynamic model format detection and loading system:
-    - [ ] GGUF format support (.gguf files) - Most common for quantized models
     - [ ] SafeTensors support (.safetensors) - Hugging Face standard format
     - [ ] MLX native format (.mlx, .npz) - Apple Silicon optimized
     - [ ] CoreML models (.mlmodel, .mlpackage) - iOS/macOS native
     - [ ] Foundation models - Direct Apple framework integration
     - [ ] PyTorch formats (.pt, .pth, .bin) - Standard deep learning format
     - [ ] ONNX format (.onnx) - Cross-platform compatibility
+  - [x] Create model download utilities
+    - Created model_downloader.py with HuggingFace integration
+    - Support for direct URL downloads
+    - Progress tracking and search functionality
   - [ ] Create unified model management interface:
     - [ ] Model browser UI with format filtering
-    - [ ] Download manager for Hugging Face models with progress tracking
     - [ ] Local file browser option for selecting models from disk
-    - [ ] URL/link input for direct model downloads
     - [ ] Automatic format conversion when needed (e.g., PyTorch to MLX)
   - [ ] Implement model discovery and cataloging:
     - [ ] Auto-scan common model directories
-    - [ ] Hugging Face model hub integration with search
     - [ ] Model metadata extraction (size, quantization, capabilities)
     - [ ] Model compatibility checking for VS Code extensions
-  - [ ] VS Code/Cline specific optimizations:
-    - [ ] Ensure streaming support for all model formats
+  - [x] VS Code/Cline specific optimizations:
+    - [x] Ensure streaming support for GGUF models
+    - [x] OpenAI-compatible chat completion format
     - [ ] Implement proper tokenization for each model type
     - [ ] Add model-specific prompt templates
     - [ ] Test with Cline, Continue.dev, and other popular extensions
