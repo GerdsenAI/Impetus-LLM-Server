@@ -15,7 +15,7 @@ These tasks address immediate issues preventing proper server initialization and
 
 This section marks the completion of the MVP, where a local model of any type can be loaded and accessed to code with Cline in VS Code or VS Codium through a taskbar Electron app called "Impetus". Completion of these tasks signifies the core functionality required for the initial usable product.
 
-**Current Progress**: ~50% complete (GGUF, SafeTensors, MLX working, need CoreML/PyTorch/ONNX + Electron app)
+**Current Progress**: ~65% complete (All 6 model formats implemented, need factory pattern + Electron app)
 
 - [ ] **Universal Local Model Support for VS Code/Cline Integration** - **Priority: Critical, Timeline: Immediate**
   - [x] GGUF format support (.gguf files) - Most common for quantized models
@@ -29,10 +29,17 @@ This section marks the completion of the MVP, where a local model of any type ca
     - [x] MLX native format (.mlx, .npz) - Apple Silicon optimized
       - Created MLXLoader with Metal GPU optimization
       - Device-specific optimization for M-series chips
-    - [ ] CoreML models (.mlmodel, .mlpackage) - iOS/macOS native
+    - [x] CoreML models (.mlmodel, .mlpackage) - iOS/macOS native
+      - Created CoreMLLoader with Neural Engine support
+      - Model type detection and platform compatibility
     - [ ] Foundation models - Direct Apple framework integration
-    - [ ] PyTorch formats (.pt, .pth, .bin) - Standard deep learning format
-    - [ ] ONNX format (.onnx) - Cross-platform compatibility
+    - [x] PyTorch formats (.pt, .pth, .bin) - Standard deep learning format
+      - Created PyTorchLoader with MPS (Metal Performance Shaders) support
+      - Architecture detection and device optimization
+    - [x] ONNX format (.onnx) - Cross-platform compatibility
+      - Created ONNXLoader with execution provider support
+      - Apple Silicon CoreML optimization when available
+      - Cross-platform support (Windows DirectML, NVIDIA CUDA)
   - [x] Create model download utilities
     - Created model_downloader.py with HuggingFace integration
     - Support for direct URL downloads

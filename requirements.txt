@@ -7,9 +7,12 @@ flask-sqlalchemy==3.1.1
 # Additional dependencies for AI model management
 torch==2.6.0
 numpy==1.26.4
+onnx==1.15.0
+onnxruntime==1.16.3
 
 # Dependencies for Apple Silicon optimization
 # Note: Ensure torch is built for Apple Silicon (M1/M2) compatibility
+# For Apple Silicon with CoreML support: pip install onnxruntime-silicon
 
 # Development and testing dependencies
 pytest==7.2.1

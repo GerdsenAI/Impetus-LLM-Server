@@ -21,7 +21,7 @@ from gerdsen_ai_server.src.enhanced_apple_silicon_detector import (
     EnhancedAppleSiliconDetector
 )
 from gerdsen_ai_server.src.dummy_model_loader import load_dummy_model, dummy_predict
-from gerdsen_ai_server.src.model_loaders import GGUFLoader, SafeTensorsLoader, MLXLoader, CoreMLLoader, PyTorchLoader
+from gerdsen_ai_server.src.model_loaders import GGUFLoader, SafeTensorsLoader, MLXLoader, CoreMLLoader, PyTorchLoader, ONNXLoader
 from gerdsen_ai_server.src.inference import GGUFInferenceEngine, GenerationConfig
 
 # MLX imports
@@ -119,6 +119,7 @@ class IntegratedMLXManager:
         self.mlx_loader = MLXLoader()
         self.coreml_loader = CoreMLLoader()
         self.pytorch_loader = PyTorchLoader()
+        self.onnx_loader = ONNXLoader()
         
         # Inference engines
         self.gguf_inference = GGUFInferenceEngine()
@@ -324,6 +325,36 @@ class IntegratedMLXManager:
                     
                 except Exception as e:
                     self.logger.error(f"Failed to load PyTorch model: {e}")
+                    return None
+                    
+            elif model_path.lower().endswith('.onnx'):
+                # Load ONNX model
+                try:
+                    model_info = self.onnx_loader.load_model(model_path)
+                    model_load_result = {
+                        "status": "loaded",
+                        "format": "onnx",
+                        "size_bytes": model_info['file_size'],
+                        "parameters": model_info.get('num_parameters', 0),
+                        "architecture": model_info['architecture'],
+                        "producer": model_info.get('producer_name', 'unknown'),
+                        "opset_version": model_info.get('opset_version', 0),
+                        "execution_providers": model_info.get('execution_providers', []),
+                        "capabilities": ["inference", "cross-platform"]
+                    }
+                    model_id = Path(model_path).stem
+                    self.model_cache[model_id] = {"path": model_path, "loader": "onnx", "data": model_info}
+                    
+                    # Optimize for available device
+                    if optimize_for_apple_silicon and 'CoreMLExecutionProvider' in model_info.get('available_providers', []):
+                        self.onnx_loader.optimize_for_device(model_id, 'coreml')
+                    elif 'CUDAExecutionProvider' in model_info.get('available_providers', []):
+                        self.onnx_loader.optimize_for_device(model_id, 'gpu')
+                    
+                    self.logger.info(f"ONNX model loaded successfully: {model_id}")
+                    
+                except Exception as e:
+                    self.logger.error(f"Failed to load ONNX model: {e}")
                     return None
                     
             else:
