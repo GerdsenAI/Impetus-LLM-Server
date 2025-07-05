@@ -1,5 +1,5 @@
 /**
- * Preload script for IMPETUS Electron app
+ * Preload script for Impetus Electron app
  * Exposes safe APIs to the renderer process
  */
 
@@ -37,7 +37,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 // Console logging for debugging
 window.addEventListener('DOMContentLoaded', () => {
-    console.log('IMPETUS Electron preload script loaded');
+    console.log('Impetus Electron preload script loaded');
     console.log('Electron version:', process.versions.electron);
     console.log('Node version:', process.versions.node);
     console.log('Chrome version:', process.versions.chrome);

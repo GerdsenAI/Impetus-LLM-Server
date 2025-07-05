@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "📦 Installing IMPETUS..."
-cp -r dist/mac-arm64/IMPETUS.app /Applications/
-echo "✅ IMPETUS installed to Applications!"
-echo "🚀 You can now launch IMPETUS from your Applications folder"
+echo "📦 Installing Impetus..."
+cp -r dist/mac-arm64/Impetus.app /Applications/
+echo "✅ Impetus installed to Applications!"
+echo "🚀 You can now launch Impetus from your Applications folder"

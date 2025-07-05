@@ -23,7 +23,7 @@
   },
   "build": {
     "appId": "com.gerdsenai.impetus",
-    "productName": "IMPETUS",
+    "productName": "Impetus",
     "directories": {
       "output": "dist"
     },
@@ -59,7 +59,7 @@
       "entitlementsInherit": "resources/entitlements.mac.plist"
     },
     "dmg": {
-      "title": "IMPETUS LLM Server",
+      "title": "Impetus LLM Server",
       "icon": "resources/icon.icns",
       "contents": [
         {

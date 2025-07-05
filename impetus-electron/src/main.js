@@ -261,7 +261,7 @@ class ImpetusApp {
     updateTrayTooltip() {
         const status = this.serverStatus === 'running' ? '🟢' : '🔴';
         const models = this.loadedModels.length;
-        this.tray.setToolTip(`IMPETUS ${status} | ${models} models loaded`);
+        this.tray.setToolTip(`Impetus ${status} | ${models} models loaded`);
     }
     
     showWindow() {
@@ -288,7 +288,7 @@ class ImpetusApp {
     
     async startServer() {
         try {
-            console.log('Starting IMPETUS server...');
+            console.log('Starting Impetus server...');
             
             // Get paths to Python and server
             const pythonPath = this.getPythonPath();
@@ -335,7 +335,7 @@ class ImpetusApp {
     
     async stopServer() {
         if (this.serverProcess) {
-            console.log('Stopping IMPETUS server...');
+            console.log('Stopping Impetus server...');
             this.serverProcess.kill('SIGTERM');
             this.serverProcess = null;
             this.serverStatus = 'stopped';

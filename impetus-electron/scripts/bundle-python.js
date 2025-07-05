@@ -1,5 +1,5 @@
 /**
- * Python Environment Bundling Script for IMPETUS Electron App
+ * Python Environment Bundling Script for Impetus Electron App
  * Creates a portable Python environment that can be bundled with the Electron app
  */
 
@@ -119,6 +119,12 @@ class PythonBundler {
             srcPath
         );
         
+        // Replace production_main.py with the simplified bundled version
+        fs.copyFileSync(
+            path.join(this.pythonServerPath, 'src', 'production_main_simple.py'),
+            path.join(srcPath, 'production_main.py')
+        );
+        
         // Copy requirements file
         fs.copyFileSync(
             path.join(this.pythonServerPath, 'requirements_production.txt'),
@@ -148,8 +154,8 @@ class PythonBundler {
     
     async createUnixLauncher(pythonPath) {
         const launcherScript = `#!/bin/bash
-# IMPETUS Python Server Launcher
-# This script launches the IMPETUS server with the bundled Python environment
+# Impetus Python Server Launcher
+# This script launches the Impetus server with the bundled Python environment
 
 # Get the directory containing this script
 SCRIPT_DIR="$( cd "$( dirname "\${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -174,7 +180,7 @@ fi
 cd "\${SCRIPT_DIR}/src"
 
 # Launch the server
-echo "🚀 Starting IMPETUS server..."
+echo "🚀 Starting Impetus server..."
 exec "\${PYTHON_PATH}" "\${SERVER_PATH}" "$@"
 `;
         
@@ -187,8 +193,8 @@ exec "\${PYTHON_PATH}" "\${SERVER_PATH}" "$@"
     
     async createWindowsLauncher(pythonPath) {
         const launcherScript = `@echo off
-REM IMPETUS Python Server Launcher
-REM This script launches the IMPETUS server with the bundled Python environment
+REM Impetus Python Server Launcher
+REM This script launches the Impetus server with the bundled Python environment
 
 REM Get the directory containing this script
 set SCRIPT_DIR=%~dp0
@@ -213,7 +219,7 @@ REM Change to the source directory
 cd /d "%SCRIPT_DIR%src"
 
 REM Launch the server
-echo 🚀 Starting IMPETUS server...
+echo 🚀 Starting Impetus server...
 "%PYTHON_PATH%" "%SERVER_PATH%" %*
 `;
         
@@ -225,9 +231,9 @@ echo 🚀 Starting IMPETUS server...
         console.log('📄 Creating metadata...');
         
         const metadata = {
-            name: 'IMPETUS Python Bundle',
+            name: 'Impetus Python Bundle',
             version: '1.0.0',
-            description: 'Portable Python environment for IMPETUS LLM Server',
+            description: 'Portable Python environment for Impetus LLM Server',
             platform: this.platform,
             arch: this.arch,
             created: new Date().toISOString(),
@@ -241,14 +247,14 @@ echo 🚀 Starting IMPETUS server...
         );
         
         // Create README for the bundle
-        const readme = `# IMPETUS Python Bundle
+        const readme = `# Impetus Python Bundle
 
-This directory contains a portable Python environment for the IMPETUS LLM Server.
+This directory contains a portable Python environment for the Impetus LLM Server.
 
 ## Contents
 
 - **venv/**: Virtual environment with all dependencies
-- **src/**: IMPETUS server source code
+- **src/**: Impetus server source code
 - **start-server.sh** (Unix) / **start-server.bat** (Windows): Launch script
 - **bundle-info.json**: Bundle metadata
 

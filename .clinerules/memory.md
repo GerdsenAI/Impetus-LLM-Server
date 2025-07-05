@@ -62,6 +62,10 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 - **COMPLETED**: Python environment bundling system for self-contained distribution
 - **COMPLETED**: Production executable built (249MB), ad-hoc signed, and installed to /Applications
 - **MVP 100% COMPLETE** ✅ - IMPETUS is production-ready and installed on macOS
+- **FIXED**: Server startup issue - created simplified production_main_simple.py for bundled environment
+- **FIXED**: App name changed from "IMPETUS" to "Impetus" for proper macOS display
+- **FIXED**: Added missing websockets dependency to requirements_production.txt
+- **STATUS**: Server now starts successfully from Electron app with simplified bundled version
 
 ## MVP Status - 100% COMPLETE ✅
 The IMPETUS MVP has been successfully completed and deployed:

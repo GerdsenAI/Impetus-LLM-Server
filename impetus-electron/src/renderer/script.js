@@ -1,5 +1,5 @@
 /**
- * IMPETUS Electron App - Renderer Script
+ * Impetus Electron App - Renderer Script
  * Handles UI interactions and communicates with main process
  */
 
@@ -21,7 +21,7 @@ class ImpetusRenderer {
         // Start periodic status updates
         this.startPeriodicUpdates();
         
-        console.log('IMPETUS Renderer initialized');
+        console.log('Impetus Renderer initialized');
     }
     
     setupEventListeners() {
@@ -168,11 +168,11 @@ class ImpetusRenderer {
     }
     
     async startServer() {
-        this.showLoading('Starting IMPETUS server...');
+        this.showLoading('Starting Impetus server...');
         
         try {
             await window.electronAPI.startServer();
-            this.showNotification('IMPETUS', 'Server is starting...');
+            this.showNotification('Impetus', 'Server is starting...');
             
             // Wait a moment then refresh status
             setTimeout(() => {
@@ -192,7 +192,7 @@ class ImpetusRenderer {
         
         try {
             await window.electronAPI.stopServer();
-            this.showNotification('IMPETUS', 'Server stopped');
+            this.showNotification('Impetus', 'Server stopped');
             this.refreshStatus();
             
         } catch (error) {
@@ -208,7 +208,7 @@ class ImpetusRenderer {
         
         try {
             await window.electronAPI.switchModel(modelId);
-            this.showNotification('IMPETUS', `Switched to model: ${modelId}`);
+            this.showNotification('Impetus', `Switched to model: ${modelId}`);
             this.refreshStatus();
             
         } catch (error) {
@@ -263,7 +263,7 @@ class ImpetusRenderer {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.innerHTML = `
-            <div style="font-weight: 600; margin-bottom: 4px;">IMPETUS</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">Impetus</div>
             <div>${message}</div>
         `;
         
@@ -311,7 +311,7 @@ function testConnection() {
 }
 
 function showAbout() {
-    alert(`IMPETUS - Intelligent Model Platform Enabling Taskbar Unified Server
+    alert(`Impetus - Intelligent Model Platform Enabling Taskbar Unified Server
     
 Version: 1.0.0
 Platform: ${window.electronAPI.getPlatform()}
