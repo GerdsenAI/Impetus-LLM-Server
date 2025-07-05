@@ -60,6 +60,9 @@ lerna-debug.*
 *.jshintrc
 *.eslintcache
 *.stylelintcache
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # macOS
 .DS_Store
