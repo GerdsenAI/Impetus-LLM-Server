@@ -154,10 +154,11 @@ The server dynamically detects and loads models in any of these formats:
 6. **ONNX** (.onnx) - Cross-platform compatibility
 
 ### Model Sources
-- **Local Files**: Drag & drop or browse
+- **Local Files**: Drag & drop or browse from ~/Models directory
 - **Hugging Face Hub**: Search and download with progress tracking
 - **Direct URLs**: Paste any model download link
-- **Auto-Discovery**: Scans common directories (~/.cache/huggingface, etc.)
+- **Auto-Discovery**: Scans ~/Models and legacy directories
+- **Ollama Models**: Export from Ollama and place in ~/Models/GGUF/chat/
 
 ## Model Management UI
 A React-based interface for effortless model management:
@@ -198,6 +199,9 @@ A React-based interface for effortless model management:
 - `GET /api/models/status` - Real-time performance metrics
 - `POST /api/models/upload` - Add new models via API
 - `GET /api/system/optimization` - Apple Silicon tuning status
+- `GET /api/models/scan` - Scan ~/Models for available models
+- `POST /api/models/load-from-path` - Load model from specific path
+- `GET /api/models/directory` - Get user's model directory info
 
 ## Quick Start Workflow
 
@@ -214,15 +218,43 @@ A React-based interface for effortless model management:
    - Server runs at http://localhost:8080
 
 3. **Add a Model** (Choose one):
-   - Select "Manage Models" from menu bar
-   - Drag & drop any supported format (GGUF, SafeTensors, MLX, etc.)
-   - Or use "Download Models" to get from Hugging Face
+   - Select "Open Models Directory" from menu bar
+   - Place models in appropriate format/capability folder:
+     - GGUF models → ~/Models/GGUF/chat/
+     - SafeTensors → ~/Models/SafeTensors/chat/
+     - MLX models → ~/Models/MLX/chat/
+   - Select "Scan for Models" to detect new models
+   - Or use download script: `python3 scripts/download_example_model.py`
 
 4. **Configure VS Code**
    - Install Cline extension
    - Set API base URL to http://localhost:8080
    - Select model from IMPETUS menu bar
    - Start coding with local AI
+
+### Testing with Ollama Models
+
+To test with `qwen2.5-coder:32b-instruct-q4_0` from Ollama:
+
+1. **Export from Ollama** (if you have it in Ollama):
+   ```bash
+   # Find the model file location
+   find ~/.ollama -name "*qwen2.5-coder*" -type f
+   
+   # Copy to IMPETUS models directory
+   cp ~/.ollama/models/blobs/sha256-* ~/Models/GGUF/chat/qwen2.5-coder-32b-instruct-q4_0.gguf
+   ```
+
+2. **Or download directly**:
+   ```bash
+   # Download from Hugging Face or model repository
+   # Place in ~/Models/GGUF/chat/
+   ```
+
+3. **Load in IMPETUS**:
+   - Click "Scan for Models" in menu bar
+   - Select the model from the Models menu
+   - Test with VS Code/Cline
 
 ### For Development (Manual Setup)
 1. **Set Up Virtual Environment & Install Dependencies**
@@ -619,16 +651,33 @@ Now that MVP is 100% complete, agents should follow this workflow:
    - Context window optimization
 
 ### 3. Testing with Real Models
-- Download actual GGUF/SafeTensors models
+- Download actual GGUF/SafeTensors models to ~/Models/
 - Test model switching and hot-swapping
 - Verify Cline integration with real models
 - Performance benchmarking
 
-### 4. Important Notes
+### 4. Model Directory Structure
+All models are stored in `~/Models/` with this structure:
+```
+~/Models/
+├── GGUF/          # Best for quantized models (Ollama exports)
+│   ├── chat/      # qwen2.5-coder, Code Llama, etc.
+│   ├── completion/
+│   └── embedding/
+├── SafeTensors/   # Hugging Face models
+├── MLX/           # Apple Silicon optimized
+├── CoreML/        # iOS/macOS native
+├── PyTorch/       # Standard PyTorch
+├── ONNX/          # Cross-platform
+└── Downloads/     # Temporary downloads
+```
+
+### 5. Important Notes
 - IMPETUS is already built and installed at /Applications/IMPETUS.app
 - Server management works from the menubar
 - All 6 model formats are fully supported
-- Focus on enhancements, not core functionality
+- Models go in ~/Models/ (dynamically uses current user's home)
+- Use "Open Models Directory" from menu bar to access
 
 ## Future Enhancements
 - **Model Management UI**: Visual interface for model library
