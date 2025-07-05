@@ -11,70 +11,10 @@ These tasks address immediate issues preventing proper server initialization and
   - Change `AppleFrameworksIntegration()` to `EnhancedAppleFrameworksIntegration()`
   - This is preventing the server from starting properly
 
-## Development Workflow Updates (High Priority)
+## MVP (Minimum Viable Product) - Load Local Model and Use with Cline
 
-Tasks to improve AI agent workflow and development procedures.
+This section marks the completion of the MVP, where a local model of any type can be loaded and accessed to code with Cline in VS Code or VS Codium. Completion of these tasks signifies the core functionality required for the initial usable product.
 
-- [x] **Update Commit Procedures** - **Priority: Critical, Timeline: Immediate**
-  - Added commit procedures section to development_rules.md
-  - Requirement to update TODO.md before every commit
-  - Clear workflow: implement → test → update TODO → commit → continue
-  
-- [x] **Enable Autonomous Agent Operation** - **Priority: Critical, Timeline: Immediate**
-  - Updated ai.md with autonomous operation guidelines
-  - Added "NO PERMISSION REQUESTS" policy to all documentation
-  - Updated memory.md with autonomous operation section
-  - Updated CLAUDE.md with autonomous mode instructions
-
-- [x] **Ensure Multi-Agent Compatibility** - **Priority: Critical, Timeline: Immediate**
-  - Updated MCP configuration for universal agent usage
-  - Replaced Claude-specific examples with agent-agnostic ones
-  - Ensured all documentation works for Claude, Gemini, and other agents
-
-- [x] **Create Commit Checklist** - **Priority: High, Timeline: Immediate**
-  - Created .clinerules/commit_checklist.md
-  - Comprehensive pre-commit checklist for all agents
-  - Examples and quick reference for consistent commits
-
-## VS Code/Cline Integration Requirements (Critical Priority)
-
-These tasks ensure seamless integration with VS Code AI extensions, particularly Cline.
-
-- [ ] **Model Format Support Infrastructure** - **Priority: Critical, Timeline: Immediate**
-  - [ ] Create model loader factory pattern to handle all formats dynamically
-  - [ ] Implement format-specific loaders inheriting from base loader class
-  - [ ] Add model format validation and compatibility checking
-  - [ ] Create unified inference interface regardless of underlying format
-
-- [ ] **Model Management UI** - **Priority: Critical, Timeline: Sprint 1**
-  - [ ] Design React component for model selection and management
-  - [ ] Implement drag-and-drop model upload functionality
-  - [ ] Add Hugging Face model search and download interface
-  - [ ] Create model library view with filtering by format, size, and capability
-  - [ ] Add real-time download progress and model conversion status
-
-- [ ] **OpenAI API Enhancement for Model Switching** - **Priority: Critical, Timeline: Sprint 1**
-  - [ ] Extend `/v1/models` endpoint to return all loaded models with metadata
-  - [ ] Add model parameter validation in chat/completion endpoints
-  - [ ] Implement dynamic model switching without server restart
-  - [ ] Add model-specific configuration (context length, tokens/sec, etc.)
-  - [ ] Ensure proper error handling for unsupported model requests
-
-## Development Tasks
-
-These tasks focus on implementing upcoming features as outlined in the project's roadmap. Priorities and timelines are set to focus on immediate needs first.
-
-- [x] **Multi-Model Support (Initial Setup)**: Basic structure for loading and running multiple models simultaneously has been implemented in `src/models/multi_model_manager.py`.
-- [x] **Model Configuration System**: Models are now loaded from configuration files in the `config/models` directory.
-- [x] **Database Integration**: The server is now connected to a SQLite database for model management.
-- [ ] **Multi-Model Support (Integration)** - **Priority: High, Timeline: Next 1-2 Sprints**
-  - [ ] Review existing structure in `src/models/multi_model_manager.py` for current implementation.
-  - [ ] Integrate AI models like Llama and Mistral into `MultiModelManager` for seamless operation.
-  - [ ] Ensure compatibility with Apple Silicon optimization practices.
-- [ ] **Multi-Model Support (API Endpoints)** - **Priority: High, Timeline: Next 1-2 Sprints**
-  - [ ] Develop FastAPI endpoints in `src/main.py` for dynamic model interaction.
-  - [ ] Implement endpoints for model selection and switching under `/v1/chat/completions` and `/v1/models`.
-  - [ ] Apply CORS and rate-limiting configurations for security.
 - [ ] **Universal Local Model Support for VS Code/Cline Integration** - **Priority: Critical, Timeline: Immediate**
   - [x] GGUF format support (.gguf files) - Most common for quantized models
     - Created GGUF loader in model_loaders/gguf_loader.py
@@ -107,6 +47,74 @@ These tasks focus on implementing upcoming features as outlined in the project's
     - [ ] Test with Cline, Continue.dev, and other popular extensions
   - [ ] Create model switching API endpoint for dynamic selection
   - [ ] Initialize models on server startup with Apple Silicon optimization
+- [ ] **Model Format Support Infrastructure** - **Priority: Critical, Timeline: Immediate**
+  - [ ] Create model loader factory pattern to handle all formats dynamically
+  - [ ] Implement format-specific loaders inheriting from base loader class
+  - [ ] Add model format validation and compatibility checking
+  - [ ] Create unified inference interface regardless of underlying format
+- [ ] **OpenAI API Enhancement for Model Switching** - **Priority: Critical, Timeline: Sprint 1**
+  - [ ] Extend `/v1/models` endpoint to return all loaded models with metadata
+  - [ ] Add model parameter validation in chat/completion endpoints
+  - [ ] Implement dynamic model switching without server restart
+  - [ ] Add model-specific configuration (context length, tokens/sec, etc.)
+  - [ ] Ensure proper error handling for unsupported model requests
+- [ ] **Server Initialization Testing** - **Priority: Critical, Timeline: Immediate**
+  - [x] Verify server starts without errors after bug fixes.
+  - [x] Confirm all models load successfully during initialization.
+  - [x] Test each API endpoint to ensure they return meaningful responses.
+  - [ ] Validate Apple Silicon optimizations are applied correctly.
+
+## VS Code/Cline Integration Requirements (Post-MVP)
+
+These tasks enhance the integration with VS Code AI extensions beyond the MVP.
+
+- [ ] **Model Management UI** - **Priority: Critical, Timeline: Sprint 1**
+  - [ ] Design React component for model selection and management
+  - [ ] Implement drag-and-drop model upload functionality
+  - [ ] Add Hugging Face model search and download interface
+  - [ ] Create model library view with filtering by format, size, and capability
+  - [ ] Add real-time download progress and model conversion status
+
+## Development Workflow Updates (High Priority)
+
+Tasks to improve AI agent workflow and development procedures.
+
+- [x] **Update Commit Procedures** - **Priority: Critical, Timeline: Immediate**
+  - Added commit procedures section to development_rules.md
+  - Requirement to update TODO.md before every commit
+  - Clear workflow: implement → test → update TODO → commit → continue
+  
+- [x] **Enable Autonomous Agent Operation** - **Priority: Critical, Timeline: Immediate**
+  - Updated ai.md with autonomous operation guidelines
+  - Added "NO PERMISSION REQUESTS" policy to all documentation
+  - Updated memory.md with autonomous operation section
+  - Updated CLAUDE.md with autonomous mode instructions
+
+- [x] **Ensure Multi-Agent Compatibility** - **Priority: Critical, Timeline: Immediate**
+  - Updated MCP configuration for universal agent usage
+  - Replaced Claude-specific examples with agent-agnostic ones
+  - Ensured all documentation works for Claude, Gemini, and other agents
+
+- [x] **Create Commit Checklist** - **Priority: High, Timeline: Immediate**
+  - Created .clinerules/commit_checklist.md
+  - Comprehensive pre-commit checklist for all agents
+  - Examples and quick reference for consistent commits
+
+## Development Tasks
+
+These tasks focus on implementing upcoming features as outlined in the project's roadmap. Priorities and timelines are set to focus on immediate needs first.
+
+- [x] **Multi-Model Support (Initial Setup)**: Basic structure for loading and running multiple models simultaneously has been implemented in `src/models/multi_model_manager.py`.
+- [x] **Model Configuration System**: Models are now loaded from configuration files in the `config/models` directory.
+- [x] **Database Integration**: The server is now connected to a SQLite database for model management.
+- [ ] **Multi-Model Support (Integration)** - **Priority: High, Timeline: Next 1-2 Sprints**
+  - [ ] Review existing structure in `src/models/multi_model_manager.py` for current implementation.
+  - [ ] Integrate AI models like Llama and Mistral into `MultiModelManager` for seamless operation.
+  - [ ] Ensure compatibility with Apple Silicon optimization practices.
+- [ ] **Multi-Model Support (API Endpoints)** - **Priority: High, Timeline: Next 1-2 Sprints**
+  - [ ] Develop FastAPI endpoints in `src/main.py` for dynamic model interaction.
+  - [ ] Implement endpoints for model selection and switching under `/v1/chat/completions` and `/v1/models`.
+  - [ ] Apply CORS and rate-limiting configurations for security.
 - [x] **API Response Implementation** - **Priority: High, Timeline: Next Sprint**
   - [x] Replace placeholder responses in `/v1/chat/completions` with actual model outputs.
     - Integrated GGUF inference engine with IntegratedMLXManager
@@ -130,15 +138,9 @@ These tasks focus on implementing upcoming features as outlined in the project's
   - [ ] Design extensible architecture for third-party integrations.
   - [ ] Document plugin system for community contributions.
 
-## Testing and Validation
+## Testing and Validation (Post-MVP)
 
-These tasks ensure the stability and functionality of the server after critical fixes and implementations.
-
-- [ ] **Server Initialization Testing** - **Priority: Critical, Timeline: Immediate**
-  - [x] Verify server starts without errors after bug fixes.
-  - [x] Confirm all models load successfully during initialization.
-  - [x] Test each API endpoint to ensure they return meaningful responses.
-  - [ ] Validate Apple Silicon optimizations are applied correctly.
+These tasks ensure the stability and functionality of the server after critical fixes and implementations beyond the MVP.
 
 ## Documentation Tasks
 
@@ -167,3 +169,5 @@ These tasks encourage community involvement and streamline contribution processe
 ---
 
 **Note**: This todo list is a living document and should be updated as tasks are completed or new priorities emerge. Timelines and priorities are based on the current project roadmap and may be adjusted based on feedback or changing requirements.
+
+**Additional Note**: The tasks have been reordered to prioritize critical bug fixes and the MVP section at the top, focusing on loading local models and enabling Cline integration in VS Code or VS Codium. Subsequent sections cover post-MVP enhancements, development workflow updates, further development tasks, testing, documentation, and community engagement, aligning with the project roadmap phases outlined in `ai.md`.
