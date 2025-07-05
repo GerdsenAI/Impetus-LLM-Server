@@ -15,7 +15,7 @@ These tasks address immediate issues preventing proper server initialization and
 
 This section marks the completion of the MVP, where a local model of any type can be loaded and accessed to code with Cline in VS Code or VS Codium through a taskbar Electron app called "Impetus". Completion of these tasks signifies the core functionality required for the initial usable product.
 
-**Current Progress**: ~40% complete (GGUF working, other formats and Electron app needed)
+**Current Progress**: ~50% complete (GGUF, SafeTensors, MLX working, need CoreML/PyTorch/ONNX + Electron app)
 
 - [ ] **Universal Local Model Support for VS Code/Cline Integration** - **Priority: Critical, Timeline: Immediate**
   - [x] GGUF format support (.gguf files) - Most common for quantized models
@@ -23,8 +23,12 @@ This section marks the completion of the MVP, where a local model of any type ca
     - Integrated with IntegratedMLXManager
     - Created GGUF inference engine with streaming support
   - [ ] Implement dynamic model format detection and loading system:
-    - [ ] SafeTensors support (.safetensors) - Hugging Face standard format
-    - [ ] MLX native format (.mlx, .npz) - Apple Silicon optimized
+    - [x] SafeTensors support (.safetensors) - Hugging Face standard format
+      - Created SafeTensorsLoader with automatic architecture detection
+      - Full integration with IntegratedMLXManager
+    - [x] MLX native format (.mlx, .npz) - Apple Silicon optimized
+      - Created MLXLoader with Metal GPU optimization
+      - Device-specific optimization for M-series chips
     - [ ] CoreML models (.mlmodel, .mlpackage) - iOS/macOS native
     - [ ] Foundation models - Direct Apple framework integration
     - [ ] PyTorch formats (.pt, .pth, .bin) - Standard deep learning format

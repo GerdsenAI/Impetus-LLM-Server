@@ -21,7 +21,7 @@ from gerdsen_ai_server.src.enhanced_apple_silicon_detector import (
     EnhancedAppleSiliconDetector
 )
 from gerdsen_ai_server.src.dummy_model_loader import load_dummy_model, dummy_predict
-from gerdsen_ai_server.src.model_loaders import GGUFLoader, SafeTensorsLoader, MLXLoader
+from gerdsen_ai_server.src.model_loaders import GGUFLoader, SafeTensorsLoader, MLXLoader, CoreMLLoader
 from gerdsen_ai_server.src.inference import GGUFInferenceEngine, GenerationConfig
 
 # MLX imports
@@ -117,6 +117,7 @@ class IntegratedMLXManager:
         self.gguf_loader = GGUFLoader()
         self.safetensors_loader = SafeTensorsLoader()
         self.mlx_loader = MLXLoader()
+        self.coreml_loader = CoreMLLoader()
         
         # Inference engines
         self.gguf_inference = GGUFInferenceEngine()
@@ -266,6 +267,35 @@ class IntegratedMLXManager:
                     
                 except Exception as e:
                     self.logger.error(f"Failed to load MLX model: {e}")
+                    return None
+                    
+            elif model_path.lower().endswith(('.mlmodel', '.mlpackage')):
+                # Load CoreML model
+                try:
+                    model_info = self.coreml_loader.load_model(model_path)
+                    model_load_result = {
+                        "status": "loaded",
+                        "format": "coreml",
+                        "size_bytes": model_info['file_size'],
+                        "model_type": model_info['model_type'],
+                        "inputs": model_info['inputs'],
+                        "outputs": model_info['outputs'],
+                        "compute_units": model_info['compute_units'],
+                        "capabilities": ["inference", "ios-compatible", "macos-compatible"]
+                    }
+                    model_id = Path(model_path).stem
+                    self.model_cache[model_id] = {"path": model_path, "loader": "coreml", "data": model_info}
+                    
+                    # Optimize for available compute units
+                    if optimize_for_apple_silicon and 'neural_engine' in model_info['compute_units']:
+                        self.coreml_loader.optimize_for_device(model_id, 'NEURAL_ENGINE')
+                    elif 'gpu' in model_info['compute_units']:
+                        self.coreml_loader.optimize_for_device(model_id, 'GPU')
+                    
+                    self.logger.info(f"CoreML model loaded successfully: {model_id}")
+                    
+                except Exception as e:
+                    self.logger.error(f"Failed to load CoreML model: {e}")
                     return None
                     
             else:
