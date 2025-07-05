@@ -25,7 +25,10 @@ from gerdsen_ai_server.src.model_loaders import (
     GGUFLoader, SafeTensorsLoader, MLXLoader, CoreMLLoader, PyTorchLoader, ONNXLoader,
     ModelLoaderFactory, ModelFormat as LoaderModelFormat
 )
-from gerdsen_ai_server.src.inference import GGUFInferenceEngine, GenerationConfig
+from gerdsen_ai_server.src.inference import (
+    GGUFInferenceEngine, GenerationConfig, 
+    UnifiedInferenceEngine, get_unified_inference_engine
+)
 
 # MLX imports
 try:
@@ -127,7 +130,10 @@ class IntegratedMLXManager:
         self.pytorch_loader = self.model_factory.create_loader(LoaderModelFormat.PYTORCH)
         self.onnx_loader = self.model_factory.create_loader(LoaderModelFormat.ONNX)
         
-        # Inference engines
+        # Unified inference engine for all model formats
+        self.inference_engine = get_unified_inference_engine()
+        
+        # Keep legacy GGUF inference for backwards compatibility
         self.gguf_inference = GGUFInferenceEngine()
         
         # Configuration
@@ -210,9 +216,9 @@ class IntegratedMLXManager:
                     model_id = model_data['id']
                     self.model_cache[model_id] = {"path": model_path, "loader": "gguf", "data": model_data}
                     
-                    # Load model into inference engine
-                    inference_success = self.gguf_inference.load_model_for_inference(
-                        model_id, model_path, model_data['info'].__dict__
+                    # Load model into unified inference engine
+                    inference_success = self.inference_engine.load_model_for_inference(
+                        model_id, model_path, model_data['info'].__dict__, "gguf"
                     )
                     if not inference_success:
                         self.logger.error(f"Failed to load GGUF model into inference engine")
@@ -238,7 +244,14 @@ class IntegratedMLXManager:
                     model_id = Path(model_path).stem
                     self.model_cache[model_id] = {"path": model_path, "loader": "safetensors", "data": model_info}
                     
-                    # TODO: Implement SafeTensors inference engine
+                    # Load model into unified inference engine
+                    inference_success = self.inference_engine.load_model_for_inference(
+                        model_id, model_path, model_info, "safetensors"
+                    )
+                    if not inference_success:
+                        self.logger.error(f"Failed to load SafeTensors model into inference engine")
+                        return None
+                    
                     self.logger.info(f"SafeTensors model loaded successfully: {model_id}")
                     
                 except Exception as e:
@@ -271,6 +284,14 @@ class IntegratedMLXManager:
                         }
                         self.mlx_loader.optimize_for_device(model_id, device_profile)
                     
+                    # Load model into unified inference engine
+                    inference_success = self.inference_engine.load_model_for_inference(
+                        model_id, model_path, model_info, "mlx"
+                    )
+                    if not inference_success:
+                        self.logger.error(f"Failed to load MLX model into inference engine")
+                        return None
+                    
                     self.logger.info(f"MLX model loaded successfully: {model_id}")
                     
                 except Exception as e:
@@ -300,6 +321,14 @@ class IntegratedMLXManager:
                     elif 'gpu' in model_info['compute_units']:
                         self.coreml_loader.optimize_for_device(model_id, 'GPU')
                     
+                    # Load model into unified inference engine
+                    inference_success = self.inference_engine.load_model_for_inference(
+                        model_id, model_path, model_info, "coreml"
+                    )
+                    if not inference_success:
+                        self.logger.error(f"Failed to load CoreML model into inference engine")
+                        return None
+                    
                     self.logger.info(f"CoreML model loaded successfully: {model_id}")
                     
                 except Exception as e:
@@ -326,6 +355,14 @@ class IntegratedMLXManager:
                     # Optimize for available device
                     if optimize_for_apple_silicon:
                         self.pytorch_loader.optimize_for_device(model_id, 'mps')  # Metal Performance Shaders
+                    
+                    # Load model into unified inference engine
+                    inference_success = self.inference_engine.load_model_for_inference(
+                        model_id, model_path, model_info, "pytorch"
+                    )
+                    if not inference_success:
+                        self.logger.error(f"Failed to load PyTorch model into inference engine")
+                        return None
                     
                     self.logger.info(f"PyTorch model loaded successfully: {model_id}")
                     
@@ -356,6 +393,14 @@ class IntegratedMLXManager:
                         self.onnx_loader.optimize_for_device(model_id, 'coreml')
                     elif 'CUDAExecutionProvider' in model_info.get('available_providers', []):
                         self.onnx_loader.optimize_for_device(model_id, 'gpu')
+                    
+                    # Load model into unified inference engine
+                    inference_success = self.inference_engine.load_model_for_inference(
+                        model_id, model_path, model_info, "onnx"
+                    )
+                    if not inference_success:
+                        self.logger.error(f"Failed to load ONNX model into inference engine")
+                        return None
                     
                     self.logger.info(f"ONNX model loaded successfully: {model_id}")
                     
@@ -531,10 +576,13 @@ class IntegratedMLXManager:
             # Check system state and adjust if needed
             self._adjust_for_system_state(model_id)
             
-            # Check if this is a GGUF model and handle accordingly
+            # Use unified inference engine for all model formats
             cache_data = self.model_cache.get(model_id, {})
-            if cache_data.get("loader") == "gguf":
-                # Use GGUF inference engine for chat/completions
+            model_format = cache_data.get("loader")
+            
+            # Check if model is loaded in unified inference engine
+            if model_id in self.inference_engine.get_all_loaded_models():
+                
                 if "messages" in input_data:
                     # Chat completion request
                     messages = input_data.get("messages", [])
@@ -548,8 +596,8 @@ class IntegratedMLXManager:
                         stream=stream
                     )
                     
-                    # Generate response
-                    response = self.gguf_inference.create_chat_completion(
+                    # Generate response using unified inference engine
+                    response = self.inference_engine.create_chat_completion(
                         model_id, messages, config, stream
                     )
                     
@@ -574,7 +622,7 @@ class IntegratedMLXManager:
                         top_p=kwargs.get("top_p", 0.9)
                     )
                     
-                    result = self.gguf_inference.generate(model_id, prompt, config)
+                    result = self.inference_engine.generate(model_id, prompt, config)
                     
                     return {
                         'text': result.text,
@@ -583,7 +631,7 @@ class IntegratedMLXManager:
                         'total_tokens': len(prompt.split()) + result.tokens_generated
                     }
             
-            # Fall back to dummy predict for non-GGUF models
+            # Fall back to dummy predict for models not in unified inference engine
             start_time = time.time()
             result = dummy_predict(input_data)
             inference_time = (time.time() - start_time) * 1000  # Convert to ms
@@ -891,21 +939,38 @@ class IntegratedMLXManager:
             if model_id not in self.models:
                 return False
             
-            # Check if it's a GGUF model
+            # Unload from unified inference engine and appropriate loader
             cache_data = self.model_cache.get(model_id, {})
-            if cache_data.get("loader") == "gguf":
-                # Unload GGUF model from both loader and inference engine
+            loader_type = cache_data.get("loader")
+            
+            # Unload from unified inference engine
+            inference_success = self.inference_engine.unload_model(model_id)
+            
+            # Unload from appropriate loader
+            loader_success = False
+            if loader_type == "gguf":
                 loader_success = self.gguf_loader.unload_model(model_id)
-                inference_success = self.gguf_inference.unload_model(model_id)
-                success = loader_success and inference_success
+            elif loader_type == "safetensors":
+                loader_success = self.safetensors_loader.unload_model(model_id)
+            elif loader_type == "mlx":
+                loader_success = self.mlx_loader.unload_model(model_id)
+            elif loader_type == "coreml":
+                loader_success = self.coreml_loader.unload_model(model_id)
+            elif loader_type == "pytorch":
+                loader_success = self.pytorch_loader.unload_model(model_id)
+            elif loader_type == "onnx":
+                loader_success = self.onnx_loader.unload_model(model_id)
             else:
-                # Unload from Apple frameworks
-                success = False
+                # For legacy Apple frameworks or dummy models
                 if model_id in self.apple_frameworks.coreml_manager.models:
-                    success = self.apple_frameworks.coreml_manager.unload_model(model_id)
+                    loader_success = self.apple_frameworks.coreml_manager.unload_model(model_id)
                 elif model_id in self.apple_frameworks.mlx_manager.models:
                     del self.apple_frameworks.mlx_manager.models[model_id]
-                    success = True
+                    loader_success = True
+                else:
+                    loader_success = True  # For dummy models
+            
+            success = inference_success or loader_success  # Success if either succeeds
             
             if success:
                 # Remove from our tracking
@@ -955,6 +1020,96 @@ class IntegratedMLXManager:
                 'compute_device': model_info.compute_device.value
             }
         return loaded_models
+    
+    # Unified Inference Engine Methods
+    def get_unified_inference_stats(self) -> Dict[str, Any]:
+        """Get statistics from the unified inference engine"""
+        return {
+            'loaded_models': self.inference_engine.get_loaded_models(),
+            'format_statistics': self.inference_engine.get_format_statistics(),
+            'supported_formats': self.inference_engine.get_supported_formats(),
+            'total_models': len(self.inference_engine.get_all_loaded_models())
+        }
+    
+    def generate_text(self, model_id: str, prompt: str, **kwargs) -> Dict[str, Any]:
+        """
+        Generate text using any loaded model format through unified inference
+        
+        Args:
+            model_id: ID of the model to use
+            prompt: Input text prompt
+            **kwargs: Generation parameters (max_tokens, temperature, top_p, etc.)
+            
+        Returns:
+            Dict with generated text and metadata
+        """
+        try:
+            config = GenerationConfig(
+                max_tokens=kwargs.get("max_tokens", 512),
+                temperature=kwargs.get("temperature", 0.7),
+                top_p=kwargs.get("top_p", 0.9)
+            )
+            
+            result = self.inference_engine.generate(model_id, prompt, config)
+            
+            return {
+                'text': result.text,
+                'tokens_generated': result.tokens_generated,
+                'time_taken': result.time_taken,
+                'tokens_per_second': result.tokens_per_second,
+                'finish_reason': result.finish_reason,
+                'model_format': self.inference_engine.get_model_format(model_id)
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Text generation failed: {e}")
+            return {'error': str(e)}
+    
+    def create_chat_completion_unified(self, model_id: str, messages: List[Dict[str, str]], **kwargs) -> Dict[str, Any]:
+        """
+        Create a chat completion using any loaded model format
+        
+        Args:
+            model_id: ID of the model to use
+            messages: List of message dicts with 'role' and 'content'
+            **kwargs: Generation parameters
+            
+        Returns:
+            OpenAI-compatible response dict
+        """
+        try:
+            config = GenerationConfig(
+                max_tokens=kwargs.get("max_tokens", 512),
+                temperature=kwargs.get("temperature", 0.7),
+                top_p=kwargs.get("top_p", 0.9),
+                stream=kwargs.get("stream", False)
+            )
+            
+            response = self.inference_engine.create_chat_completion(
+                model_id, messages, config, kwargs.get("stream", False)
+            )
+            
+            return response
+            
+        except Exception as e:
+            self.logger.error(f"Chat completion failed: {e}")
+            return {'error': str(e)}
+    
+    def get_available_models_for_inference(self) -> Dict[str, Dict[str, Any]]:
+        """Get all models available for inference with their formats"""
+        available_models = {}
+        
+        for model_id in self.inference_engine.get_all_loaded_models():
+            model_format = self.inference_engine.get_model_format(model_id)
+            model_info = self.get_model_info(model_id)
+            
+            available_models[model_id] = {
+                'format': model_format,
+                'info': asdict(model_info) if model_info else {},
+                'available_capabilities': ['text-generation', 'chat-completion']
+            }
+        
+        return available_models
     
     def cleanup(self):
         """Clean up resources"""
@@ -1026,6 +1181,7 @@ def main():
     # Cleanup
     manager.cleanup()
     print("\n✅ Demo completed!")
+
 
 if __name__ == "__main__":
     main()

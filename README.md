@@ -1,3 +1,4 @@
+# IMPTETUS (Intelligent Model Platform Enabling Taskbar Unified Server)
 # GerdsenAI Impetus LLM Server
 
 A production-ready macOS application for managing Apple Silicon hardware optimization, machine learning models, and AI workloads with OpenAI-compatible API endpoints for VS Code integration.

@@ -7,11 +7,11 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 
 ## Key Technical Context
 
-### Critical Bug (Must Fix First)
+### Critical Bug Status
+- **RESOLVED**: IntegratedMLXManager import error fixed
 - **File**: `gerdsen_ai_server/src/integrated_mlx_manager.py`
-- **Line**: 106
-- **Issue**: Wrong import - using `AppleFrameworksIntegration()` instead of `EnhancedAppleFrameworksIntegration()`
-- **Impact**: Server won't start until fixed
+- **Line**: 106 - Now correctly uses `EnhancedAppleFrameworksIntegration()`
+- **Status**: Server starts properly
 
 ### Primary Integration Target
 - **VS Code Extension**: Cline (and Continue.dev, CodeGPT, etc.)
@@ -52,15 +52,22 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 - **NEW**: MVP = Load any model + use with Cline (nothing more needed)
 
 ## Latest Updates (January 2025)
+- **NEW**: IMPETUS acronym defined - "Intelligent Model Platform Enabling Taskbar Unified Server"
+- **COMPLETED**: All 6 model format loaders implemented (GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX)
+- **COMPLETED**: Model loader factory pattern with automatic format detection
+- **COMPLETED**: Integration of factory pattern into IntegratedMLXManager
 - **NEW**: Electron app "Impetus" added to MVP requirements
 - **NEW**: Taskbar/menu bar app for native macOS experience
 - **NEW**: MVP now includes running as background service with quick access
-- **UPDATED**: MVP is ~40% complete (GGUF works, need other formats + Electron app)
+- **UPDATED**: MVP is ~70% complete (All formats + factory implemented, need unified inference + Electron app)
 
 ## MVP Context
 The project now has a clear MVP definition in TODO.md:
 - **MVP Goal**: Load ANY local model format and use it with Cline via Electron app "Impetus"
-- **Current Status**: ~40% complete (GGUF works, need other formats + Electron app)
+- **Current Status**: ~70% complete (All 6 formats + factory implemented, need unified inference + Electron app)
+- **Completed**: All model format loaders, factory pattern, IntegratedMLXManager integration
+- **In Progress**: Unified inference interface across all formats
+- **Remaining**: Model switching API, Electron app "Impetus", end-to-end testing
 - **Priority**: Complete MVP section before ANY other features
 - **Success**: When a developer can use Cline with a local model through the Impetus taskbar app
 - **UI/Advanced Features**: All moved to post-MVP (not required for success)
@@ -129,15 +136,17 @@ flake8 src/ gerdsen_ai_server/src/
 ## Next Agent Should
 1. **Start with ai.md** - Follow the optimized workflow
 2. **Check TODO.md MVP section** - This defines completion criteria
-3. Focus on completing MVP tasks in order:
-   - Implement remaining model format loaders (SafeTensors, MLX, etc.)
-   - Create model loader factory pattern
-   - Add unified inference interface
-   - Create Electron app "Impetus" with taskbar integration
-   - Test with actual Cline extension
-4. **MVP Complete = Success** - When any model loads and works with Cline via Impetus app
-5. Only work on post-MVP features after MVP section is complete
-6. Update TODO.md MVP section progress before each commit
+3. Focus on completing remaining MVP tasks in order:
+   - ✅ All model format loaders implemented (GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX)
+   - ✅ Model loader factory pattern with automatic format detection
+   - 🔄 Unified inference interface across all formats (IN PROGRESS)
+   - ⏳ Model switching API endpoint for dynamic selection
+   - ⏳ Create Electron app "Impetus" with taskbar integration
+   - ⏳ Test with actual Cline extension
+4. **Current Priority**: Implement unified inference interface following GGUF pattern
+5. **MVP Complete = Success** - When any model loads and works with Cline via Impetus app
+6. Only work on post-MVP features after MVP section is complete
+7. Update TODO.md MVP section progress before each commit
 
 ## Electron App Technical Context
 - **App Name**: Impetus
