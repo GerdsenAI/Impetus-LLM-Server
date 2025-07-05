@@ -109,7 +109,7 @@ reports/
 *.env.production.local
 instance/
 
-# ML/AI Models
+# ML/AI Models and Large Files
 models/
 *.ckpt
 *.pth
@@ -119,8 +119,26 @@ models/
 *.gguf
 *.safetensors
 *.bin
+*.pt
+*.npz
+*.mlx
 model_cache/
 ~/.gerdsen_ai/
+
+# Large build artifacts and bundled environments
+impetus-electron/resources/python-bundle/
+impetus-electron/dist/
+impetus-electron/out/
+impetus-electron/node_modules/
+*.dmg
+*.pkg
+*.app/
+*.asar
+
+# Python bundling outputs
+python-bundle/
+*.tar.gz
+*.tgz
 
 # Development/Testing
 .hypothesis/

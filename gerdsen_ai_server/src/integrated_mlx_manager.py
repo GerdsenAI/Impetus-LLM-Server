@@ -559,6 +559,60 @@ class IntegratedMLXManager:
             self.logger.error(f"Failed to create model info: {e}")
             return None
     
+    def generate_chat_completion(self, messages: List[Dict], model_id: str = None, **kwargs) -> Dict:
+        """Generate chat completion response using unified inference engine"""
+        try:
+            # Get the current model or use specified model
+            if model_id is None:
+                model_id = self.get_current_model_id()
+            
+            if model_id is None:
+                # Use first available model if no current model
+                loaded_models = self.inference_engine.get_all_loaded_models()
+                if loaded_models:
+                    model_id = list(loaded_models.keys())[0]
+                else:
+                    raise ValueError("No models loaded for chat completion")
+            
+            # Prepare generation config
+            from .inference.base_inference import GenerationConfig
+            config = GenerationConfig(
+                max_tokens=kwargs.get("max_tokens", 512),
+                temperature=kwargs.get("temperature", 0.7),
+                top_p=kwargs.get("top_p", 0.9),
+                stream=kwargs.get("stream", False)
+            )
+            
+            # Generate response using unified inference engine
+            result = self.inference_engine.generate_chat_completion(
+                model_id=model_id,
+                messages=messages,
+                config=config
+            )
+            
+            if result is None:
+                raise RuntimeError("Failed to generate chat completion")
+                
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Chat completion failed: {e}")
+            # Return error response in OpenAI format
+            return {
+                "error": {
+                    "message": str(e),
+                    "type": "generation_error"
+                }
+            }
+    
+    def get_current_model_id(self) -> Optional[str]:
+        """Get the currently active model ID"""
+        # Return the first loaded model for now
+        loaded_models = self.inference_engine.get_all_loaded_models()
+        if loaded_models:
+            return list(loaded_models.keys())[0]
+        return None
+    
     def predict(self, model_id: str, input_data: Any, **kwargs) -> Optional[Any]:
         """Run prediction with integrated Apple frameworks optimization"""
         
