@@ -116,8 +116,37 @@ models/
 *.h5
 *.mlmodel
 *.onnx
+*.gguf
+*.safetensors
+*.bin
 model_cache/
+~/.gerdsen_ai/
 
 # Development/Testing
 .hypothesis/
 .benchmarks/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.tox/
+.nox/
+
+# Performance profiling
+*.lprof
+*.prof
+*.pstats
+
+# MCP/Agent data
+.clinerules/mcp_context/
+.clinerules/agent_memory/
+.clinerules/search_index/
+
+# Logs
+logs/
+*.log
+gerdsen_ai_server.log
+
+# Environment files
+.env
+.env.*
+!.env.example
