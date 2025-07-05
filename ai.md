@@ -202,9 +202,18 @@ A React-based interface for effortless model management:
 ## Quick Start Workflow
 
 ### For Developers
-1. **Install & Start Server**
+1. **Set Up Virtual Environment & Install Dependencies**
    ```bash
+   # Create and activate a virtual environment
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+   # Install dependencies
    pip install -r requirements_production.txt
+   ```
+
+2. **Start Server**
+   ```bash
    python gerdsen_ai_server/src/production_main.py
    ```
 
