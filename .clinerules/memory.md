@@ -48,17 +48,29 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 - **NEW**: MCP (Model Context Protocol) tools configured for efficiency
 - **NEW**: Context sharing between Claude and Gemini agents
 - **IMPORTANT**: Use MCP tools to reduce token usage by 80%+
+- **NEW**: TODO.md reorganized with clear MVP section at top
+- **NEW**: MVP = Load any model + use with Cline (nothing more needed)
+
+## MVP Context
+The project now has a clear MVP definition in TODO.md:
+- **MVP Goal**: Load ANY local model format and use it with Cline
+- **Current Status**: ~40% complete (GGUF works, need other formats)
+- **Priority**: Complete MVP section before ANY other features
+- **Success**: When a developer can use Cline with a local model
+- **UI/Advanced Features**: All moved to post-MVP (not required for success)
 
 ## Common Agent Tasks
 
 ### When Starting Work (WITH MCP)
 1. **Load previous context**: `mcp_tool("memory", "recall_session_summary")`
 2. **Read ai.md first** - Has TL;DR and optimized workflow
-3. Check git status (currently on `Initial-Phase` branch)
-4. Follow the quick decision tree in ai.md
-5. Verify server can start: `python gerdsen_ai_server/src/production_main.py`
-6. Check `/v1/models` endpoint
-7. **Use MCP for todos**: `mcp_tool("memory", "get_todo_status")`
+3. **Check TODO.md MVP section** - This is your primary focus
+4. Check git status (currently on `Initial-Phase` branch)
+5. Follow the quick decision tree in ai.md
+6. Verify server can start: `python gerdsen_ai_server/src/production_main.py`
+7. Check `/v1/models` endpoint
+8. **Use MCP for todos**: `mcp_tool("memory", "get_todo_status")`
+9. **Focus on MVP tasks only** - Ignore post-MVP features until complete
 
 ### When Implementing Features
 1. Always maintain OpenAI API compatibility
@@ -101,11 +113,15 @@ flake8 src/ gerdsen_ai_server/src/
 
 ## Next Agent Should
 1. **Start with ai.md** - Follow the optimized workflow
-2. Fix the critical import bug if not already done
-3. Implement GGUF model loading as top priority
-4. Ensure streaming works for `/v1/chat/completions`
-5. Test with actual Cline extension in VS Code
-6. Ensure dynamic hardware optimization is working
+2. **Check TODO.md MVP section** - This defines completion criteria
+3. Focus on completing MVP tasks in order:
+   - Implement remaining model format loaders (SafeTensors, MLX, etc.)
+   - Create model loader factory pattern
+   - Add unified inference interface
+   - Test with actual Cline extension
+4. **MVP Complete = Success** - When any model loads and works with Cline
+5. Only work on post-MVP features after MVP section is complete
+6. Update TODO.md MVP section progress before each commit
 
 ## Key Files Location Update
 - `CLAUDE.md` → `.clinerules/CLAUDE.md`

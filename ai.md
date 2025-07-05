@@ -1,10 +1,11 @@
 # AI Documentation
 
 ## 🚀 TL;DR for Agents
-**Goal**: Make Cline work with local models on any Apple Silicon Mac  
-**Blocker**: Import bug at `integrated_mlx_manager.py:106`  
-**Priority**: Fix bug → Start server → Load GGUF model → Test with Cline  
-**Read Next**: `.clinerules/memory.md` for specifics  
+**MVP Goal**: Load ANY local model format and use with Cline - that's it!  
+**Current**: ~40% done (GGUF works, need other formats)  
+**Next Tasks**: Check TODO.md MVP section for remaining work  
+**Success**: When any model loads and Cline can use it  
+**Read Next**: `TODO.md` MVP section → `.clinerules/memory.md`  
 
 ## Executive Summary
 The Impetus-LLM-Server project provides a high-performance, local AI inference platform with FULLY DYNAMIC optimization for ALL Apple Silicon Macs and seamless VS Code integration, particularly with Cline and other AI coding assistants. 
@@ -64,9 +65,12 @@ Is the import bug fixed? (line 106)
 ├─ No → Fix it immediately (see memory.md)
 └─ Yes → Can server start?
     ├─ No → Debug startup issues
-    └─ Yes → Can Cline connect?
-        ├─ No → Implement GGUF loading (Phase 1)
-        └─ Yes → Optimize performance (Phase 3)
+    └─ Yes → Check MVP completion (TODO.md MVP section)
+        ├─ Incomplete → Focus on MVP tasks
+        │   ├─ Model format support needed?
+        │   ├─ API enhancements needed?
+        │   └─ Testing/validation needed?
+        └─ Complete → Enhance with post-MVP features
 ```
 
 ### 6. Autonomous Operation Guidelines
@@ -220,6 +224,18 @@ When working with this codebase:
 2. Verify VS Code compatibility: `GET /v1/models`
 3. Test inference: `POST /v1/chat/completions`
 4. Monitor performance: Connect to WebSocket for real-time metrics
+
+## MVP Definition
+
+The **Minimum Viable Product (MVP)** is achieved when:
+1. ✅ A local model of ANY format can be loaded into the server
+2. ✅ The model is accessible via OpenAI-compatible API
+3. ✅ Developers can use Cline (or similar VS Code AI extensions) with the local model
+4. ✅ Basic inference works without errors
+
+**MVP Tracking**: See `TODO.md` - "MVP (Minimum Viable Product)" section for specific tasks.
+
+**Current MVP Status**: ~40% complete (GGUF support implemented, need other formats)
 
 ## Implementation Status
 
@@ -426,42 +442,45 @@ The Impetus-LLM-Server supports integration with MCP servers to extend capabilit
 
 ## Implementation Roadmap & Next Steps
 
-### Phase 1: VS Code/Cline Integration (Immediate - Week 1)
-**Goal**: Get developers using local models in VS Code ASAP
+### Phase 1: MVP Completion (Immediate Priority)
+**Goal**: Enable basic Cline usage with ANY local model format
 
-1. **Fix Critical Bug & Verify Server**
-   - Fix import bug in `integrated_mlx_manager.py:106`
-   - Ensure server starts and responds to `/v1/models`
-   - **Success**: Cline can connect to server
+**MVP Tasks** (from TODO.md MVP section):
+1. **Critical Bug Fixes** ✅ Complete
+2. **Universal Model Support** (In Progress)
+   - ✅ GGUF format support 
+   - ⏳ SafeTensors, MLX, CoreML, PyTorch, ONNX formats
+   - ⏳ Model format detection and loader factory
+3. **Core Infrastructure**
+   - ⏳ Unified inference interface
+   - ⏳ Model switching API endpoint
+   - ✅ OpenAI API compatibility
+4. **Basic Testing**
+   - ✅ Server starts and API responds
+   - ⏳ Test with actual Cline extension
+   - ⏳ Validate model loading for each format
 
-2. **Implement GGUF Model Loading**
-   - Add GGUF loader (most common format for code models)
-   - Load at least one model (e.g., Code Llama 7B)
-   - **Success**: Model appears in `/v1/models` response
+**MVP Success Criteria**: Developer can load ANY local model and use it with Cline
 
-3. **Enable Real Inference**
-   - Connect GGUF model to `/v1/chat/completions`
-   - Implement streaming responses
-   - **Success**: Cline can generate code using local model
+### Phase 2: Enhanced Integration (Post-MVP - Week 2)
+**Goal**: Improve user experience beyond basic functionality
 
-### Phase 2: Universal Model Support (Week 2)
-**Goal**: Support all major model formats developers use
+1. **Model Management UI**
+   - React component for model library
+   - Drag & drop upload
+   - Hugging Face integration
+   - Model search and filtering
 
-1. **Multi-Format Loading**
-   - Implement loaders for SafeTensors, MLX, PyTorch
-   - Create format detection system
-   - **Success**: Can load models in any format
+2. **Advanced Features**
+   - Model metadata extraction
+   - Auto-discovery of local models
+   - Format conversion utilities
+   - Performance metrics dashboard
 
-2. **Model Management UI**
-   - Build React component for model library
-   - Add drag & drop upload
-   - Implement Hugging Face search
-   - **Success**: Non-technical users can add models
-
-3. **Dynamic Model Switching**
-   - API endpoint for hot-swapping models
-   - Model metadata and capability detection
-   - **Success**: Switch models without restarting
+3. **Extension Compatibility**
+   - Test with Continue.dev, CodeGPT
+   - Add model-specific prompt templates
+   - Optimize for different use cases
 
 ### Phase 3: Performance Optimization (Week 3)
 **Goal**: Make it fast enough for productive development on ALL Apple Silicon
@@ -506,13 +525,20 @@ The Impetus-LLM-Server supports integration with MCP servers to extend capabilit
    - **Success**: New users productive in <10 minutes
 
 ### Success Metrics
-- **Week 1**: First developer successfully uses Cline with local model
-- **Week 2**: Support 10+ different model formats
-- **Week 3**: Achieve optimal performance through dynamic optimization:
+
+#### MVP Success (Immediate Goal)
+- ✅ **MVP Complete**: ANY local model format can be loaded and used with Cline
+- ✅ **Basic Functionality**: Chat completions work without errors
+- ✅ **Zero Cloud**: Everything runs locally with full privacy
+
+#### Post-MVP Success (Enhancement Goals)
+- **Week 1 Post-MVP**: Support for all 7 major model formats
+- **Week 2 Post-MVP**: UI enables non-technical users to manage models
+- **Week 3 Post-MVP**: Optimal performance through dynamic optimization:
   - Automatic hardware detection working
   - Performance emerges from resource availability
   - Zero configuration or assumptions
-- **Week 4**: 100+ active users across all Mac models, <10 min setup time
+- **Week 4 Post-MVP**: 100+ active users, <5 min setup time
 
 ## Future Enhancements
 - **Planned Improvements**:

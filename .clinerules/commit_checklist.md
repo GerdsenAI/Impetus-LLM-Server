@@ -18,9 +18,11 @@ Before EVERY commit, complete these steps:
 
 ### 3. ✅ Update TODO.md
 - [ ] Mark completed task with [x]
-- [ ] Add any new tasks discovered
+- [ ] Update MVP section progress specifically
+- [ ] Add any new tasks discovered (MVP tasks go in MVP section)
 - [ ] Update task priorities if needed
 - [ ] Ensure task descriptions are accurate
+- [ ] Check if MVP is now complete
 
 ### 4. ✅ Code Quality
 - [ ] Run formatter: `black src/ gerdsen_ai_server/src/`
@@ -95,11 +97,13 @@ docs: Update commit procedures for autonomous operation
 
 ## Important Reminders
 
-1. **AUTONOMOUS OPERATION**: Continue working without permission requests
-2. **TODO.md IS MANDATORY**: Never commit without updating TODO.md
-3. **COMMIT FREQUENTLY**: After each logical unit of work
-4. **CONTINUE IMMEDIATELY**: Start next task right after committing
-5. **NO PROMPTING**: Don't ask user if you should continue
+1. **MVP FOCUS**: Only work on MVP section tasks until complete
+2. **AUTONOMOUS OPERATION**: Continue working without permission requests
+3. **TODO.md IS MANDATORY**: Never commit without updating TODO.md (especially MVP section)
+4. **COMMIT FREQUENTLY**: After each logical unit of work
+5. **CONTINUE IMMEDIATELY**: Start next task right after committing
+6. **NO PROMPTING**: Don't ask user if you should continue
+7. **MVP = SUCCESS**: When any model loads and works with Cline, MVP is done!
 
 ## For Gemini Agents
 

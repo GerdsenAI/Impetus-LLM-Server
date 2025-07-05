@@ -127,11 +127,12 @@ Configure extensions to use:
 When working on this project, follow this workflow:
 
 1. **Start by reading**: Always check `ai.md` first for project context and current phase
-2. **Check memory**: Read `memory.md` for critical context and known issues
-3. **Review tasks**: Check `todo.md` for prioritized task list
-4. **Fix critical bugs first**: The import error in `integrated_mlx_manager.py:106` must be fixed before other work
-5. **Focus on VS Code/Cline**: All features should prioritize VS Code AI extension compatibility
+2. **Check MVP section**: Read `TODO.md` MVP section - this is your primary goal
+3. **Check memory**: Read `memory.md` for critical context and known issues
+4. **Review MVP tasks**: Focus ONLY on tasks in the MVP section of `todo.md`
+5. **MVP = Success**: Goal is to load ANY model and use with Cline (nothing more)
 6. **Test with real extensions**: Always verify changes work with actual Cline extension
+7. **Ignore post-MVP**: Don't work on UI, performance, or other enhancements until MVP complete
 
 ## Model Format Implementation Priority
 
@@ -143,11 +144,17 @@ When implementing model support, prioritize in this order:
 
 ## Key Success Metrics
 
-- Developer can use Cline with local model in <10 minutes
-- Support all major model formats
-- Performance automatically optimized for available hardware
-- Dynamic resource allocation based on system capabilities
-- Seamless VS Code integration
+### MVP Success (Primary Goal)
+- ✅ Load ANY local model format (GGUF, SafeTensors, MLX, etc.)
+- ✅ Use loaded model with Cline in VS Code
+- ✅ Basic chat completions working
+- ✅ Zero errors during normal usage
+
+### Post-MVP Success (Enhancement Goals)
+- Setup time < 10 minutes for new users
+- Performance automatically optimized for hardware
+- Model management UI for easy switching
+- Support for all VS Code AI extensions
 - Zero manual configuration required
 
 ## Autonomous Mode

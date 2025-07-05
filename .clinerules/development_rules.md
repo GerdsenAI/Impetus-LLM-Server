@@ -160,31 +160,36 @@ VS Code Extension → OpenAI API Endpoint → Model Manager → Inference Engine
 
 ## Feature Implementation Priority
 
-### Phase 1: Core Functionality (Week 1)
-1. Fix critical bugs
-2. Hardware detection system
-3. GGUF model loading with dynamic optimization
-4. Basic inference API
-5. Cline compatibility
+### MVP Phase: Core Functionality (Immediate)
+**Goal**: Load ANY local model and use with Cline
+1. ✅ Fix critical bugs
+2. ✅ GGUF model loading 
+3. ⏳ All other model format loaders (SafeTensors, MLX, CoreML, PyTorch, ONNX)
+4. ⏳ Model loader factory pattern
+5. ⏳ Unified inference interface
+6. ⏳ Test with actual Cline extension
+7. ⏳ Basic model switching endpoint
 
-### Phase 2: Universal Support (Week 2)
-1. All model format loaders
-2. Model management UI with hardware info
-3. Dynamic model switching
-4. Hugging Face integration
-5. Performance profiling per hardware
+**MVP Complete When**: Developer can load any model format and use it with Cline
 
-### Phase 3: Performance (Week 3)
+### Post-MVP Phase 1: Enhanced User Experience
+1. Model management UI
+2. Drag & drop model upload
+3. Hugging Face integration
+4. Model discovery and auto-scan
+5. Format conversion utilities
+
+### Post-MVP Phase 2: Performance Optimization
 1. Hardware-specific optimizations
 2. Dynamic memory management
 3. Context optimization
 4. Batching support
 5. Thermal management
 
-### Phase 4: Polish (Week 4)
+### Post-MVP Phase 3: Polish & Distribution
 1. Enhanced UI with performance metrics
 2. VS Code extension
-3. Documentation
+3. Documentation and tutorials
 4. Community features
 5. Benchmark suite
 
@@ -199,11 +204,19 @@ VS Code Extension → OpenAI API Endpoint → Model Manager → Inference Engine
 - **Continuous Learning**: Performance improves over time
 
 ### User Metrics
-- Setup time: < 10 minutes on any Mac
+
+#### MVP Success Metrics
+- **Primary Goal**: Load ANY model format and use with Cline ✅
+- Setup time: < 10 minutes
+- Time to working Cline: < 5 minutes
+- Basic inference working: 100%
+
+#### Post-MVP Enhancement Metrics  
 - Time to first inference: < 2 minutes
 - Model switching time: < 5 seconds
 - Error rate: < 1%
 - Hardware utilization: Optimal for current thermal envelope
+- UI usability: Non-technical users can add models
 
 ## Common Pitfalls to Avoid
 
