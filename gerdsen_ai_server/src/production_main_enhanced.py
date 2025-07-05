@@ -456,5 +456,9 @@ def main():
         raise
 
 
+# Create app instance for WSGI servers
+server = EnhancedProductionServer()
+app = server.app
+
 if __name__ == '__main__':
     main()
