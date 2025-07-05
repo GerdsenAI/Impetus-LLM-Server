@@ -121,6 +121,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] - 2025-07-05
+
+### Progress Update
+- **Environment Setup**: Created virtual environment and installed dependencies from `requirements_macos.txt`.
+- **Server Initialization**: Started Flask server on dynamic port 5001, confirming it runs without critical errors.
+- **API Verification**: Tested `/v1/models` and `/v1/chat/completions` endpoints, returning dummy responses as expected.
+- **Documentation**: Updated `todo.md` to reflect completion of server initialization testing tasks.
+
 ## [1.0.0] - 2025-07-01
 
 ### Initial Release
@@ -129,4 +137,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic model loading and execution
 - Configuration management
 - Log output display
-
