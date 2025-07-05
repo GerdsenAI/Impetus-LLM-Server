@@ -1,0 +1,155 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+GerdsenAI Impetus LLM Server is a production-ready macOS application for managing Apple Silicon hardware optimization, machine learning models, and AI workloads with OpenAI-compatible API endpoints. The system is specifically optimized for Apple Silicon (M1-M4 series) and provides real-time hardware monitoring with VS Code extension compatibility.
+
+## Common Development Commands
+
+### Python Backend
+```bash
+# Install dependencies
+pip install -r requirements_production.txt  # Production dependencies
+pip install -e ".[dev]"                    # Development dependencies (pytest, black, flake8, mypy)
+
+# Run tests
+python -m pytest tests/                    # Run all tests
+python validate_functionality.py           # Run validation tests
+python -m pytest tests/test_production_functionality.py  # Run specific test
+
+# Code quality
+black src/ gerdsen_ai_server/src/         # Format code
+flake8 src/ gerdsen_ai_server/src/        # Lint code
+mypy src/ gerdsen_ai_server/src/          # Type checking
+
+# Start server
+python gerdsen_ai_server/src/production_main.py  # Production server (port 8080)
+python test_server.py                            # Test server (port 8081)
+```
+
+### Frontend (React)
+```bash
+cd gerdsen-ai-frontend
+pnpm install    # Install dependencies
+pnpm dev        # Start development server
+pnpm build      # Build production bundle
+pnpm lint       # Run ESLint
+```
+
+### macOS Build
+```bash
+./scripts/build_macos.sh    # Build macOS app bundle
+python setup_macos.py py2app  # Alternative build method
+```
+
+## High-Level Architecture
+
+### Core Components
+
+1. **API Layer** (`app.py`, `gerdsen_ai_server/src/production_main.py`)
+   - Flask-based REST API with OpenAI compatibility
+   - WebSocket support via Socket.IO for real-time metrics
+   - CORS-enabled for cross-origin requests
+
+2. **Model Management** (`gerdsen_ai_server/src/integrated_mlx_manager.py`)
+   - Multi-format support: MLX, CoreML, ONNX, PyTorch, TensorFlow
+   - In-memory caching with persistent storage
+   - Dynamic optimization based on hardware capabilities
+   - Currently using dummy model system for development
+
+3. **Apple Silicon Integration** (`src/production/`)
+   - Hardware detection for M1-M4 series (Pro, Max, Ultra variants)
+   - Framework integration: CoreML, MLX, Metal Performance Shaders
+   - GPU memory wiring and Neural Engine utilization
+   - Thermal management with dynamic throttling
+
+4. **Frontend Options**
+   - React app in `gerdsen-ai-frontend/` (modern UI)
+   - Static HTML/JS in `ui/` (multiple implementations)
+   - Planned SwiftUI native interface
+
+### API Structure
+```
+/api/
+├── hardware/     # Hardware detection and metrics
+├── terminal/     # Terminal execution
+├── service/      # Service management
+├── models/       # Model management
+├── optimization/ # Performance tuning
+/v1/              # OpenAI-compatible endpoints
+├── models
+├── chat/completions
+├── completions
+├── embeddings
+```
+
+### Key Services
+
+- **IntegratedMLXManager**: Central model loading and management
+- **EnhancedAppleSiliconDetector**: Hardware capability detection
+- **RealTimeMetricsCollector**: Performance monitoring
+- **EnhancedAppleFrameworksIntegration**: Apple framework optimization
+
+## Important Implementation Notes
+
+1. **OpenAI API Compatibility**: Full compatibility for VS Code extensions (Cline, Continue). Default port 8080, API key authentication.
+
+2. **Performance Targets**: Dynamically optimized for all Apple Silicon:
+   - M1/M2 Base: 15-25 tokens/sec
+   - M1/M2 Pro: 25-40 tokens/sec  
+   - M1/M2 Max: 40-60 tokens/sec
+   - M1/M2/M3/M4 Ultra: 60-100+ tokens/sec
+   - Model loading: 5-10x faster (scales with chip)
+   - Memory usage: 30-50% reduction through intelligent caching
+
+3. **Current State**: Hybrid implementation with production Flask server and dummy model system. Active development on model integration (see modified files in git status).
+
+4. **Branch Strategy**: Working on `Initial-Phase` branch, PRs target `main`.
+
+5. **Apple Silicon Focus**: Dynamic optimization for ALL Apple Silicon Macs:
+   - Automatic detection of M1/M2/M3/M4 variants (Base/Pro/Max/Ultra)
+   - Scales performance based on available GPU cores and unified memory
+   - Thermal-aware throttling to maintain sustainable performance
+   - Future-proof design for upcoming Apple Silicon chips
+
+6. **Security**: Local-only processing, model validation with checksums, sandboxed execution for untrusted models.
+
+## VS Code Integration
+
+Configure extensions to use:
+- Base URL: `http://localhost:8080/v1`
+- API Key: `sk-dummy-api-key-for-development`
+- Model: `gpt-4` or check `/v1/models` for available models
+
+## Agent Workflow Guidelines
+
+When working on this project, follow this workflow:
+
+1. **Start by reading**: Always check `ai.md` first for project context and current phase
+2. **Check memory**: Read `memory.md` for critical context and known issues
+3. **Review tasks**: Check `todo.md` for prioritized task list
+4. **Fix critical bugs first**: The import error in `integrated_mlx_manager.py:106` must be fixed before other work
+5. **Focus on VS Code/Cline**: All features should prioritize VS Code AI extension compatibility
+6. **Test with real extensions**: Always verify changes work with actual Cline extension
+
+## Model Format Implementation Priority
+
+When implementing model support, prioritize in this order:
+1. GGUF (.gguf) - Most common quantized format
+2. SafeTensors (.safetensors) - Hugging Face standard
+3. MLX (.mlx, .npz) - Apple Silicon optimized
+4. Others as needed
+
+## Key Success Metrics
+
+- Developer can use Cline with local model in <10 minutes
+- Support all major model formats
+- Performance scales with hardware:
+  - M1 Air: 15+ tokens/sec
+  - M2 Pro: 30+ tokens/sec
+  - M3 Max: 50+ tokens/sec
+  - M4 Ultra: 80+ tokens/sec
+- Seamless VS Code integration
+- Automatic hardware optimization without configuration

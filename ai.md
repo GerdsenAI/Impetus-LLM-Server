@@ -1,47 +1,218 @@
 # AI Documentation
 
-## Executive Summary
-The Impetus-LLM-Server project aims to provide a model-agnostic AI inference platform optimized for Apple Silicon. As of July 2025, the system is in early development with a robust architecture but placeholder functionality. This document outlines the current state, critical issues, architecture, integration with Model Context Protocol (MCP) tools, and a prioritized roadmap for implementation.
+## 🚀 TL;DR for Agents
+**Goal**: Make Cline work with local models on any Apple Silicon Mac  
+**Blocker**: Import bug at `integrated_mlx_manager.py:106`  
+**Priority**: Fix bug → Start server → Load GGUF model → Test with Cline  
+**Read Next**: `.clinerules/memory.md` for specifics  
 
-- **Status**: Skeleton implementation with critical initialization bug
-- **Key Issue**: Import error in `IntegratedMLXManager` (line 106, `gerdsen_ai_server/src/integrated_mlx_manager.py`)
-- **Architecture**: Model-agnostic design with Apple Silicon optimization framework
-- **Next Steps**: Fix bug, implement model loading, integrate MCP tools
+## Executive Summary
+The Impetus-LLM-Server project provides a high-performance, local AI inference platform with dynamic optimization for ALL Apple Silicon Macs and seamless VS Code integration, particularly with Cline and other AI coding assistants. The system supports all major local model formats (GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX) with automatic hardware detection and performance scaling.
+
+- **Primary Goal**: Enable developers to use local LLMs with VS Code AI extensions on any Apple Silicon Mac
+- **Key Features**: Universal model format support, dynamic hardware optimization, automatic performance scaling
+- **Dynamic Optimization**: Automatically detects M1/M2/M3/M4 variants (Base/Pro/Max/Ultra) and scales performance
+- **Target Users**: Developers on any Apple Silicon Mac who want local, private AI assistance
+- **Status**: Core architecture complete, implementing model loading and dynamic optimization
+
+## Agent Initialization Workflow
+
+When starting with "initialize from ai.md", follow this optimized workflow:
+
+### 1. Critical Context Loading (30 seconds)
+```bash
+# Read these files in order:
+1. ai.md (this file) - Project overview and current phase
+2. .clinerules/memory.md - Critical bugs and known issues  
+3. .clinerules/development_rules.md - Core principles and standards
+4. todo.md - Current task priorities
+```
+
+### 2. Immediate Actions (1 minute)
+```bash
+# Check critical bug status
+grep -n "AppleFrameworksIntegration" gerdsen_ai_server/src/integrated_mlx_manager.py
+
+# Verify server can start
+python gerdsen_ai_server/src/production_main.py
+
+# Check git status
+git status
+```
+
+### 3. Context Assessment (30 seconds)
+- **Current Phase**: Check "Implementation Roadmap" section below
+- **Modified Files**: Note any uncommitted changes
+- **Priority**: VS Code/Cline integration is always #1
+
+### 4. Task Selection
+Based on current phase, select tasks that:
+1. Unblock VS Code/Cline usage
+2. Support dynamic hardware optimization
+3. Enable universal model format support
+
+### 5. Quick Decision Tree
+```
+Is the import bug fixed? (line 106)
+├─ No → Fix it immediately (see memory.md)
+└─ Yes → Can server start?
+    ├─ No → Debug startup issues
+    └─ Yes → Can Cline connect?
+        ├─ No → Implement GGUF loading (Phase 1)
+        └─ Yes → Optimize performance (Phase 3)
+```
 
 ## Quick Navigation
+- [VS Code/Cline Integration](#vs-code-cline-integration-priority)
+- [Supported Model Formats](#supported-model-formats)
 - [Implementation Status](#implementation-status)
-- [AI Model Architecture](#ai-model-architecture-model-agnostic-design)
-- [Model Configuration](#model-configuration-system)
-- [Integration & API](#integration)
-- [MCP Integration](#model-context-protocol-mcp-integration)
+- [Model Management UI](#model-management-ui)
+- [API Architecture](#api-architecture-openai-compatible)
+- [Quick Start Workflow](#quick-start-workflow)
 - [Roadmap & Next Steps](#implementation-roadmap--next-steps)
 
 ## Overview
-- **Purpose**: To provide a centralized location for AI-related information, models, and configurations used in the project.
-- **Scope**: Covers AI model integration, training, inference, optimization strategies for Apple Silicon, and MCP tool integration.
+- **Purpose**: Enable developers to run any local LLM through VS Code AI extensions with optimal performance on Apple Silicon.
+- **Core Value**: Privacy-first AI development with no cloud dependencies, full model control, and seamless IDE integration.
+- **Scope**: Universal model format support, VS Code extension compatibility, Apple Silicon optimization, and intuitive model management.
+
+## VS Code/Cline Integration (Priority)
+The server is designed as a drop-in replacement for OpenAI API, enabling immediate use with VS Code AI extensions.
+
+### Quick Setup for Cline
+```json
+{
+  "cline.apiProvider": "openai",
+  "cline.openaiApiKey": "sk-dev-gerdsen-ai-local-development-key",
+  "cline.openaiBaseUrl": "http://localhost:8080",
+  "cline.openaiModel": "auto-select"
+}
+```
+
+### Key Integration Features
+- **Full OpenAI API Compatibility**: All endpoints that Cline expects are implemented
+- **Streaming Support**: Real-time token generation for responsive coding assistance
+- **Model Hot-Swapping**: Switch models without restarting VS Code or the server
+- **Context Length Optimization**: Automatic handling of long code contexts
+- **Error Recovery**: Graceful fallbacks to maintain IDE workflow
+
+## Supported Model Formats
+The server dynamically detects and loads models in any of these formats:
+
+### Primary Formats
+1. **GGUF** (.gguf)
+   - Most popular quantized format
+   - Excellent performance/size ratio
+   - Direct support for Code Llama, Mistral, etc.
+
+2. **SafeTensors** (.safetensors)
+   - Hugging Face standard
+   - Secure and fast loading
+   - Wide model availability
+
+3. **MLX** (.mlx, .npz)
+   - Apple Silicon native format
+   - Optimal performance on M-series chips
+   - Zero-copy memory operations
+
+### Additional Formats
+4. **CoreML** (.mlmodel, .mlpackage) - iOS/macOS native
+5. **PyTorch** (.pt, .pth, .bin) - Standard deep learning format
+6. **ONNX** (.onnx) - Cross-platform compatibility
+
+### Model Sources
+- **Local Files**: Drag & drop or browse
+- **Hugging Face Hub**: Search and download with progress tracking
+- **Direct URLs**: Paste any model download link
+- **Auto-Discovery**: Scans common directories (~/.cache/huggingface, etc.)
+
+## Model Management UI
+A React-based interface for effortless model management:
+
+### Features
+- **Visual Model Library**: See all loaded models with metadata
+- **One-Click Downloads**: Browse Hugging Face, filter by size/capability
+- **Drag & Drop Import**: Simply drop model files into the browser
+- **Real-Time Status**: Download progress, conversion status, loading state
+- **Model Testing**: Built-in playground to test models before using in VS Code
+
+### UI Components
+```
+┌─────────────────────────────────────────┐
+│  Model Library         [+ Add Model]    │
+├─────────────────────────────────────────┤
+│ ┌─────────┐ ┌─────────┐ ┌─────────┐   │
+│ │Code Llama│ │ Mistral │ │ Phi-3   │   │
+│ │  13B Q4  │ │  7B Q5  │ │  3.8B   │   │
+│ │  [Active]│ │ [Load]  │ │ [Load]  │   │
+│ └─────────┘ └─────────┘ └─────────┘   │
+│                                         │
+│ Performance: 45 tokens/sec              │
+│ Memory: 8.2GB / 32GB                    │
+└─────────────────────────────────────────┘
+```
+
+## API Architecture (OpenAI Compatible)
+
+### Core Endpoints
+- `POST /v1/chat/completions` - Main chat endpoint for Cline
+- `POST /v1/completions` - Legacy completion endpoint
+- `GET /v1/models` - List all loaded models with capabilities
+- `POST /v1/embeddings` - Generate embeddings for code search
+
+### Enhanced Features
+- `POST /api/models/switch` - Hot-swap active model
+- `GET /api/models/status` - Real-time performance metrics
+- `POST /api/models/upload` - Add new models via API
+- `GET /api/system/optimization` - Apple Silicon tuning status
+
+## Quick Start Workflow
+
+### For Developers
+1. **Install & Start Server**
+   ```bash
+   pip install -r requirements_production.txt
+   python gerdsen_ai_server/src/production_main.py
+   ```
+
+2. **Add a Model** (Choose one):
+   - Open http://localhost:8080/ui
+   - Drag & drop a GGUF file
+   - Or search "Code Llama" and click Download
+
+3. **Configure VS Code**
+   - Install Cline extension
+   - Set API base URL to http://localhost:8080
+   - Start coding with local AI
+
+### For Agent Workflows
+When working with this codebase:
+1. Check model loading status: `GET /api/models/list`
+2. Verify VS Code compatibility: `GET /v1/models`
+3. Test inference: `POST /v1/chat/completions`
+4. Monitor performance: Connect to WebSocket for real-time metrics
 
 ## Implementation Status
-- **Current State**: As of July 2025, the AI implementation is in an early stage with placeholder functionality.
-  - Model loading and inference logic are placeholders and need actual implementation.
-  - API endpoints return simulated responses rather than real model outputs.
-- **Known Issues**:
-  - Critical bug in `IntegratedMLXManager` initialization: attempting to instantiate non-existent `AppleFrameworksIntegration` instead of `EnhancedAppleFrameworksIntegration` (see line 106 in `gerdsen_ai_server/src/integrated_mlx_manager.py`).
-    ```python
-    # Incorrect (line 106):
-    # self.apple_frameworks = AppleFrameworksIntegration()
-    # Correct:
-    self.apple_frameworks = EnhancedAppleFrameworksIntegration()
-    ```
-  - Models are not actually loaded during server startup.
-- **Functional Features**:
-  - Basic Flask server structure with API endpoints defined.
-  - Skeleton for multi-model management through `IntegratedMLXManager`.
-  - Apple Silicon detection and optimization framework (partially implemented).
-- **Planned Features**:
-  - Real model loading and inference for various language models.
-  - Performance optimization for Apple Silicon using Core ML, Metal, and Neural Engine.
-  - Dynamic model switching based on system state (thermal, power, memory).
-  - MCP server integration for external model providers and resources.
+
+### 🚨 Critical Blocker
+**Import Bug** (Must fix first!):
+- **File**: `gerdsen_ai_server/src/integrated_mlx_manager.py`
+- **Line**: 106
+- **Fix**: Change `AppleFrameworksIntegration()` to `EnhancedAppleFrameworksIntegration()`
+
+### Current State (July 2025)
+- ✅ Flask server structure with API endpoints
+- ✅ OpenAI-compatible API skeleton
+- ✅ Hardware detection framework
+- ❌ Model loading (placeholder only)
+- ❌ Real inference (returns dummy responses)
+- ❌ GGUF format support (top priority)
+
+### Next Immediate Steps
+1. **Fix import bug** (5 minutes)
+2. **Verify server starts** (2 minutes)
+3. **Implement GGUF loader** (Phase 1 priority)
+4. **Test with Cline** (continuous)
 
 ## AI Model Architecture (Model-Agnostic Design)
 The Impetus-LLM-Server is designed to be model-agnostic, supporting any language model or AI framework through a generic interface and configuration system. Specific models are not hardcoded into the system but are instead defined through configuration.
@@ -69,7 +240,8 @@ The Impetus-LLM-Server is designed to be model-agnostic, supporting any language
 +-------------------+       +-------------------+       +-------------------+
                                     |                            |
 +-------------------+       +-------------------+       +-------------------+
-| MCP Server/Tools  | <---> | Apple Silicon Opt | <---> | Specific Model    |
+| Hardware Detector | <---> | Dynamic Optimizer | <---> | Specific Model    |
+| (M1-M4 Variants)  |       | (Scales by Chip)  |       | (Any Format)      |
 +-------------------+       +-------------------+       +-------------------+
 ```
 
@@ -84,7 +256,8 @@ Models are defined through configuration rather than hardcoding, enabling flexib
   - `framework`: Underlying framework (MLX, CoreML, ONNX, etc.).
   - `capabilities`: List of supported operations (e.g., ["chat", "completion"]).
   - `requirements`: Hardware requirements (e.g., {"memory_gb": 8, "compute": "gpu"}).
-  - `optimization_hints`: Preferred optimization strategies (e.g., {"device": "neural_engine", "quantization": "int8"}).
+  - `optimization_hints`: Preferred optimization strategies (e.g., {"device": "auto", "quantization": "dynamic"}).
+  - `hardware_scaling`: Enable automatic performance scaling based on detected Apple Silicon variant.
 - **Configuration Location**: Model configurations are stored in a designated directory (planned: `config/models/`) or database.
 - **Dynamic Loading**:
   - Models are loaded at server startup based on configuration.
@@ -223,57 +396,101 @@ The Impetus-LLM-Server supports integration with MCP servers to extend capabilit
   - `power_management`: Boolean to enable power efficiency adjustments (default True).
 
 ## Implementation Roadmap & Next Steps
-The following roadmap prioritizes tasks based on dependencies and impact. Each phase includes success criteria and validation steps.
 
-- **Phase 1: Critical Fixes (Immediate)**
-  1. Fix import bug in `integrated_mlx_manager.py` (line 106).
-     - **Dependency**: None
-     - **Validation**: Server starts without import errors.
-     - **Success**: Flask server initializes `IntegratedMLXManager`.
-  2. Test server startup with empty model configuration.
-     - **Dependency**: Step 1
-     - **Validation**: Server responds to `/v1/models` with empty list.
-     - **Success**: API endpoints accessible without crashes.
+### Phase 1: VS Code/Cline Integration (Immediate - Week 1)
+**Goal**: Get developers using local models in VS Code ASAP
 
-- **Phase 2: Basic Model Loading (Short-Term)**
-  1. Implement basic model loading for a single model format (MLX or CoreML).
-     - **Dependency**: Phase 1
-     - **Validation**: Load a test model and verify with `/api/models/list`.
-     - **Success**: Model appears in API response with correct metadata.
-  2. Enable placeholder inference returning static responses.
-     - **Dependency**: Step 1 of Phase 2
-     - **Validation**: Call `/v1/chat/completions` and receive response.
-     - **Success**: API returns formatted response without errors.
+1. **Fix Critical Bug & Verify Server**
+   - Fix import bug in `integrated_mlx_manager.py:106`
+   - Ensure server starts and responds to `/v1/models`
+   - **Success**: Cline can connect to server
 
-- **Phase 3: Optimization Features (Medium-Term)**
-  1. Implement Apple Silicon detection and device switching.
-     - **Dependency**: Phase 2
-     - **Validation**: Check logs for device selection based on model size.
-     - **Success**: Models load on appropriate device (CPU/GPU/Neural Engine).
-  2. Add thermal and power state monitoring with throttling.
-     - **Dependency**: Step 1 of Phase 3
-     - **Validation**: Simulate high thermal state and verify performance adjustment.
-     - **Success**: System reduces performance under thermal stress.
+2. **Implement GGUF Model Loading**
+   - Add GGUF loader (most common format for code models)
+   - Load at least one model (e.g., Code Llama 7B)
+   - **Success**: Model appears in `/v1/models` response
 
-- **Phase 4: MCP Integration & Full Features (Long-Term)**
-  1. Connect MCP server for model discovery and configuration.
-     - **Dependency**: Phase 2
-     - **Validation**: Use `use_mcp_tool` to list external models.
-     - **Success**: External models appear in `/v1/models` endpoint.
-  2. Implement remote model loading via MCP tools.
-     - **Dependency**: Step 1 of Phase 4
-     - **Validation**: Load model from MCP resource URI.
-     - **Success**: Remote model loads and responds to inference requests.
-  3. Add capability-based model selection.
-     - **Dependency**: Phase 3
-     - **Validation**: Request model by capability instead of ID.
-     - **Success**: System selects appropriate model automatically.
+3. **Enable Real Inference**
+   - Connect GGUF model to `/v1/chat/completions`
+   - Implement streaming responses
+   - **Success**: Cline can generate code using local model
 
-- **Success Criteria for MVP**:
-  - Server starts without errors.
-  - At least one model format loads successfully.
-  - Basic inference API endpoints return responses.
-  - Apple Silicon optimizations are detected and applied.
+### Phase 2: Universal Model Support (Week 2)
+**Goal**: Support all major model formats developers use
+
+1. **Multi-Format Loading**
+   - Implement loaders for SafeTensors, MLX, PyTorch
+   - Create format detection system
+   - **Success**: Can load models in any format
+
+2. **Model Management UI**
+   - Build React component for model library
+   - Add drag & drop upload
+   - Implement Hugging Face search
+   - **Success**: Non-technical users can add models
+
+3. **Dynamic Model Switching**
+   - API endpoint for hot-swapping models
+   - Model metadata and capability detection
+   - **Success**: Switch models without restarting
+
+### Phase 3: Performance Optimization (Week 3)
+**Goal**: Make it fast enough for productive development on ALL Apple Silicon
+
+1. **Dynamic Apple Silicon Optimization**
+   - Detect specific M-series chip variant (M1-M4, Base/Pro/Max/Ultra)
+   - Auto-scale performance targets based on hardware
+   - Implement MLX conversions for non-native formats
+   - Use Metal/Neural Engine when beneficial
+   - **Success**: Achieve optimal tokens/sec for each chip:
+     - M1 Base: 15+ tokens/sec
+     - M1 Pro: 25+ tokens/sec
+     - M1 Max: 40+ tokens/sec
+     - M1 Ultra: 60+ tokens/sec
+     - M2-M4: Scale proportionally higher
+
+2. **Memory Management**
+   - Implement intelligent model caching
+   - Dynamic loading/unloading based on available unified memory
+   - Scale to system capabilities:
+     - 8GB: Optimize for single model
+     - 16GB: Support 2-3 models
+     - 32GB+: Multiple large models
+   - **Success**: Efficient memory use across all configurations
+
+3. **Context Optimization**
+   - Smart context windowing for long files
+   - Implement sliding window attention
+   - **Success**: Handle full codebases without OOM
+
+### Phase 4: Developer Experience (Week 4)
+**Goal**: Make it delightful to use
+
+1. **Enhanced UI Features**
+   - Model performance benchmarking
+   - One-click model recommendations
+   - Usage analytics dashboard
+   - **Success**: Users know which model to use
+
+2. **VS Code Extension**
+   - Create companion extension for model management
+   - Quick model switcher in status bar
+   - **Success**: Control server from VS Code
+
+3. **Documentation & Examples**
+   - Video tutorials for setup
+   - Model recommendation guide
+   - Performance tuning tips
+   - **Success**: New users productive in <10 minutes
+
+### Success Metrics
+- **Week 1**: First developer successfully uses Cline with local model
+- **Week 2**: Support 10+ different model formats
+- **Week 3**: Achieve optimal performance on each Apple Silicon variant:
+  - Automatic hardware detection working
+  - Performance scales with chip capabilities
+  - No manual tuning required
+- **Week 4**: 100+ active users across all Mac models, <10 min setup time
 
 ## Future Enhancements
 - **Planned Improvements**:
