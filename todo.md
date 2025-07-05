@@ -6,7 +6,7 @@ This document outlines actionable tasks for the development and maintenance of t
 
 These tasks address immediate issues preventing proper server initialization and operation.
 
-- [ ] **Fix IntegratedMLXManager Import Error** - **Priority: Critical, Timeline: Immediate**
+- [x] **Fix IntegratedMLXManager Import Error** - **Priority: Critical, Timeline: Immediate**
   - Fix line 106 in `gerdsen_ai_server/src/integrated_mlx_manager.py`
   - Change `AppleFrameworksIntegration()` to `EnhancedAppleFrameworksIntegration()`
   - This is preventing the server from starting properly
@@ -16,6 +16,8 @@ These tasks address immediate issues preventing proper server initialization and
 These tasks focus on implementing upcoming features as outlined in the project's roadmap. Priorities and timelines are set to focus on immediate needs first.
 
 - [x] **Multi-Model Support (Initial Setup)**: Basic structure for loading and running multiple models simultaneously has been implemented in `src/models/multi_model_manager.py`.
+- [x] **Model Configuration System**: Models are now loaded from configuration files in the `config/models` directory.
+- [x] **Database Integration**: The server is now connected to a SQLite database for model management.
 - [ ] **Multi-Model Support (Integration)** - **Priority: High, Timeline: Next 1-2 Sprints**
   - [ ] Review existing structure in `src/models/multi_model_manager.py` for current implementation.
   - [ ] Integrate AI models like Llama and Mistral into `MultiModelManager` for seamless operation.
