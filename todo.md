@@ -15,7 +15,7 @@ These tasks address immediate issues preventing proper server initialization and
 
 This section marks the completion of the MVP, where a local model of any type can be loaded and accessed to code with Cline in VS Code or VS Codium through a taskbar Electron app called "Impetus". Completion of these tasks signifies the core functionality required for the initial usable product.
 
-**Current Progress**: ~65% complete (All 6 model formats implemented, need factory pattern + Electron app)
+**Current Progress**: ~70% complete (All 6 model formats + factory pattern implemented, need unified inference + Electron app)
 
 - [ ] **Universal Local Model Support for VS Code/Cline Integration** - **Priority: Critical, Timeline: Immediate**
   - [x] GGUF format support (.gguf files) - Most common for quantized models
@@ -72,8 +72,12 @@ This section marks the completion of the MVP, where a local model of any type ca
   - [ ] Bundle Python environment with Electron app
   - [ ] One-click install experience
 - [ ] **Model Format Support Infrastructure** - **Priority: Critical, Timeline: Immediate**
-  - [ ] Create model loader factory pattern to handle all formats dynamically
-  - [ ] Implement format-specific loaders inheriting from base loader class
+  - [x] Create model loader factory pattern to handle all formats dynamically
+    - Implemented ModelLoaderFactory with automatic format detection
+    - Supports both extension and content-based detection
+    - Integrated into IntegratedMLXManager for unified loading
+  - [x] Implement format-specific loaders inheriting from base loader class
+    - All 6 loaders implemented with consistent interfaces
   - [ ] Add model format validation and compatibility checking
   - [ ] Create unified inference interface regardless of underlying format
 - [ ] **OpenAI API Enhancement for Model Switching** - **Priority: Critical, Timeline: Sprint 1**

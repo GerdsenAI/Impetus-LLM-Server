@@ -21,7 +21,10 @@ from gerdsen_ai_server.src.enhanced_apple_silicon_detector import (
     EnhancedAppleSiliconDetector
 )
 from gerdsen_ai_server.src.dummy_model_loader import load_dummy_model, dummy_predict
-from gerdsen_ai_server.src.model_loaders import GGUFLoader, SafeTensorsLoader, MLXLoader, CoreMLLoader, PyTorchLoader, ONNXLoader
+from gerdsen_ai_server.src.model_loaders import (
+    GGUFLoader, SafeTensorsLoader, MLXLoader, CoreMLLoader, PyTorchLoader, ONNXLoader,
+    ModelLoaderFactory, ModelFormat as LoaderModelFormat
+)
 from gerdsen_ai_server.src.inference import GGUFInferenceEngine, GenerationConfig
 
 # MLX imports
@@ -113,13 +116,16 @@ class IntegratedMLXManager:
         self.model_cache = {}
         self.performance_history = {}
         
-        # Model loaders
-        self.gguf_loader = GGUFLoader()
-        self.safetensors_loader = SafeTensorsLoader()
-        self.mlx_loader = MLXLoader()
-        self.coreml_loader = CoreMLLoader()
-        self.pytorch_loader = PyTorchLoader()
-        self.onnx_loader = ONNXLoader()
+        # Model loader factory for unified loading
+        self.model_factory = ModelLoaderFactory()
+        
+        # Individual loaders for backwards compatibility
+        self.gguf_loader = self.model_factory.create_loader(LoaderModelFormat.GGUF)
+        self.safetensors_loader = self.model_factory.create_loader(LoaderModelFormat.SAFETENSORS)
+        self.mlx_loader = self.model_factory.create_loader(LoaderModelFormat.MLX)
+        self.coreml_loader = self.model_factory.create_loader(LoaderModelFormat.COREML)
+        self.pytorch_loader = self.model_factory.create_loader(LoaderModelFormat.PYTORCH)
+        self.onnx_loader = self.model_factory.create_loader(LoaderModelFormat.ONNX)
         
         # Inference engines
         self.gguf_inference = GGUFInferenceEngine()
