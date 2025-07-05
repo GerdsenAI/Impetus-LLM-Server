@@ -3,14 +3,48 @@
 
 This document outlines actionable tasks for the development and maintenance of the Impetus-LLM-Server project, based on the provided README.md documentation. Tasks have been refined with priorities and estimated timelines to align with the project roadmap and guidelines from ai.md.
 
-## Critical Bug Fixes (High Priority)
+## 🚨 Critical Security Issues (IMMEDIATE ACTION REQUIRED)
 
-These tasks address immediate issues preventing proper server initialization and operation.
+Based on Gemini's security audit, these vulnerabilities must be fixed before production deployment:
 
-- [x] **Fix IntegratedMLXManager Import Error** - **Priority: Critical, Timeline: Immediate**
-  - Fix line 106 in `gerdsen_ai_server/src/integrated_mlx_manager.py`
-  - Change `AppleFrameworksIntegration()` to `EnhancedAppleFrameworksIntegration()`
-  - This is preventing the server from starting properly
+- [ ] **Fix Hardcoded API Keys** - **Priority: CRITICAL, Timeline: Immediate**
+  - Replace hardcoded `sk-dev-gerdsen-ai-local-development-key` with environment variables
+  - File: `production_main_enhanced.py` line 34
+  - Add proper secrets management for production
+
+- [ ] **Fix Path Traversal Vulnerability** - **Priority: CRITICAL, Timeline: Immediate**
+  - Implement proper path sanitization in file upload handlers
+  - File: `DragDropZone.jsx` file validation
+  - Prevent directory traversal attacks
+
+- [ ] **Restrict CORS Configuration** - **Priority: CRITICAL, Timeline: Immediate**
+  - Replace wildcard CORS with specific allowed origins
+  - Files: All server implementations
+  - Configure for production domains only
+
+- [ ] **Implement Authentication System** - **Priority: CRITICAL, Timeline: Before Production**
+  - Add proper user authentication
+  - Implement API key management
+  - Add rate limiting to prevent DoS
+
+## 🐛 Critical Bug Fixes (High Priority)
+
+These bugs were identified in the Gemini audit and need immediate attention:
+
+- [ ] **Fix ML Component Race Condition** - **Priority: HIGH, Timeline: Immediate**
+  - Add mutex/lock for ML component access
+  - Prevent access before initialization completes
+  - File: `production_main_enhanced.py`
+
+- [ ] **Fix File Handle Leaks** - **Priority: HIGH, Timeline: Immediate**
+  - Implement cleanup for failed uploads
+  - Add proper resource management
+  - File: `DragDropZone.jsx`
+
+- [ ] **Fix React State Synchronization** - **Priority: MEDIUM, Timeline: Sprint 1**
+  - Fix `loadingModels` Set synchronization
+  - Ensure consistent state updates
+  - File: `ModelGrid.jsx`
 
 ## MVP (Minimum Viable Product) - Complete Production-Ready LLM Platform
 
