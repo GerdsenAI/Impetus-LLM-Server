@@ -21,6 +21,7 @@ from gerdsen_ai_server.src.enhanced_apple_silicon_detector import (
     EnhancedAppleSiliconDetector
 )
 from gerdsen_ai_server.src.dummy_model_loader import load_dummy_model, dummy_predict
+from gerdsen_ai_server.src.model_loaders import GGUFLoader
 
 # MLX imports
 try:
@@ -111,6 +112,9 @@ class IntegratedMLXManager:
         self.model_cache = {}
         self.performance_history = {}
         
+        # Model loaders
+        self.gguf_loader = GGUFLoader()
+        
         # Configuration
         self.cache_dir = Path(cache_dir or os.path.expanduser("~/.gerdsen_ai/model_cache"))
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -174,13 +178,33 @@ class IntegratedMLXManager:
             if compute_device == ComputeDevice.AUTO:
                 compute_device = self._determine_optimal_device(model_path)
             
-            # Load model using dummy loader
-            model_load_result = load_dummy_model(model_path)
-            if model_load_result["status"] != "loaded":
-                self.logger.error(f"Failed to load dummy model: {model_path}")
-                return None
-            model_id = model_name
-            self.model_cache[model_id] = {"path": model_path}
+            # Detect model format and load accordingly
+            if model_path.lower().endswith('.gguf'):
+                # Load GGUF model
+                try:
+                    model_data = self.gguf_loader.load_model(model_path, model_name)
+                    model_load_result = {
+                        "status": "loaded",
+                        "format": "gguf",
+                        "size_bytes": model_data['info'].model_size,
+                        "parameters": f"{model_data['info'].n_layers}L-{model_data['info'].n_heads}H",
+                        "quantization": model_data['info'].quantization,
+                        "context_length": model_data['info'].context_length,
+                        "capabilities": model_data['capabilities']
+                    }
+                    model_id = model_data['id']
+                    self.model_cache[model_id] = {"path": model_path, "loader": "gguf", "data": model_data}
+                except Exception as e:
+                    self.logger.error(f"Failed to load GGUF model: {e}")
+                    return None
+            else:
+                # Load using dummy loader for other formats
+                model_load_result = load_dummy_model(model_path)
+                if model_load_result["status"] != "loaded":
+                    self.logger.error(f"Failed to load dummy model: {model_path}")
+                    return None
+                model_id = model_name
+                self.model_cache[model_id] = {"path": model_path, "loader": "dummy"}
             
             # Determine framework from load result if available
             result_framework = model_load_result.get("format", framework)
@@ -193,7 +217,8 @@ class IntegratedMLXManager:
                 result_framework, 
                 compute_device,
                 size_bytes=model_load_result.get("size_bytes", 0),
-                parameters=model_load_result.get("parameters", 0)
+                parameters=model_load_result.get("parameters", 0),
+                quantization=model_load_result.get("quantization", "unknown")
             )
             
             # Apply Apple Silicon optimizations
@@ -268,7 +293,8 @@ class IntegratedMLXManager:
                                     framework: str,
                                     compute_device: ComputeDevice,
                                     size_bytes: int = 0,
-                                    parameters: int = 0) -> IntegratedModelInfo:
+                                    parameters: int = 0,
+                                    quantization: str = "unknown") -> IntegratedModelInfo:
         """Create integrated model information with provided metadata"""
         
         try:
@@ -281,6 +307,8 @@ class IntegratedMLXManager:
                     framework_enum = ModelFormat.COREML
                 elif model_path.endswith('.npz') or 'mlx' in model_path.lower():
                     framework_enum = ModelFormat.MLX
+                elif model_path.endswith('.gguf'):
+                    framework_enum = ModelFormat.MLX  # GGUF models can use MLX backend
                 else:
                     framework_enum = ModelFormat.COREML
             else:
@@ -306,7 +334,7 @@ class IntegratedMLXManager:
                 compute_device=compute_device,
                 size_bytes=actual_size,
                 parameters=parameters,
-                quantization="unknown",
+                quantization=quantization,
                 optimization_level="default",
                 performance_metrics=None,
                 apple_silicon_optimized=False,
@@ -645,17 +673,25 @@ class IntegratedMLXManager:
             if model_id not in self.models:
                 return False
             
-            # Unload from Apple frameworks
-            success = False
-            if model_id in self.apple_frameworks.coreml_manager.models:
-                success = self.apple_frameworks.coreml_manager.unload_model(model_id)
-            elif model_id in self.apple_frameworks.mlx_manager.models:
-                del self.apple_frameworks.mlx_manager.models[model_id]
-                success = True
+            # Check if it's a GGUF model
+            cache_data = self.model_cache.get(model_id, {})
+            if cache_data.get("loader") == "gguf":
+                # Unload GGUF model
+                success = self.gguf_loader.unload_model(model_id)
+            else:
+                # Unload from Apple frameworks
+                success = False
+                if model_id in self.apple_frameworks.coreml_manager.models:
+                    success = self.apple_frameworks.coreml_manager.unload_model(model_id)
+                elif model_id in self.apple_frameworks.mlx_manager.models:
+                    del self.apple_frameworks.mlx_manager.models[model_id]
+                    success = True
             
             if success:
                 # Remove from our tracking
                 del self.models[model_id]
+                if model_id in self.model_cache:
+                    del self.model_cache[model_id]
                 if model_id in self.performance_history:
                     del self.performance_history[model_id]
                 
@@ -666,6 +702,39 @@ class IntegratedMLXManager:
             self.logger.error(f"Failed to unload model {model_id}: {e}")
         
         return False
+    
+    def get_gguf_models(self) -> Dict[str, Any]:
+        """Get all loaded GGUF models"""
+        gguf_models = {}
+        for model_id, cache_data in self.model_cache.items():
+            if cache_data.get("loader") == "gguf":
+                model_info = self.models.get(model_id)
+                if model_info:
+                    gguf_models[model_id] = {
+                        'info': model_info,
+                        'data': cache_data.get('data', {}),
+                        'capabilities': cache_data.get('data', {}).get('capabilities', [])
+                    }
+        return gguf_models
+    
+    def get_loaded_models(self) -> Dict[str, Dict[str, Any]]:
+        """Get all loaded models with their information"""
+        loaded_models = {}
+        for model_id, model_info in self.models.items():
+            cache_data = self.model_cache.get(model_id, {})
+            loaded_models[model_id] = {
+                'name': model_info.name,
+                'framework': model_info.framework.value,
+                'quantization': model_info.quantization,
+                'size_gb': model_info.size_bytes / (1024**3),
+                'parameters': model_info.parameters,
+                'loader': cache_data.get('loader', 'unknown'),
+                'capabilities': cache_data.get('data', {}).get('capabilities', []),
+                'optimization_level': model_info.optimization_level,
+                'apple_silicon_optimized': model_info.apple_silicon_optimized,
+                'compute_device': model_info.compute_device.value
+            }
+        return loaded_models
     
     def cleanup(self):
         """Clean up resources"""
