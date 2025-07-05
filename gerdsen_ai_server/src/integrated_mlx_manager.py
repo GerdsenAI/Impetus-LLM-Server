@@ -29,6 +29,7 @@ from gerdsen_ai_server.src.inference import (
     GGUFInferenceEngine, GenerationConfig, 
     UnifiedInferenceEngine, get_unified_inference_engine
 )
+from gerdsen_ai_server.src.config.model_paths import get_model_paths, get_model_search_paths
 
 # MLX imports
 try:
@@ -136,9 +137,13 @@ class IntegratedMLXManager:
         # Keep legacy GGUF inference for backwards compatibility
         self.gguf_inference = GGUFInferenceEngine()
         
-        # Configuration
-        self.cache_dir = Path(cache_dir or os.path.expanduser("~/.gerdsen_ai/model_cache"))
+        # Configuration with dynamic user paths
+        self.model_paths = get_model_paths()
+        self.cache_dir = Path(cache_dir or self.model_paths.cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Ensure all model directories exist
+        self.model_paths.ensure_directories()
         
         # Performance monitoring
         self.monitoring_active = False
@@ -1164,6 +1169,200 @@ class IntegratedMLXManager:
             }
         
         return available_models
+    
+    def scan_user_models(self, format_type: Optional[str] = None, 
+                        capability: Optional[str] = None) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Scan user's model directories for available models
+        
+        Args:
+            format_type: Specific format to scan (e.g., 'gguf', 'safetensors')
+            capability: Specific capability to scan (e.g., 'chat', 'embedding')
+            
+        Returns:
+            Dictionary mapping model names to list of model info dicts
+        """
+        try:
+            self.logger.info(f"Scanning user models in {self.model_paths.models_base_dir}")
+            
+            # Get all model files
+            models_found = self.model_paths.scan_for_models()
+            
+            # Process found models
+            processed_models = {}
+            
+            for model_name, paths in models_found.items():
+                processed_models[model_name] = []
+                
+                for path in paths:
+                    try:
+                        # Detect format
+                        detected_format = self.model_factory.detect_format_from_file(path)
+                        
+                        # Skip if format filter doesn't match
+                        if format_type and detected_format.value != format_type.lower():
+                            continue
+                            
+                        # Get file info
+                        stat = path.stat()
+                        
+                        # Determine capability from path
+                        path_parts = path.parts
+                        detected_capability = 'unknown'
+                        for part in ['chat', 'completion', 'embedding', 'vision', 'audio', 'multimodal']:
+                            if part in path_parts:
+                                detected_capability = part
+                                break
+                                
+                        # Skip if capability filter doesn't match
+                        if capability and detected_capability != capability:
+                            continue
+                            
+                        model_info = {
+                            'name': model_name,
+                            'path': str(path),
+                            'format': detected_format.value,
+                            'capability': detected_capability,
+                            'size_mb': stat.st_size / (1024 * 1024),
+                            'modified': stat.st_mtime,
+                            'parent_dir': path.parent.name,
+                            'available': True
+                        }
+                        
+                        processed_models[model_name].append(model_info)
+                        
+                    except Exception as e:
+                        self.logger.warning(f"Error processing model {path}: {e}")
+                        
+            # Remove empty entries
+            processed_models = {k: v for k, v in processed_models.items() if v}
+            
+            self.logger.info(f"Found {len(processed_models)} unique models")
+            return processed_models
+            
+        except Exception as e:
+            self.logger.error(f"Model scanning failed: {e}")
+            return {}
+            
+    def load_model_from_path(self, file_path: Union[str, Path], 
+                            model_id: Optional[str] = None,
+                            **kwargs) -> Optional[str]:
+        """
+        Load a model from a specific file path in the user's model directory
+        
+        Args:
+            file_path: Path to the model file
+            model_id: Optional model ID (defaults to filename)
+            **kwargs: Additional loading parameters
+            
+        Returns:
+            Model ID if successful, None otherwise
+        """
+        try:
+            file_path = Path(file_path)
+            
+            if not file_path.exists():
+                self.logger.error(f"Model file not found: {file_path}")
+                return None
+                
+            # Generate model ID if not provided
+            if not model_id:
+                model_id = file_path.stem
+                
+            # Load using the factory
+            model_data = self.model_factory.load_model(file_path, model_id=model_id, **kwargs)
+            
+            if model_data:
+                # Get format from loaded data
+                model_format = model_data.get('format', 'unknown')
+                
+                # Create model info
+                model_info = IntegratedModelInfo(
+                    model_id=model_id,
+                    name=model_data.get('name', model_id),
+                    path=str(file_path),
+                    framework=ModelFormat.MLX,  # Default, will be updated
+                    compute_device=ComputeDevice.AUTO,
+                    size_bytes=file_path.stat().st_size,
+                    parameters=model_data.get('parameters', 0),
+                    quantization=model_data.get('quantization', 'unknown'),
+                    optimization_level='standard',
+                    performance_metrics=None,
+                    apple_silicon_optimized=True,
+                    neural_engine_compatible=False,
+                    metal_accelerated=True,
+                    last_accessed=time.time(),
+                    access_count=0
+                )
+                
+                # Store model info
+                self.models[model_id] = model_info
+                self.model_cache[model_id] = model_data
+                
+                # Load for inference if unified engine available
+                if self.inference_engine:
+                    success = self.inference_engine.load_model_for_inference(
+                        model_id, str(file_path), model_data, model_format
+                    )
+                    if success:
+                        self.logger.info(f"Model {model_id} loaded successfully for inference")
+                    else:
+                        self.logger.warning(f"Model {model_id} loaded but not available for inference")
+                        
+                return model_id
+                
+        except Exception as e:
+            self.logger.error(f"Failed to load model from {file_path}: {e}")
+            return None
+            
+    def get_model_directory_info(self) -> Dict[str, Any]:
+        """
+        Get information about the model directory structure
+        
+        Returns:
+            Dictionary with directory information
+        """
+        info = {
+            'base_directory': str(self.model_paths.models_base_dir),
+            'cache_directory': str(self.model_paths.cache_dir),
+            'downloads_directory': str(self.model_paths.downloads_dir),
+            'format_directories': {},
+            'total_models': 0,
+            'total_size_gb': 0.0
+        }
+        
+        # Get info for each format directory
+        for format_name, format_dir in self.model_paths.format_dirs.items():
+            if format_dir.exists():
+                model_count = 0
+                total_size = 0
+                
+                try:
+                    for file_path in format_dir.rglob('*'):
+                        if file_path.is_file():
+                            model_count += 1
+                            total_size += file_path.stat().st_size
+                except:
+                    pass
+                    
+                info['format_directories'][format_name] = {
+                    'path': str(format_dir),
+                    'exists': True,
+                    'model_count': model_count,
+                    'size_gb': total_size / (1024**3)
+                }
+                
+                info['total_models'] += model_count
+                info['total_size_gb'] += total_size / (1024**3)
+            else:
+                info['format_directories'][format_name] = {
+                    'path': str(format_dir),
+                    'exists': False,
+                    'model_count': 0,
+                    'size_gb': 0.0
+                }
+                
+        return info
     
     def cleanup(self):
         """Clean up resources"""

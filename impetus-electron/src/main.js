@@ -192,22 +192,55 @@ class ImpetusApp {
     }
     
     buildModelsMenu() {
-        if (this.loadedModels.length === 0) {
-            return [
-                {
-                    label: 'No models loaded',
-                    type: 'normal',
-                    enabled: false
+        const menu = [];
+        
+        // Add "Open Models Directory" option
+        menu.push({
+            label: 'Open Models Directory',
+            type: 'normal',
+            click: () => {
+                shell.openPath(this.modelsBaseDir);
+            }
+        });
+        
+        menu.push({
+            label: 'Scan for Models',
+            type: 'normal',
+            click: async () => {
+                const result = await this.scanUserModels();
+                if (result.success) {
+                    dialog.showMessageBox(null, {
+                        type: 'info',
+                        title: 'Model Scan Complete',
+                        message: `Found ${result.models.length} models`,
+                        detail: `Models directory: ${result.directory}`
+                    });
+                } else {
+                    dialog.showErrorBox('Scan Error', result.error);
                 }
-            ];
+            }
+        });
+        
+        menu.push({ type: 'separator' });
+        
+        if (this.loadedModels.length === 0) {
+            menu.push({
+                label: 'No models loaded',
+                type: 'normal',
+                enabled: false
+            });
+        } else {
+            this.loadedModels.forEach(model => {
+                menu.push({
+                    label: `${model.id} (${model.format})`,
+                    type: 'radio',
+                    checked: model.id === this.currentModel,
+                    click: () => this.switchToModel(model.id)
+                });
+            });
         }
         
-        return this.loadedModels.map(model => ({
-            label: `${model.id} (${model.format})`,
-            type: 'radio',
-            checked: model.id === this.currentModel,
-            click: () => this.switchToModel(model.id)
-        }));
+        return menu;
     }
     
     updateTrayTooltip() {
@@ -506,6 +539,70 @@ class ImpetusApp {
         ipcMain.handle('open-external', (event, url) => {
             shell.openExternal(url);
         });
+        
+        ipcMain.handle('open-models-directory', () => {
+            // Open the user's models directory in Finder/Explorer
+            shell.openPath(this.modelsBaseDir);
+            return { success: true, path: this.modelsBaseDir };
+        });
+        
+        ipcMain.handle('scan-models', async () => {
+            // Scan for models in the user's directory
+            return this.scanUserModels();
+        });
+    }
+    
+    async scanUserModels() {
+        try {
+            // Ensure models directory exists
+            if (!fs.existsSync(this.modelsBaseDir)) {
+                fs.mkdirSync(this.modelsBaseDir, { recursive: true });
+            }
+            
+            const models = [];
+            const supportedExtensions = ['.gguf', '.safetensors', '.mlx', '.mlmodel', '.pt', '.pth', '.bin', '.onnx'];
+            
+            // Scan each format directory
+            const formatDirs = ['GGUF', 'SafeTensors', 'MLX', 'CoreML', 'PyTorch', 'ONNX', 'Universal'];
+            
+            for (const formatDir of formatDirs) {
+                const formatPath = path.join(this.modelsBaseDir, formatDir);
+                if (fs.existsSync(formatPath)) {
+                    // Scan capability subdirectories
+                    const capabilities = ['chat', 'completion', 'embedding', 'vision', 'audio', 'multimodal'];
+                    
+                    for (const capability of capabilities) {
+                        const capPath = path.join(formatPath, capability);
+                        if (fs.existsSync(capPath)) {
+                            const files = fs.readdirSync(capPath);
+                            
+                            for (const file of files) {
+                                const ext = path.extname(file).toLowerCase();
+                                if (supportedExtensions.includes(ext)) {
+                                    const filePath = path.join(capPath, file);
+                                    const stats = fs.statSync(filePath);
+                                    
+                                    models.push({
+                                        name: path.basename(file, ext),
+                                        path: filePath,
+                                        format: formatDir.toLowerCase(),
+                                        capability: capability,
+                                        size: stats.size,
+                                        sizeMB: (stats.size / (1024 * 1024)).toFixed(2),
+                                        modified: stats.mtime
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return { success: true, models: models, directory: this.modelsBaseDir };
+        } catch (error) {
+            console.error('Error scanning models:', error);
+            return { success: false, error: error.message, directory: this.modelsBaseDir };
+        }
     }
     
     cleanup() {

@@ -18,7 +18,8 @@
     "bundle-python": "node scripts/bundle-python.js",
     "test-bundle": "node scripts/test-bundle.js",
     "build-with-python": "npm run bundle-python && npm run test-bundle && npm run build",
-    "dist-with-python": "npm run bundle-python && npm run test-bundle && npm run dist"
+    "dist-with-python": "npm run bundle-python && npm run test-bundle && npm run dist",
+    "postinstall": "node scripts/postinstall.js"
   },
   "build": {
     "appId": "com.gerdsenai.impetus",

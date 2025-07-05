@@ -325,6 +325,72 @@ class ProductionFlaskServer:
                 logger.error(f"Cache clear error: {e}")
                 return jsonify({'success': False, 'error': str(e)}), 500
         
+        @self.app.route('/api/models/scan', methods=['GET'])
+        def scan_user_models():
+            """Scan user's model directories for available models"""
+            try:
+                # Get query parameters for filtering
+                format_type = request.args.get('format', None)
+                capability = request.args.get('capability', None)
+                
+                # Scan models
+                models = self.mlx_manager.scan_user_models(format_type, capability)
+                
+                # Get directory info
+                dir_info = self.mlx_manager.get_model_directory_info()
+                
+                return jsonify({
+                    'success': True,
+                    'models': models,
+                    'directory_info': dir_info,
+                    'total_models': sum(len(model_list) for model_list in models.values())
+                })
+            except Exception as e:
+                logger.error(f"Model scan error: {e}")
+                return jsonify({'success': False, 'error': str(e)}), 500
+        
+        @self.app.route('/api/models/load-from-path', methods=['POST'])
+        def load_model_from_path():
+            """Load a model from a specific file path"""
+            try:
+                data = request.get_json()
+                file_path = data.get('path')
+                model_id = data.get('model_id', None)
+                
+                if not file_path:
+                    return jsonify({'success': False, 'error': 'No file path provided'}), 400
+                
+                # Load the model
+                loaded_id = self.mlx_manager.load_model_from_path(file_path, model_id)
+                
+                if loaded_id:
+                    return jsonify({
+                        'success': True,
+                        'model_id': loaded_id,
+                        'message': f'Model {loaded_id} loaded successfully'
+                    })
+                else:
+                    return jsonify({'success': False, 'error': 'Failed to load model'}), 500
+                    
+            except Exception as e:
+                logger.error(f"Model load from path error: {e}")
+                return jsonify({'success': False, 'error': str(e)}), 500
+        
+        @self.app.route('/api/models/directory', methods=['GET'])
+        def get_models_directory():
+            """Get the user's models directory path and info"""
+            try:
+                dir_info = self.mlx_manager.get_model_directory_info()
+                
+                return jsonify({
+                    'success': True,
+                    'directory': dir_info['base_directory'],
+                    'info': dir_info
+                })
+            except Exception as e:
+                logger.error(f"Get models directory error: {e}")
+                return jsonify({'success': False, 'error': str(e)}), 500
+        
         @self.app.route('/api/optimization/auto', methods=['POST'])
         def toggle_auto_optimization():
             """Toggle auto optimization"""

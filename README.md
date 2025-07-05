@@ -48,20 +48,58 @@ A comprehensive local LLM server optimized for Apple Silicon that supports ANY m
 - **Optional**: MLX framework for advanced AI acceleration
 - **Optional**: Core ML Tools for model optimization
 
+## 📁 Model Directory Structure
+
+IMPETUS uses a standardized directory structure in your home folder for organizing models:
+
+```
+~/Models/
+├── GGUF/                 # Quantized models (recommended)
+│   ├── chat/            # Conversational models
+│   ├── completion/      # Text completion
+│   └── embedding/       # Embeddings
+├── SafeTensors/          # Hugging Face format
+├── MLX/                  # Apple Silicon optimized
+├── CoreML/               # iOS/macOS native
+├── PyTorch/              # PyTorch models
+├── ONNX/                 # Cross-platform
+├── Universal/            # Unknown formats
+├── Downloads/            # Temporary downloads
+├── Cache/               # Model cache
+├── Converted/           # Format conversions
+└── Custom/              # Fine-tuned models
+```
+
+### Setting Up Model Directories
+```bash
+# Automatic setup (run once after installation)
+python3 scripts/setup_user_models.py
+
+# Download example models to get started
+python3 scripts/download_example_model.py
+```
+
 ## 🛠 Installation
 
-### Quick Install (Recommended)
+### Production App (Recommended)
+1. **Download IMPETUS.app** from releases
+2. **Drag to Applications** folder
+3. **Launch IMPETUS** from Applications
+4. Model directories will be created automatically on first launch
+
+### Development Setup
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd gerdsen-ai-enhanced
+cd Impetus-LLM-Server
 
-# Run the automated installer
-chmod +x scripts/build_macos.sh
-./scripts/build_macos.sh
+# Set up Python environment
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements_production.txt
 
-# Launch the application
-./gerdsen_ai_launcher.py
+# Run the server
+python gerdsen_ai_server/src/production_main.py
 ```
 
 ### Manual Installation
