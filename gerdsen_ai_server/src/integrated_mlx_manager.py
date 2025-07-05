@@ -21,7 +21,7 @@ from gerdsen_ai_server.src.enhanced_apple_silicon_detector import (
     EnhancedAppleSiliconDetector
 )
 from gerdsen_ai_server.src.dummy_model_loader import load_dummy_model, dummy_predict
-from gerdsen_ai_server.src.model_loaders import GGUFLoader, SafeTensorsLoader, MLXLoader, CoreMLLoader
+from gerdsen_ai_server.src.model_loaders import GGUFLoader, SafeTensorsLoader, MLXLoader, CoreMLLoader, PyTorchLoader
 from gerdsen_ai_server.src.inference import GGUFInferenceEngine, GenerationConfig
 
 # MLX imports
@@ -118,6 +118,7 @@ class IntegratedMLXManager:
         self.safetensors_loader = SafeTensorsLoader()
         self.mlx_loader = MLXLoader()
         self.coreml_loader = CoreMLLoader()
+        self.pytorch_loader = PyTorchLoader()
         
         # Inference engines
         self.gguf_inference = GGUFInferenceEngine()
@@ -296,6 +297,33 @@ class IntegratedMLXManager:
                     
                 except Exception as e:
                     self.logger.error(f"Failed to load CoreML model: {e}")
+                    return None
+                    
+            elif model_path.lower().endswith(('.pt', '.pth', '.bin')):
+                # Load PyTorch model
+                try:
+                    model_info = self.pytorch_loader.load_model(model_path)
+                    model_load_result = {
+                        "status": "loaded",
+                        "format": "pytorch",
+                        "size_bytes": model_info['file_size'],
+                        "parameters": model_info.get('num_parameters', 0),
+                        "architecture": model_info['architecture'],
+                        "model_type": model_info['model_type'],
+                        "device": model_info['device'],
+                        "capabilities": ["inference", "training"]
+                    }
+                    model_id = Path(model_path).stem
+                    self.model_cache[model_id] = {"path": model_path, "loader": "pytorch", "data": model_info}
+                    
+                    # Optimize for available device
+                    if optimize_for_apple_silicon:
+                        self.pytorch_loader.optimize_for_device(model_id, 'mps')  # Metal Performance Shaders
+                    
+                    self.logger.info(f"PyTorch model loaded successfully: {model_id}")
+                    
+                except Exception as e:
+                    self.logger.error(f"Failed to load PyTorch model: {e}")
                     return None
                     
             else:
