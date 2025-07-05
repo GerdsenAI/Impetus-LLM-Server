@@ -21,7 +21,7 @@ from gerdsen_ai_server.src.enhanced_apple_silicon_detector import (
     EnhancedAppleSiliconDetector
 )
 from gerdsen_ai_server.src.dummy_model_loader import load_dummy_model, dummy_predict
-from gerdsen_ai_server.src.model_loaders import GGUFLoader
+from gerdsen_ai_server.src.model_loaders import GGUFLoader, SafeTensorsLoader
 from gerdsen_ai_server.src.inference import GGUFInferenceEngine, GenerationConfig
 
 # MLX imports
@@ -115,6 +115,7 @@ class IntegratedMLXManager:
         
         # Model loaders
         self.gguf_loader = GGUFLoader()
+        self.safetensors_loader = SafeTensorsLoader()
         
         # Inference engines
         self.gguf_inference = GGUFInferenceEngine()
@@ -210,6 +211,30 @@ class IntegratedMLXManager:
                 except Exception as e:
                     self.logger.error(f"Failed to load GGUF model: {e}")
                     return None
+                    
+            elif model_path.lower().endswith('.safetensors'):
+                # Load SafeTensors model
+                try:
+                    model_info = self.safetensors_loader.load_model(model_path)
+                    model_load_result = {
+                        "status": "loaded",
+                        "format": "safetensors",
+                        "size_bytes": model_info['file_size'],
+                        "parameters": model_info['total_parameters'],
+                        "architecture": model_info['architecture'],
+                        "num_tensors": model_info['num_tensors'],
+                        "capabilities": ["text-generation"]  # Default for now
+                    }
+                    model_id = Path(model_path).stem
+                    self.model_cache[model_id] = {"path": model_path, "loader": "safetensors", "data": model_info}
+                    
+                    # TODO: Implement SafeTensors inference engine
+                    self.logger.info(f"SafeTensors model loaded successfully: {model_id}")
+                    
+                except Exception as e:
+                    self.logger.error(f"Failed to load SafeTensors model: {e}")
+                    return None
+                    
             else:
                 # Load using dummy loader for other formats
                 model_load_result = load_dummy_model(model_path)

@@ -15,6 +15,8 @@ These tasks address immediate issues preventing proper server initialization and
 
 This section marks the completion of the MVP, where a local model of any type can be loaded and accessed to code with Cline in VS Code or VS Codium through a taskbar Electron app called "Impetus". Completion of these tasks signifies the core functionality required for the initial usable product.
 
+**Current Progress**: ~40% complete (GGUF working, other formats and Electron app needed)
+
 - [ ] **Universal Local Model Support for VS Code/Cline Integration** - **Priority: Critical, Timeline: Immediate**
   - [x] GGUF format support (.gguf files) - Most common for quantized models
     - Created GGUF loader in model_loaders/gguf_loader.py
