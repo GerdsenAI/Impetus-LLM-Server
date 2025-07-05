@@ -13,7 +13,7 @@ These tasks address immediate issues preventing proper server initialization and
 
 ## MVP (Minimum Viable Product) - Load Local Model and Use with Cline
 
-This section marks the completion of the MVP, where a local model of any type can be loaded and accessed to code with Cline in VS Code or VS Codium through a taskbar Electron app called "Socrates". Completion of these tasks signifies the core functionality required for the initial usable product.
+This section marks the completion of the MVP, where a local model of any type can be loaded and accessed to code with Cline in VS Code or VS Codium through a taskbar Electron app called "Impetus". Completion of these tasks signifies the core functionality required for the initial usable product.
 
 - [ ] **Universal Local Model Support for VS Code/Cline Integration** - **Priority: Critical, Timeline: Immediate**
   - [x] GGUF format support (.gguf files) - Most common for quantized models
@@ -47,7 +47,7 @@ This section marks the completion of the MVP, where a local model of any type ca
     - [ ] Test with Cline, Continue.dev, and other popular extensions
   - [ ] Create model switching API endpoint for dynamic selection
   - [ ] Initialize models on server startup with Apple Silicon optimization
-- [ ] **Electron App Integration (Socrates)** - **Priority: Critical, Timeline: Immediate**
+- [ ] **Electron App Integration (Impetus)** - **Priority: Critical, Timeline: Immediate**
   - [ ] Create Electron wrapper for the Flask server
   - [ ] Implement taskbar/menu bar application with icon
   - [ ] Add server start/stop controls from taskbar
