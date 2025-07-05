@@ -8,6 +8,8 @@ const path = require('path');
 const { spawn } = require('child_process');
 const axios = require('axios');
 const Store = require('electron-store');
+const os = require('os');
+const fs = require('fs');
 
 // Initialize persistent store
 const store = new Store();
