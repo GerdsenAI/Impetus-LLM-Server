@@ -102,6 +102,23 @@ The IMPETUS MVP has been successfully completed and deployed:
 6. Verify server can start: `python gerdsen_ai_server/src/production_main.py`
 7. Check `/v1/models` endpoint
 8. **Use MCP for todos**: `mcp_tool("memory", "get_todo_status")`
+
+## Key Learnings from Server Startup Fix
+
+### Bundled Python Environment Issues
+1. **Import Path Problems**: Production server uses full module paths like `gerdsen_ai_server.src.*` which fail in bundled environment
+2. **Solution**: Created `production_main_simple.py` with relative imports for bundled deployment
+3. **Missing Dependencies**: Always check that bundled Python has all required packages (e.g., websockets was missing)
+
+### Electron App Building Process
+1. **Bundle Python First**: Run `npm run bundle-python` before building
+2. **Source Code Location**: Ensure server code is copied to `resources/python-bundle/src/`
+3. **Testing**: Always test bundled server directly before building: `resources/python-bundle/venv/bin/python resources/python-bundle/src/production_main.py`
+
+### macOS App Naming
+- Use "Impetus" not "IMPETUS" for proper macOS display
+- Update `productName` in package.json
+- Update all references in source files
 9. **Focus on MVP tasks only** - Ignore post-MVP features until complete
 
 ### When Implementing Features

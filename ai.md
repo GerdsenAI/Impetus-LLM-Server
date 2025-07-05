@@ -2,9 +2,10 @@
 
 ## 🚀 TL;DR for Agents
 **MVP Goal**: Load ANY local model format and use with Cline via taskbar Electron app "Impetus"  
-**Current**: ✅ 100% COMPLETE - All formats work + Electron app built & installed  
-**Next Tasks**: Check TODO.md post-MVP sections for enhancements  
-**Success**: ✅ ACHIEVED - Any model loads and Cline can use it through Impetus app  
+**Current**: ✅ MVP COMPLETE + Server Fixed - App functional in /Applications/Impetus.app  
+**Latest Fix**: Server startup issue resolved with simplified bundled version  
+**Usage**: Launch Impetus → Click "Start Server" → Use with VS Code/Cline at localhost:8080  
+**Next Tasks**: Check TODO.md post-MVP sections for ML model integration enhancements  
 **Read Next**: `.clinerules/memory.md` → `TODO.md` post-MVP sections  
 
 ## Executive Summary
@@ -61,9 +62,14 @@ Based on current phase, select tasks that:
 
 ### 5. Quick Decision Tree
 ```
-Is the server installed and running? (IMPETUS.app)
-├─ No → Check /Applications/IMPETUS.app
+Is the server installed and running? (Impetus.app)
+├─ No → Check /Applications/Impetus.app
+├─ Server won't start? → Fixed! Simplified bundled version works
 └─ Yes → Ready for post-MVP enhancements
+    ├─ ML Model Integration (Priority)
+    │   ├─ Integrate full IntegratedMLXManager into bundled app
+    │   ├─ Fix import issues for production_gerdsen_ai.py
+    │   └─ Test actual model loading with GGUF files
     ├─ Model Management UI needed?
     ├─ Hugging Face integration?
     ├─ Performance dashboard?

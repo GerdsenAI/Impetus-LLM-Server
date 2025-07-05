@@ -135,9 +135,11 @@ This section marks the completion of the MVP, where a local model of any type ca
 
 **Update - July 5, 2025**: 
 - ✅ Fixed critical server startup issue in Electron app
-- ✅ App name changed from IMPETUS to Impetus for proper macOS display
+- ✅ App name changed from IMPETUS to Impetus for proper macOS display  
 - ✅ Server now starts with simplified bundled version
+- ✅ Electron app functional: Launch from Applications → Click "Start Server"
 - ⚠️ Note: Using simplified server without ML model loading for initial testing
+- 🔧 Next: Integrate full ML functionality into bundled environment
 
 ## 🎉 MVP COMPLETION MILESTONE - July 5, 2025
 
