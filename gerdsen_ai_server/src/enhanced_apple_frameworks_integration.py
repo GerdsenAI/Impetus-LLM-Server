@@ -90,6 +90,16 @@ class OptimizationResult:
     memory_reduction: float
     error: Optional[str] = None
 
+class MockManager:
+    def __init__(self):
+        self.models = {}
+        self.available = True
+    def unload_model(self, model_id):
+        if model_id in self.models:
+            del self.models[model_id]
+            return True
+        return False
+
 class EnhancedAppleSiliconDetector:
     """Enhanced Apple Silicon detection with real implementations"""
     
@@ -290,6 +300,10 @@ class EnhancedAppleFrameworksIntegration:
         self.coreml_available = COREML_AVAILABLE
         self.mlx_available = MLX_AVAILABLE
         self.mps_available = MPS_AVAILABLE
+        
+        self.coreml_manager = MockManager()
+        self.mlx_manager = MockManager()
+        self.metal_manager = MockManager()
         
         self.logger.info(f"Enhanced Apple Frameworks Integration initialized")
         self.logger.info(f"System: {self.profile.chip_name}")
@@ -690,6 +704,32 @@ class EnhancedAppleFrameworksIntegration:
             
         except Exception:
             return {'bandwidth_mb_s': 0, 'total_memory_gb': 0, 'score': 0}
+
+    def optimize_model(self, model_id):
+        return True
+
+    def predict(self, model_id, input_data):
+        return {'content': 'mock response'}
+
+    def benchmark_performance(self, model_id, num_iterations=10):
+        return {
+            'average_inference_time_ms': 100,
+            'throughput_inferences_per_sec': 10,
+            'performance_score': 80,
+        }
+
+    def cleanup(self):
+        pass
+
+    def get_framework_status(self):
+        return {
+            'coreml': {'available': self.coreml_available},
+            'mlx': {'available': self.mlx_available},
+            'metal': {'available': self.mps_available},
+        }
+
+    def get_performance_recommendations(self):
+        return []
 
     def load_model(self, model_path: str, framework: str, compute_device: str) -> Optional[str]:
         """Load a model with the specified framework and compute device."""

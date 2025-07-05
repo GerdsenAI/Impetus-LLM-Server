@@ -20,7 +20,10 @@ CORS(app)
 
 # Configuration
 app.config['SECRET_KEY'] = 'gerdsen-ai-production-key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gerdsen_ai_server/src/database/app.db'
+basedir = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(basedir, 'gerdsen_ai_server/src/database/app.db')
+os.makedirs(os.path.dirname(db_path), exist_ok=True)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database

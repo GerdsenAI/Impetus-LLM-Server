@@ -2,6 +2,7 @@
 fastapi==0.92.0
 uvicorn==0.20.0
 pydantic==1.10.5
+flask-sqlalchemy==3.1.1
 
 # Additional dependencies for AI model management
 transformers==4.26.1
