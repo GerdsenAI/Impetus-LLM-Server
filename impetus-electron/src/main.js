@@ -23,6 +23,10 @@ class ImpetusApp {
         this.loadedModels = [];
         this.currentModel = null;
         
+        // Model directory paths (dynamic based on user)
+        this.userHome = os.homedir();
+        this.modelsBaseDir = path.join(this.userHome, 'Models');
+        
         // Initialize app
         this.init();
     }
@@ -199,7 +203,15 @@ class ImpetusApp {
             label: 'Open Models Directory',
             type: 'normal',
             click: () => {
-                shell.openPath(this.modelsBaseDir);
+                if (this.modelsBaseDir) {
+                    shell.openPath(this.modelsBaseDir).catch(err => {
+                        console.error('Error opening models directory:', err);
+                        dialog.showErrorBox('Error', `Could not open models directory: ${err.message}`);
+                    });
+                } else {
+                    console.error('Models base directory not set');
+                    dialog.showErrorBox('Error', 'Models directory path not configured');
+                }
             }
         });
         
