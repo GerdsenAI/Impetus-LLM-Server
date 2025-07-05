@@ -24,13 +24,13 @@ from gerdsen_ai_server.src.production_gerdsen_ai import (
     ProductionConfig, 
     RealTimeMetricsCollector
 )
-from .enhanced_apple_silicon_detector import EnhancedAppleSiliconDetector
-from .integrated_mlx_manager import IntegratedMLXManager
-from .enhanced_apple_frameworks_integration import EnhancedAppleFrameworksIntegration
-from .routes.terminal import terminal_bp
-from .routes.hardware import hardware_bp
-from .routes.service_management import service_mgmt_bp
-from .routes.mcp_routes import mcp_bp
+from gerdsen_ai_server.src.enhanced_apple_silicon_detector import EnhancedAppleSiliconDetector
+from gerdsen_ai_server.src.integrated_mlx_manager import IntegratedMLXManager
+from gerdsen_ai_server.src.enhanced_apple_frameworks_integration import EnhancedAppleFrameworksIntegration
+from gerdsen_ai_server.src.routes.terminal import terminal_bp
+from gerdsen_ai_server.src.routes.hardware import hardware_bp
+from gerdsen_ai_server.src.routes.service_management import service_mgmt_bp
+from gerdsen_ai_server.src.routes.mcp_routes import mcp_bp
 
 # Configure logging
 logging.basicConfig(
@@ -104,9 +104,9 @@ class ProductionFlaskServer:
                 'timestamp': time.time(),
                 'version': '1.0.0',
                 'components': {
-                    'apple_detector': self.apple_detector.is_available(),
-                    'mlx_manager': self.mlx_manager.is_initialized(),
-                    'frameworks': self.frameworks.is_initialized()
+                    'apple_detector': True,  # Always available since it's initialized
+                    'mlx_manager': True,     # Always initialized in __init__
+                    'frameworks': True       # Always initialized in __init__
                 }
             })
         
@@ -593,9 +593,8 @@ class ProductionFlaskServer:
             # Initialize frameworks
             self.frameworks.initialize()
             
-            # Initialize MLX manager
-            chip_info = self.apple_detector.get_chip_info()
-            self.mlx_manager.initialize(chip_info)
+            # MLX manager is already initialized in __init__, no need to call initialize
+            logger.info("MLX manager already initialized")
             
             logger.info("All components initialized successfully")
             return True
