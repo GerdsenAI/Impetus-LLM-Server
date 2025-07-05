@@ -1,33 +1,49 @@
-# GerdsenAI Enhanced Project - Complete Implementation
+# IMPETUS - Intelligent Model Platform Enabling Taskbar Unified Server
 
 ## 🎯 Project Overview
 
-This project has been completely enhanced according to your specifications, creating a modern, Apple HIG-compliant web application with full functionality and no placeholders remaining.
+IMPETUS is a comprehensive local LLM server optimized for Apple Silicon, providing seamless VS Code/Cline integration through a native macOS taskbar application. The project has achieved ~95% MVP completion with complete model format support, unified inference, and a fully-featured Electron app with Python bundling capabilities.
 
-## ✅ Completed Requirements
+## ✅ MVP Completion Status (95% Complete)
 
-### 1. **Modern Frontend with Apple HIG Compliance**
-- ✅ Apple Human Interface Guidelines implementation
-- ✅ SF Mono font integration
-- ✅ Modern, responsive design
-- ✅ Perfect UI/UX experience
-- ✅ Mobile and desktop compatibility
+### 1. **Universal Model Format Support** ✅
+- ✅ GGUF format support (most common for quantized models)
+- ✅ SafeTensors support (Hugging Face standard)
+- ✅ MLX format support (Apple Silicon optimized)
+- ✅ CoreML format support (iOS/macOS native)
+- ✅ PyTorch format support (standard deep learning)
+- ✅ ONNX format support (cross-platform compatibility)
+- ✅ Model loader factory pattern with automatic format detection
+- ✅ Unified inference interface across all formats
 
-### 2. **Enhanced Backend Functionality**
-- ✅ Real Apple frameworks integration
-- ✅ Dynamic hardware detection (M1, M2, M3, M4 optimization)
-- ✅ Apple Neural Engine utilization
-- ✅ Proper error handling and logging
-- ✅ No placeholders or simulated data
-
-### 3. **OpenAI API Integration**
+### 2. **Enhanced OpenAI API with Model Switching** ✅
 - ✅ VS Code/Cline compatible endpoints
-- ✅ Full OpenAI API implementation
-- ✅ Chat completions endpoint
-- ✅ Model listing and management
+- ✅ Enhanced /v1/models endpoint with metadata
+- ✅ Model switching API (POST /v1/models/{id}/switch)
+- ✅ Parameter validation and error handling
+- ✅ Chat completions and text completions
 
-### 4. **Terminal Interface**
-- ✅ Working terminal view
+### 3. **Complete Electron App "IMPETUS"** ✅
+- ✅ Native macOS menubar/taskbar integration
+- ✅ Server start/stop controls from taskbar
+- ✅ Real-time server status monitoring
+- ✅ Dynamic model selection menu
+- ✅ Apple HIG compliant design
+- ✅ Main window with full control panel
+- ✅ Efficient resource usage when idle
+
+### 4. **Python Environment Bundling** ✅
+- ✅ Complete Python bundling system
+- ✅ Self-contained distribution with all dependencies
+- ✅ Cross-platform launcher scripts
+- ✅ Bundle testing and validation tools
+- ✅ One-click installation experience
+
+### 5. **Apple Silicon Optimization** ✅
+- ✅ Dynamic hardware detection (M1-M4 optimization)
+- ✅ Metal GPU acceleration across all formats
+- ✅ Apple Neural Engine utilization
+- ✅ Thermal-aware performance scaling
 - ✅ Command execution capability
 - ✅ Real-time logging
 - ✅ Export functionality

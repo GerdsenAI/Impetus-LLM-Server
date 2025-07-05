@@ -1,0 +1,446 @@
+/**
+ * IMPETUS Electron App Styles
+ * Apple HIG compliant design for macOS integration
+ */
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: #1d1d1f;
+    font-size: 14px;
+    line-height: 1.4;
+    overflow-x: hidden;
+}
+
+/* App container */
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.app-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1d1d1f;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-logo {
+    font-size: 32px;
+}
+
+.app-subtitle {
+    font-size: 13px;
+    color: #86868b;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+.server-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.status-indicator {
+    font-size: 12px;
+}
+
+/* Main content */
+.main-content {
+    flex: 1;
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Sections */
+section {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+section h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Buttons */
+.btn {
+    background: #007aff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.btn:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    background: #d1d1d6;
+    color: #8e8e93;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-start {
+    background: #34c759;
+}
+
+.btn-start:hover:not(:disabled) {
+    background: #28a745;
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+}
+
+.btn-stop {
+    background: #ff3b30;
+}
+
+.btn-stop:hover:not(:disabled) {
+    background: #d70015;
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+}
+
+.btn-refresh {
+    background: #8e8e93;
+}
+
+.btn-refresh:hover:not(:disabled) {
+    background: #6d6d70;
+    box-shadow: 0 4px 12px rgba(142, 142, 147, 0.3);
+}
+
+.btn-action {
+    background: #5856d6;
+}
+
+.btn-action:hover:not(:disabled) {
+    background: #4c4b9f;
+    box-shadow: 0 4px 12px rgba(88, 86, 214, 0.3);
+}
+
+.btn-icon {
+    font-size: 16px;
+}
+
+/* Button groups */
+.control-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+/* Server info */
+.server-info {
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.info-item {
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-item strong {
+    color: #1d1d1f;
+    font-weight: 600;
+}
+
+.info-item a {
+    color: #007aff;
+    text-decoration: none;
+}
+
+.info-item a:hover {
+    text-decoration: underline;
+}
+
+/* Models section */
+.models-container {
+    min-height: 100px;
+}
+
+.no-models {
+    text-align: center;
+    color: #8e8e93;
+    padding: 40px 20px;
+    font-style: italic;
+}
+
+.model-card {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.model-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.model-card.active {
+    border-color: #007aff;
+    background: rgba(0, 122, 255, 0.05);
+}
+
+.model-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 4px;
+}
+
+.model-format {
+    font-size: 12px;
+    color: #8e8e93;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.model-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+}
+
+/* System info */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+/* Footer */
+.app-footer {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 16px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #8e8e93;
+}
+
+.footer-links {
+    display: flex;
+    gap: 16px;
+}
+
+.footer-links a {
+    color: #007aff;
+    text-decoration: none;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(0, 122, 255, 0.3);
+    border-top: 3px solid #007aff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .app-header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .main-content {
+        padding: 20px;
+    }
+    
+    .control-buttons {
+        justify-content: center;
+    }
+    
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .app-footer {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+section {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Status colors */
+.status-running {
+    color: #34c759;
+}
+
+.status-stopped {
+    color: #ff3b30;
+}
+
+.status-loading {
+    color: #ff9500;
+}
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

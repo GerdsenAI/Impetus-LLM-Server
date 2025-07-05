@@ -1,0 +1,95 @@
+{
+  "name": "impetus-llm-server",
+  "version": "1.0.0",
+  "description": "IMPETUS - Intelligent Model Platform Enabling Taskbar Unified Server",
+  "main": "src/main.js",
+  "author": "GerdsenAI",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build-mac": "electron-builder --mac",
+    "dev": "concurrently \"npm run watch\" \"npm run start\"",
+    "watch": "nodemon --watch src --exec \"npm run start\"",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "rebuild": "electron-rebuild",
+    "bundle-python": "node scripts/bundle-python.js",
+    "test-bundle": "node scripts/test-bundle.js",
+    "build-with-python": "npm run bundle-python && npm run test-bundle && npm run build",
+    "dist-with-python": "npm run bundle-python && npm run test-bundle && npm run dist"
+  },
+  "build": {
+    "appId": "com.gerdsenai.impetus",
+    "productName": "IMPETUS",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "resources/**/*",
+      "node_modules/**/*",
+      "!node_modules/.cache/**/*"
+    ],
+    "extraFiles": [
+      {
+        "from": "resources/python-bundle",
+        "to": "Resources/python-bundle",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["arm64", "x64"]
+        }
+      ],
+      "icon": "resources/icon.icns"
+    },
+    "dmg": {
+      "title": "IMPETUS LLM Server",
+      "icon": "resources/icon.icns",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "electron-store": "^8.1.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1",
+    "electron-rebuild": "^3.2.9",
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "electron",
+    "llm",
+    "ai",
+    "apple-silicon",
+    "macos",
+    "machine-learning",
+    "local-ai",
+    "taskbar",
+    "menubar"
+  ]
+}

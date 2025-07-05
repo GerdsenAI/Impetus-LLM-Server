@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMPETUS - Intelligent Model Platform Enabling Taskbar Unified Server</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="app-logo">🚀</span>
+                    IMPETUS
+                </h1>
+                <p class="app-subtitle">Intelligent Model Platform Enabling Taskbar Unified Server</p>
+            </div>
+            <div class="server-status">
+                <div class="status-indicator" id="statusIndicator">🔴</div>
+                <span id="serverStatus">Checking...</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Server Control Section -->
+            <section class="control-section">
+                <h2>Server Control</h2>
+                <div class="control-buttons">
+                    <button id="startServerBtn" class="btn btn-start" disabled>
+                        <span class="btn-icon">▶️</span>
+                        Start Server
+                    </button>
+                    <button id="stopServerBtn" class="btn btn-stop" disabled>
+                        <span class="btn-icon">⏹️</span>
+                        Stop Server
+                    </button>
+                    <button id="refreshStatusBtn" class="btn btn-refresh">
+                        <span class="btn-icon">🔄</span>
+                        Refresh
+                    </button>
+                </div>
+                
+                <div class="server-info" id="serverInfo">
+                    <div class="info-item">
+                        <strong>Host:</strong> <span id="serverHost">localhost</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Port:</strong> <span id="serverPort">8080</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>API Endpoint:</strong> 
+                        <a href="#" id="apiEndpoint" target="_blank">http://localhost:8080</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Models Section -->
+            <section class="models-section">
+                <h2>Loaded Models</h2>
+                <div id="modelsContainer" class="models-container">
+                    <div class="no-models">
+                        <p>No models loaded. Start the server to see available models.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions Section -->
+            <section class="actions-section">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <button class="btn btn-action" onclick="openVSCode()">
+                        <span class="btn-icon">💻</span>
+                        Open VS Code
+                    </button>
+                    <button class="btn btn-action" onclick="openAPI()">
+                        <span class="btn-icon">🌐</span>
+                        View API Docs
+                    </button>
+                    <button class="btn btn-action" onclick="openLogs()">
+                        <span class="btn-icon">📋</span>
+                        View Logs
+                    </button>
+                    <button class="btn btn-action" onclick="testConnection()">
+                        <span class="btn-icon">🔍</span>
+                        Test Connection
+                    </button>
+                </div>
+            </section>
+
+            <!-- System Info Section -->
+            <section class="info-section">
+                <h2>System Information</h2>
+                <div class="system-info">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Platform:</strong> <span id="platform">-</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Electron:</strong> <span id="electronVersion">-</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Python:</strong> <span id="pythonStatus">Checking...</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Models Directory:</strong> <span id="modelsDir">./models/</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>&copy; 2025 GerdsenAI - IMPETUS LLM Server</p>
+            <div class="footer-links">
+                <a href="#" onclick="showAbout()">About</a>
+                <a href="#" onclick="showSettings()">Settings</a>
+                <a href="#" onclick="openGitHub()">GitHub</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Loading...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

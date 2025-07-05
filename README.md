@@ -1,30 +1,38 @@
-# IMPTETUS (Intelligent Model Platform Enabling Taskbar Unified Server)
-# GerdsenAI Impetus LLM Server
+# IMPETUS - Intelligent Model Platform Enabling Taskbar Unified Server
 
-A production-ready macOS application for managing Apple Silicon hardware optimization, machine learning models, and AI workloads with OpenAI-compatible API endpoints for VS Code integration.
+A comprehensive local LLM server optimized for Apple Silicon that supports ANY model format and integrates seamlessly with VS Code/Cline through a native macOS taskbar application. IMPETUS provides a privacy-first, zero-cloud-dependency solution for AI-assisted coding.
 
-## 🚀 Features
+## 🚀 Key Features
 
-### Core Functionality
-- **Apple Silicon Optimization**: Dynamic detection and optimization for M1, M2, M3, and M4 chips (including Pro, Max, and Ultra variants)
-- **Real-time Hardware Monitoring**: CPU, GPU, Neural Engine, memory, thermal, and power monitoring
-- **macOS Service Integration**: Runs as a background service with taskbar/menu bar integration
-- **OpenAI-Compatible API**: Full compatibility with VS Code extensions like Cline and other AI coding assistants
-- **Apple Frameworks Integration**: Core ML, MLX, Metal Performance Shaders, and Neural Engine optimization
+### Universal Model Support
+- **6 Model Formats**: GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX
+- **Automatic Detection**: Smart format recognition and loading
+- **Unified Interface**: Single API regardless of model format
+- **Hot Swapping**: Switch between models without server restart
 
-### Advanced Features
-- **Dynamic Resource Allocation**: Automatically optimizes based on available hardware resources
-- **Thermal Management**: Intelligent throttling and performance adjustment based on thermal state
-- **Model Management**: Load, optimize, and manage ML models with drag-and-drop interface
-- **Real-time Metrics**: WebSocket-based real-time system metrics broadcasting
-- **Performance Benchmarking**: Comprehensive performance testing and optimization recommendations
+### Native macOS Integration
+- **Taskbar Application**: Native menubar app with status indicator
+- **Apple HIG Design**: Complies with Apple Human Interface Guidelines
+- **Background Service**: Minimal resource usage when idle
+- **One-Click Installation**: Self-contained app bundle with bundled Python environment
 
-### UI/UX
-- **Apple HIG Compliance**: Follows Apple Human Interface Guidelines for macOS 15+
-- **SF Pro Display Fonts**: Native macOS typography and styling
-- **Minimize to Taskbar**: Proper macOS service behavior with taskbar integration
-- **Dynamic Data Display**: Real-time hardware information and performance metrics
-- **Responsive Design**: Optimized for various screen sizes and resolutions
+### VS Code/Cline Integration
+- **OpenAI Compatible API**: Works with Cline, Continue.dev, and other extensions
+- **Real-time Streaming**: Supports streaming chat completions
+- **Model Switching**: Dynamic model selection from taskbar or API
+- **Zero Configuration**: Works out of the box with VS Code extensions
+
+### Apple Silicon Optimization
+- **Hardware Detection**: Automatic M1-M4 series optimization
+- **Metal GPU Acceleration**: Leverages Apple's Metal Performance Shaders
+- **Neural Engine**: Utilizes Apple's dedicated AI hardware when available
+- **Thermal Management**: Intelligent performance scaling based on thermal state
+
+### Privacy & Performance
+- **Local Processing**: All models run locally, no cloud dependencies
+- **Privacy First**: No data leaves your machine
+- **Dynamic Optimization**: Performance scales with available hardware
+- **Efficient Resource Usage**: Optimized for Apple Silicon unified memory architecture
 
 ## 📋 Requirements
 

@@ -56,28 +56,36 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 - **COMPLETED**: All 6 model format loaders implemented (GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX)
 - **COMPLETED**: Model loader factory pattern with automatic format detection
 - **COMPLETED**: Integration of factory pattern into IntegratedMLXManager
-- **NEW**: Electron app "Impetus" added to MVP requirements
-- **NEW**: Taskbar/menu bar app for native macOS experience
-- **NEW**: MVP now includes running as background service with quick access
-- **UPDATED**: MVP is ~70% complete (All formats + factory implemented, need unified inference + Electron app)
+- **COMPLETED**: Unified inference interface across all formats (UnifiedInferenceEngine)
+- **COMPLETED**: Enhanced OpenAI API endpoints with model switching capabilities
+- **COMPLETED**: Complete Electron app "Impetus" with native macOS taskbar integration
+- **COMPLETED**: Python environment bundling system for self-contained distribution
+- **NEW**: MVP now ~95% complete (All formats + factory + unified inference + complete Electron app + Python bundling implemented)
+- **UPDATED**: Only Cline integration testing remains for MVP completion
 
 ## MVP Context
 The project now has a clear MVP definition in TODO.md:
 - **MVP Goal**: Load ANY local model format and use it with Cline via Electron app "Impetus"
-- **Current Status**: ~70% complete (All 6 formats + factory implemented, need unified inference + Electron app)
-- **Completed**: All model format loaders, factory pattern, IntegratedMLXManager integration
-- **In Progress**: Unified inference interface across all formats
-- **Remaining**: Model switching API, Electron app "Impetus", end-to-end testing
+- **Current Status**: ~95% complete (All 6 formats + factory + unified inference + complete Electron app + Python bundling implemented)
+- **Completed**: 
+  - All 6 model format loaders (GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX)
+  - Model loader factory pattern with automatic format detection
+  - IntegratedMLXManager integration with factory pattern
+  - Unified inference interface (UnifiedInferenceEngine)
+  - Enhanced OpenAI API endpoints with model switching
+  - Complete Electron app "Impetus" with native macOS taskbar integration
+  - Python environment bundling system for self-contained distribution
+- **Remaining**: End-to-end testing with Cline extension
 - **Priority**: Complete MVP section before ANY other features
 - **Success**: When a developer can use Cline with a local model through the Impetus taskbar app
 - **UI/Advanced Features**: All moved to post-MVP (not required for success)
-- **Electron App Requirements**:
-  - Taskbar/menu bar application for quick access
-  - Server start/stop controls
-  - Model selection from taskbar
-  - Native macOS performance optimization
-  - Minimal resource usage when idle
-  - Bundled Python environment for easy installation
+- **Electron App Features Implemented**:
+  - ✅ Taskbar/menu bar application for quick access
+  - ✅ Server start/stop controls
+  - ✅ Model selection from taskbar
+  - ✅ Native macOS performance optimization
+  - ✅ Minimal resource usage when idle
+  - ✅ Bundled Python environment for easy installation
 
 ## Common Agent Tasks
 
@@ -139,27 +147,33 @@ flake8 src/ gerdsen_ai_server/src/
 3. Focus on completing remaining MVP tasks in order:
    - ✅ All model format loaders implemented (GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX)
    - ✅ Model loader factory pattern with automatic format detection
-   - 🔄 Unified inference interface across all formats (IN PROGRESS)
-   - ⏳ Model switching API endpoint for dynamic selection
-   - ⏳ Create Electron app "Impetus" with taskbar integration
-   - ⏳ Test with actual Cline extension
-4. **Current Priority**: Implement unified inference interface following GGUF pattern
+   - ✅ Unified inference interface across all formats
+   - ✅ Enhanced OpenAI API endpoints with model switching
+   - ✅ Create Electron app "Impetus" with taskbar integration (COMPLETED)
+   - ✅ Python environment bundling system (COMPLETED)
+   - ⏳ Test with actual Cline extension (REMAINING)
+4. **Current Priority**: Test complete IMPETUS system with Cline integration
 5. **MVP Complete = Success** - When any model loads and works with Cline via Impetus app
 6. Only work on post-MVP features after MVP section is complete
 7. Update TODO.md MVP section progress before each commit
 
-## Electron App Technical Context
-- **App Name**: Impetus
-- **Type**: Menu bar/taskbar application (macOS)
-- **Key Features**:
-  - Runs Flask server as background process
-  - Taskbar icon with status indicator
-  - Quick model selection menu
-  - Server start/stop controls
-  - Auto-start on boot option
-- **Tech Stack**: Electron + Python (bundled)
-- **Performance**: Native macOS APIs for optimal performance
-- **Distribution**: Single .app bundle with all dependencies
+## Electron App Technical Context (COMPLETED)
+- **App Name**: IMPETUS (Intelligent Model Platform Enabling Taskbar Unified Server)
+- **Type**: Menu bar/taskbar application (macOS) - IMPLEMENTED
+- **Key Features** (ALL IMPLEMENTED):
+  - ✅ Runs Flask server as background process
+  - ✅ Taskbar icon with status indicator
+  - ✅ Quick model selection menu
+  - ✅ Server start/stop controls
+  - ✅ Real-time status monitoring
+  - ✅ Native macOS design (Apple HIG compliant)
+  - ✅ Model switching capabilities
+  - ⏳ Auto-start on boot option (not implemented yet)
+- **Tech Stack**: Electron + Python (bundled) - IMPLEMENTED
+- **Performance**: Native macOS APIs for optimal performance - IMPLEMENTED
+- **Distribution**: Single .app bundle with all dependencies - BUNDLING SYSTEM IMPLEMENTED
+- **Python Bundling**: Complete system for self-contained distribution - IMPLEMENTED
+- **Build Commands**: npm run dist-with-python for complete package - READY
 
 ## Key Files Location Update
 - `CLAUDE.md` → `.clinerules/CLAUDE.md`
