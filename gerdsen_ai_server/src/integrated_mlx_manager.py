@@ -64,6 +64,7 @@ class PowerState(Enum):
     BALANCED = "balanced"
     LOW_POWER = "low_power"
     BATTERY_SAVER = "battery_saver"
+    LOW_BATTERY = "low_battery"
 
 @dataclass
 class PerformanceMetrics:
@@ -214,8 +215,7 @@ class IntegratedMLXManager:
             
             # Check thermal state
             if self.silicon_detector.current_thermal_state in [
-                ThermalState.HOT,
-                ThermalState.THROTTLED,
+                ThermalState.SERIOUS,
                 ThermalState.CRITICAL,
             ]:
                 # Use Neural Engine for cooler operation
@@ -331,7 +331,7 @@ class IntegratedMLXManager:
             if 'messages' in input_data:
                 # Chat completion
                 last_message = input_data['messages'][-1]['content']
-                response_content = f"Echo: {last_message}"
+                response_content = f"This is a simulated response to: '{last_message}'"
                 result = {
                     'content': response_content,
                     'prompt_tokens': len(last_message.split()),
@@ -341,7 +341,7 @@ class IntegratedMLXManager:
             elif 'prompt' in input_data:
                 # Text completion
                 prompt = input_data['prompt']
-                response_text = f"Generated text for: {prompt}"
+                response_text = f"This is a simulated completion for the prompt: '{prompt}'"
                 result = {
                     'text': response_text,
                     'prompt_tokens': len(prompt.split()),
@@ -352,7 +352,7 @@ class IntegratedMLXManager:
                 # Embeddings
                 text_to_embed = input_data['input']
                 result = {
-                    'embedding': [random.random() for _ in range(512)],
+                    'embedding': [0.1, 0.2, 0.3, 0.4, 0.5],
                     'prompt_tokens': len(text_to_embed.split()),
                     'total_tokens': len(text_to_embed.split())
                 }
@@ -380,7 +380,7 @@ class IntegratedMLXManager:
             current_metrics = self.silicon_detector.get_real_time_metrics()
             
             # Thermal management
-            if self.thermal_throttling and self.silicon_detector.current_thermal_state == ThermalState.HOT:
+            if self.thermal_throttling and self.silicon_detector.current_thermal_state == ThermalState.SERIOUS:
                 # Reduce inference frequency or switch to more efficient device
                 self.logger.info(f"Thermal throttling active for {model_id}")
                 # Implementation would adjust model parameters here
@@ -418,9 +418,7 @@ class IntegratedMLXManager:
                 performance_metrics = PerformanceMetrics(
                     inference_time_ms=benchmark_result['average_inference_time_ms'],
                     memory_usage_mb=0.0,  # Would be measured in real implementation
-                    throughput_ops_per_sec=benchmark_result['throughput_inferences_per_sec'],
-                    energy_efficiency_score=benchmark_result.get('performance_score', 0),
-                    device_utilization_percent=0.0
+                    throughput_tokens_per_sec=benchmark_result['throughput_inferences_per_sec'],
                 )
                 
                 # Update model info
