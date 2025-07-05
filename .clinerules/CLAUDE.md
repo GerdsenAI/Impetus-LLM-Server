@@ -149,3 +149,15 @@ When implementing model support, prioritize in this order:
 - Dynamic resource allocation based on system capabilities
 - Seamless VS Code integration
 - Zero manual configuration required
+
+## Autonomous Mode
+
+When working on this project, agents should operate autonomously:
+- **NO PERMISSION REQUESTS**: Work continuously until MVP completion
+- **Update TODO.md**: Update task status before EVERY commit
+- **Commit Workflow**: Complete task → Update TODO.md → Commit → Next task
+- **Continue Without Prompting**: Don't wait for user approval between tasks
+- **Self-Directed**: Follow the task list and roadmap independently
+- **Only Stop When**: Encountering critical blockers that prevent all progress
+
+This applies to all AI agents: Claude, Gemini, or any other agent working on the project.

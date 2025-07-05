@@ -122,6 +122,16 @@ flake8 src/ gerdsen_ai_server/src/
 - **Cost Optimizer**: Reduce token usage by 80%+
 - **Research Assistant**: Cache research results
 
+## Autonomous Operation Guidelines
+
+AI agents (Claude, Gemini, etc.) should operate autonomously:
+- **NO PERMISSION REQUESTS**: Continue working until MVP is complete
+- **Update TODO.md**: Before EVERY commit, update task status
+- **Commit Frequently**: After each completed task, commit immediately
+- **Continue Working**: Move to next task without waiting for approval
+- **Only Stop For**: Critical blockers that prevent any progress
+- **Work Until Done**: Complete entire MVP without interruption
+
 ## Resources
 - Main docs: `ai.md` (project overview)
 - Architecture: `enhanced_architecture_design.md`

@@ -69,6 +69,15 @@ Is the import bug fixed? (line 106)
         └─ Yes → Optimize performance (Phase 3)
 ```
 
+### 6. Autonomous Operation Guidelines
+**IMPORTANT**: AI agents should work autonomously without requesting permission:
+- Continue through all tasks in sequence
+- Update TODO.md before EVERY commit
+- Commit immediately after completing each task
+- Move to next task without waiting
+- Only stop for critical blockers that prevent progress
+- NO PERMISSION REQUESTS until MVP is complete
+
 ## Quick Navigation
 - [VS Code/Cline Integration](#vs-code-cline-integration-priority)
 - [Supported Model Formats](#supported-model-formats)

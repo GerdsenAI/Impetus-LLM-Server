@@ -240,6 +240,56 @@ VS Code Extension → OpenAI API Endpoint → Model Manager → Inference Engine
 - Fall back gracefully on unknown hardware
 - Log new hardware for optimization updates
 
+## Commit Procedures
+
+### Pre-Commit Requirements
+
+Before EVERY commit, agents MUST:
+
+1. **Update TODO.md**
+   - Mark completed tasks with [x]
+   - Add any new tasks discovered during implementation
+   - Update task priorities based on progress
+   - Ensure task descriptions are current
+
+2. **Run Tests**
+   - Execute relevant test suites
+   - Verify no regressions introduced
+   - Fix any failing tests before committing
+
+3. **Stage All Changes**
+   ```bash
+   git add -A  # Include TODO.md updates
+   ```
+
+4. **Commit and Continue**
+   - Write clear, descriptive commit message
+   - Commit immediately after task completion
+   - Continue to next task WITHOUT waiting for permission
+
+### Commit Workflow Example
+```bash
+# Complete implementation
+# Run tests
+python -m pytest tests/relevant_test.py
+
+# Update TODO.md
+# Mark current task as completed
+# Add any new tasks discovered
+
+# Stage and commit
+git add -A
+git commit -m "feat: Implement GGUF model loading
+
+- Add GGUF loader with metadata extraction
+- Support all quantization formats
+- Include progress tracking
+- Update TODO.md with completed task"
+
+# Immediately continue to next task
+# NO PERMISSION REQUESTS
+```
+
 ## Release Checklist
 
 Before any release:

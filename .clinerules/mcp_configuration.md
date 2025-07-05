@@ -178,15 +178,26 @@ def share_context():
     return jsonify({"status": "shared", "agent": data.get('target_agent')})
 ```
 
-## Usage Guidelines for Agents
+## Usage Guidelines for All AI Agents
 
-### For Claude
-1. **Start each session**:
+### Starting a Session (Claude, Gemini, or any agent)
+1. **Load previous context**:
    ```
    context = use_mcp_tool("mcp-memory", "recall", {"topic": "session_summary"})
    ```
 
-2. **Before reading large files**:
+2. **Check current tasks**:
+   ```
+   tasks = use_mcp_tool("mcp-memory", "recall", {"topic": "current_tasks"})
+   ```
+
+3. **Get critical issues**:
+   ```
+   issues = use_mcp_tool("mcp-context-manager", "get_critical_issues")
+   ```
+
+### During Development (All agents)
+1. **Before reading large files**:
    ```
    snippets = use_mcp_tool("mcp-smart-search", "extract_snippets", {
        "file": "large_file.py",
@@ -194,23 +205,80 @@ def share_context():
    })
    ```
 
-3. **End each session**:
+2. **Search for implementations**:
    ```
-   use_mcp_tool("mcp-memory", "summarize_session", {"export_for": "gemini"})
-   ```
-
-### For Gemini
-1. **Load shared context**:
-   ```
-   context = use_mcp_tool("mcp-context-manager", "retrieve_context", {
-       "from_agent": "claude"
+   results = use_mcp_tool("mcp-smart-search", "search_code", {
+       "query": "GGUF loader",
+       "context": "model loading"
    })
    ```
 
-2. **Continue work seamlessly**:
+3. **Track important findings**:
    ```
-   memory = use_mcp_tool("mcp-memory", "recall", {"agent": "claude"})
+   use_mcp_tool("mcp-memory", "remember", {
+       "topic": "implementation_notes",
+       "data": "Found critical function at...",
+       "priority": "high"
+   })
    ```
+
+### Before Committing (All agents)
+1. **Update task status in memory**:
+   ```
+   use_mcp_tool("mcp-memory", "remember", {
+       "topic": "completed_tasks",
+       "data": "Completed GGUF loader implementation"
+   })
+   ```
+
+2. **Share context for next agent**:
+   ```
+   use_mcp_tool("mcp-context-manager", "store_context", {
+       "key": "current_progress",
+       "data": "Implemented X, next task is Y",
+       "shared": true
+   })
+   ```
+
+### Ending a Session (Optional, for handoff)
+1. **Summarize progress**:
+   ```
+   use_mcp_tool("mcp-memory", "summarize_session", {
+       "export_for": "all_agents"
+   })
+   ```
+
+2. **Update shared context**:
+   ```
+   use_mcp_tool("mcp-context-manager", "share_context", {
+       "agent": "next_agent",
+       "key": "session_summary"
+   })
+   ```
+
+### Agent-Agnostic Examples
+
+**For any agent continuing work**:
+```python
+# Load shared context from previous agent
+context = use_mcp_tool("mcp-context-manager", "retrieve_context", {
+    "from_agent": "previous"  # Works for any previous agent
+})
+
+# Get memory from any previous session
+memory = use_mcp_tool("mcp-memory", "recall", {
+    "agent": "any"  # Retrieves from any agent's memory
+})
+```
+
+**Universal search pattern**:
+```python
+# Works identically for Claude, Gemini, or any other agent
+code = use_mcp_tool("mcp-smart-search", "search_code", {
+    "query": "model loading",
+    "include_context": true
+})
+```
 
 ## Benefits
 

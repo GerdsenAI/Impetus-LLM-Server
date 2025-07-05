@@ -11,6 +11,31 @@ These tasks address immediate issues preventing proper server initialization and
   - Change `AppleFrameworksIntegration()` to `EnhancedAppleFrameworksIntegration()`
   - This is preventing the server from starting properly
 
+## Development Workflow Updates (High Priority)
+
+Tasks to improve AI agent workflow and development procedures.
+
+- [x] **Update Commit Procedures** - **Priority: Critical, Timeline: Immediate**
+  - Added commit procedures section to development_rules.md
+  - Requirement to update TODO.md before every commit
+  - Clear workflow: implement → test → update TODO → commit → continue
+  
+- [x] **Enable Autonomous Agent Operation** - **Priority: Critical, Timeline: Immediate**
+  - Updated ai.md with autonomous operation guidelines
+  - Added "NO PERMISSION REQUESTS" policy to all documentation
+  - Updated memory.md with autonomous operation section
+  - Updated CLAUDE.md with autonomous mode instructions
+
+- [x] **Ensure Multi-Agent Compatibility** - **Priority: Critical, Timeline: Immediate**
+  - Updated MCP configuration for universal agent usage
+  - Replaced Claude-specific examples with agent-agnostic ones
+  - Ensured all documentation works for Claude, Gemini, and other agents
+
+- [x] **Create Commit Checklist** - **Priority: High, Timeline: Immediate**
+  - Created .clinerules/commit_checklist.md
+  - Comprehensive pre-commit checklist for all agents
+  - Examples and quick reference for consistent commits
+
 ## VS Code/Cline Integration Requirements (Critical Priority)
 
 These tasks ensure seamless integration with VS Code AI extensions, particularly Cline.
