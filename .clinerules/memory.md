@@ -51,13 +51,26 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 - **NEW**: TODO.md reorganized with clear MVP section at top
 - **NEW**: MVP = Load any model + use with Cline (nothing more needed)
 
+## Latest Updates (January 2025)
+- **NEW**: Electron app "Socrates" added to MVP requirements
+- **NEW**: Taskbar/menu bar app for native macOS experience
+- **NEW**: MVP now includes running as background service with quick access
+- **UPDATED**: MVP is ~40% complete (GGUF works, need other formats + Electron app)
+
 ## MVP Context
 The project now has a clear MVP definition in TODO.md:
-- **MVP Goal**: Load ANY local model format and use it with Cline
-- **Current Status**: ~40% complete (GGUF works, need other formats)
+- **MVP Goal**: Load ANY local model format and use it with Cline via Electron app "Socrates"
+- **Current Status**: ~40% complete (GGUF works, need other formats + Electron app)
 - **Priority**: Complete MVP section before ANY other features
-- **Success**: When a developer can use Cline with a local model
+- **Success**: When a developer can use Cline with a local model through the Socrates taskbar app
 - **UI/Advanced Features**: All moved to post-MVP (not required for success)
+- **Electron App Requirements**:
+  - Taskbar/menu bar application for quick access
+  - Server start/stop controls
+  - Model selection from taskbar
+  - Native macOS performance optimization
+  - Minimal resource usage when idle
+  - Bundled Python environment for easy installation
 
 ## Common Agent Tasks
 
@@ -104,6 +117,8 @@ flake8 src/ gerdsen_ai_server/src/
 ## Success Metrics
 - Developer can use Cline with local model in <10 minutes
 - Support all major model formats without conversion
+- Electron app "Socrates" provides native taskbar experience
+- One-click server management from menu bar
 - Performance optimization is fully automatic:
   - Detects all hardware capabilities at runtime
   - No assumptions about specific configurations
@@ -118,10 +133,24 @@ flake8 src/ gerdsen_ai_server/src/
    - Implement remaining model format loaders (SafeTensors, MLX, etc.)
    - Create model loader factory pattern
    - Add unified inference interface
+   - Create Electron app "Socrates" with taskbar integration
    - Test with actual Cline extension
-4. **MVP Complete = Success** - When any model loads and works with Cline
+4. **MVP Complete = Success** - When any model loads and works with Cline via Socrates app
 5. Only work on post-MVP features after MVP section is complete
 6. Update TODO.md MVP section progress before each commit
+
+## Electron App Technical Context
+- **App Name**: Socrates
+- **Type**: Menu bar/taskbar application (macOS)
+- **Key Features**:
+  - Runs Flask server as background process
+  - Taskbar icon with status indicator
+  - Quick model selection menu
+  - Server start/stop controls
+  - Auto-start on boot option
+- **Tech Stack**: Electron + Python (bundled)
+- **Performance**: Native macOS APIs for optimal performance
+- **Distribution**: Single .app bundle with all dependencies
 
 ## Key Files Location Update
 - `CLAUDE.md` → `.clinerules/CLAUDE.md`

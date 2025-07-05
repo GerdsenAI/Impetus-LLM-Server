@@ -13,7 +13,7 @@ These tasks address immediate issues preventing proper server initialization and
 
 ## MVP (Minimum Viable Product) - Load Local Model and Use with Cline
 
-This section marks the completion of the MVP, where a local model of any type can be loaded and accessed to code with Cline in VS Code or VS Codium. Completion of these tasks signifies the core functionality required for the initial usable product.
+This section marks the completion of the MVP, where a local model of any type can be loaded and accessed to code with Cline in VS Code or VS Codium through a taskbar Electron app called "Socrates". Completion of these tasks signifies the core functionality required for the initial usable product.
 
 - [ ] **Universal Local Model Support for VS Code/Cline Integration** - **Priority: Critical, Timeline: Immediate**
   - [x] GGUF format support (.gguf files) - Most common for quantized models
@@ -47,6 +47,17 @@ This section marks the completion of the MVP, where a local model of any type ca
     - [ ] Test with Cline, Continue.dev, and other popular extensions
   - [ ] Create model switching API endpoint for dynamic selection
   - [ ] Initialize models on server startup with Apple Silicon optimization
+- [ ] **Electron App Integration (Socrates)** - **Priority: Critical, Timeline: Immediate**
+  - [ ] Create Electron wrapper for the Flask server
+  - [ ] Implement taskbar/menu bar application with icon
+  - [ ] Add server start/stop controls from taskbar
+  - [ ] Show server status (running/stopped) in taskbar
+  - [ ] Quick access to model selection from taskbar menu
+  - [ ] Auto-start option on system boot
+  - [ ] Minimal resource usage when idle
+  - [ ] Native macOS integration for performance
+  - [ ] Bundle Python environment with Electron app
+  - [ ] One-click install experience
 - [ ] **Model Format Support Infrastructure** - **Priority: Critical, Timeline: Immediate**
   - [ ] Create model loader factory pattern to handle all formats dynamically
   - [ ] Implement format-specific loaders inheriting from base loader class
@@ -63,6 +74,9 @@ This section marks the completion of the MVP, where a local model of any type ca
   - [x] Confirm all models load successfully during initialization.
   - [x] Test each API endpoint to ensure they return meaningful responses.
   - [ ] Validate Apple Silicon optimizations are applied correctly.
+  - [ ] Test Electron app launches and controls server properly
+  - [ ] Verify taskbar integration works smoothly
+  - [ ] Ensure Cline can connect to server started by Electron app
 
 ## VS Code/Cline Integration Requirements (Post-MVP)
 

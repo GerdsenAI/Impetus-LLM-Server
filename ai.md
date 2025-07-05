@@ -1,10 +1,10 @@
 # AI Documentation
 
 ## 🚀 TL;DR for Agents
-**MVP Goal**: Load ANY local model format and use with Cline - that's it!  
-**Current**: ~40% done (GGUF works, need other formats)  
+**MVP Goal**: Load ANY local model format and use with Cline via taskbar Electron app "Socrates"  
+**Current**: ~40% done (GGUF works, need other formats + Electron app)  
 **Next Tasks**: Check TODO.md MVP section for remaining work  
-**Success**: When any model loads and Cline can use it  
+**Success**: When any model loads and Cline can use it through Socrates app  
 **Read Next**: `TODO.md` MVP section → `.clinerules/memory.md`  
 
 ## Executive Summary
@@ -232,10 +232,15 @@ The **Minimum Viable Product (MVP)** is achieved when:
 2. ✅ The model is accessible via OpenAI-compatible API
 3. ✅ Developers can use Cline (or similar VS Code AI extensions) with the local model
 4. ✅ Basic inference works without errors
+5. ✅ **Electron app "Socrates" runs in taskbar/menu bar** for native macOS experience
+   - Server management from taskbar icon
+   - Quick model selection
+   - Performance optimized for Apple Silicon
+   - Minimal resource usage when idle
 
 **MVP Tracking**: See `TODO.md` - "MVP (Minimum Viable Product)" section for specific tasks.
 
-**Current MVP Status**: ~40% complete (GGUF support implemented, need other formats)
+**Current MVP Status**: ~40% complete (GGUF support implemented, need other formats + Electron app)
 
 ## Implementation Status
 
@@ -443,7 +448,7 @@ The Impetus-LLM-Server supports integration with MCP servers to extend capabilit
 ## Implementation Roadmap & Next Steps
 
 ### Phase 1: MVP Completion (Immediate Priority)
-**Goal**: Enable basic Cline usage with ANY local model format
+**Goal**: Enable basic Cline usage with ANY local model format via Electron app "Socrates"
 
 **MVP Tasks** (from TODO.md MVP section):
 1. **Critical Bug Fixes** ✅ Complete
@@ -455,12 +460,19 @@ The Impetus-LLM-Server supports integration with MCP servers to extend capabilit
    - ⏳ Unified inference interface
    - ⏳ Model switching API endpoint
    - ✅ OpenAI API compatibility
-4. **Basic Testing**
+4. **Electron App "Socrates"** (New MVP requirement)
+   - ⏳ Taskbar/menu bar application
+   - ⏳ Server start/stop controls
+   - ⏳ Quick model selection from taskbar
+   - ⏳ Native macOS performance optimization
+   - ⏳ Bundled Python environment
+5. **Basic Testing**
    - ✅ Server starts and API responds
    - ⏳ Test with actual Cline extension
    - ⏳ Validate model loading for each format
+   - ⏳ Test Electron app functionality
 
-**MVP Success Criteria**: Developer can load ANY local model and use it with Cline
+**MVP Success Criteria**: Developer can load ANY local model and use it with Cline through the Socrates taskbar app
 
 ### Phase 2: Enhanced Integration (Post-MVP - Week 2)
 **Goal**: Improve user experience beyond basic functionality
@@ -527,9 +539,11 @@ The Impetus-LLM-Server supports integration with MCP servers to extend capabilit
 ### Success Metrics
 
 #### MVP Success (Immediate Goal)
-- ✅ **MVP Complete**: ANY local model format can be loaded and used with Cline
+- ✅ **MVP Complete**: ANY local model format can be loaded and used with Cline via Socrates app
 - ✅ **Basic Functionality**: Chat completions work without errors
 - ✅ **Zero Cloud**: Everything runs locally with full privacy
+- ✅ **Native Experience**: Electron app runs in taskbar with optimal performance
+- ✅ **Easy Access**: One-click server management from menu bar
 
 #### Post-MVP Success (Enhancement Goals)
 - **Week 1 Post-MVP**: Support for all 7 major model formats
