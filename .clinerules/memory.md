@@ -3,7 +3,7 @@
 This file maintains critical context and learnings for AI agents working on the Impetus-LLM-Server project.
 
 ## Project Mission
-Create the best local LLM server for developers using VS Code, with seamless Cline integration and Apple Silicon optimization. Privacy-first, no cloud dependencies, supporting all major model formats.
+Create the best local LLM server for developers using VS Code, with seamless Cline integration and dynamic optimization for ALL Apple Silicon Macs. Privacy-first, no cloud dependencies, supporting all major model formats with automatic hardware detection and performance scaling.
 
 ## Key Technical Context
 
@@ -39,13 +39,22 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
   - 16GB systems: 2-3 small models
   - 32GB+ systems: Multiple large models
 
+## Latest Updates (December 2024)
+- Reorganized documentation to .clinerules/ directory
+- Created development_rules.md with comprehensive guidelines
+- Updated all docs for dynamic Apple Silicon optimization
+- Added optimized agent workflow to ai.md with TL;DR section
+- All performance targets now scale with hardware automatically
+
 ## Common Agent Tasks
 
 ### When Starting Work
-1. Check git status (currently on `Initial-Phase` branch)
-2. Verify server can start: `python gerdsen_ai_server/src/production_main.py`
-3. Check `/v1/models` endpoint
-4. Review `todo.md` for current priorities
+1. **Read ai.md first** - Has TL;DR and optimized workflow
+2. Check git status (currently on `Initial-Phase` branch)
+3. Follow the quick decision tree in ai.md
+4. Verify server can start: `python gerdsen_ai_server/src/production_main.py`
+5. Check `/v1/models` endpoint
+6. Review `todo.md` for current priorities
 
 ### When Implementing Features
 1. Always maintain OpenAI API compatibility
@@ -87,10 +96,18 @@ flake8 src/ gerdsen_ai_server/src/
 - No manual performance tuning required
 
 ## Next Agent Should
-1. Fix the critical import bug if not already done
-2. Implement GGUF model loading as top priority
-3. Ensure streaming works for `/v1/chat/completions`
-4. Test with actual Cline extension in VS Code
+1. **Start with ai.md** - Follow the optimized workflow
+2. Fix the critical import bug if not already done
+3. Implement GGUF model loading as top priority
+4. Ensure streaming works for `/v1/chat/completions`
+5. Test with actual Cline extension in VS Code
+6. Ensure dynamic hardware optimization is working
+
+## Key Files Location Update
+- `CLAUDE.md` → `.clinerules/CLAUDE.md`
+- `memory.md` → `.clinerules/memory.md`
+- `development_rules.md` → `.clinerules/development_rules.md` (NEW)
+- `ai.md` - Now has optimized agent workflow with TL;DR
 
 ## Resources
 - Main docs: `ai.md` (project overview)
