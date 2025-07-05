@@ -174,12 +174,26 @@ flake8 src/ gerdsen_ai_server/src/
   - ✅ Real-time status monitoring
   - ✅ Native macOS design (Apple HIG compliant)
   - ✅ Model switching capabilities
+  - ✅ Dynamic model directory creation (~/Models)
+  - ✅ Self-contained app with all dependencies
   - ⏳ Auto-start on boot option (not implemented yet)
 - **Tech Stack**: Electron + Python (bundled) - IMPLEMENTED
 - **Performance**: Native macOS APIs for optimal performance - IMPLEMENTED
 - **Distribution**: Single .app bundle with all dependencies - BUNDLING SYSTEM IMPLEMENTED
 - **Python Bundling**: Complete system for self-contained distribution - IMPLEMENTED
 - **Build Commands**: npm run dist-with-python for complete package - READY
+
+## Self-Contained App Requirements (IMPLEMENTED)
+- **Dynamic Paths**: All paths use os.homedir() - no hardcoded usernames
+- **Model Directory**: Created at ~/Models on first launch (per user)
+- **Python Environment**: Bundled within app (no external Python needed)
+- **Dependencies**: All included in app bundle
+- **Works on ANY Apple Silicon Mac**: M1, M2, M3, M4 - all variants
+- **No Prerequisites**: User only needs to drag to Applications
+- **First Launch Setup**: 
+  - Creates ~/Models directory structure automatically
+  - Initializes server configuration
+  - Ready to scan for models immediately
 
 ## Key Files Location Update
 - `CLAUDE.md` → `.clinerules/CLAUDE.md`
