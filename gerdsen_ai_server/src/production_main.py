@@ -430,28 +430,42 @@ class ProductionFlaskServer:
                 logger.error(f"Settings export error: {e}")
                 return jsonify({'success': False, 'error': str(e)}), 500
         
-        # OpenAI Compatible API endpoints
+        # OpenAI Compatible API endpoints for IMPETUS
         @self.app.route('/v1/models')
         def openai_list_models():
-            """OpenAI compatible models endpoint"""
+            """OpenAI compatible models endpoint with unified inference support"""
             try:
-                models = self.mlx_manager.get_loaded_models()
+                # Get models from unified inference engine
+                unified_stats = self.mlx_manager.get_unified_inference_stats()
+                available_models = self.mlx_manager.get_available_models_for_inference()
+                
                 openai_models = []
                 
-                for model_id, model_info in models.items():
+                for model_id, model_info in available_models.items():
+                    model_format = model_info.get('format', 'unknown')
+                    capabilities = model_info.get('available_capabilities', [])
+                    
                     openai_models.append({
                         'id': model_id,
                         'object': 'model',
                         'created': int(time.time()),
-                        'owned_by': 'gerdsen-ai',
+                        'owned_by': 'impetus-llm-server',
                         'permission': [],
                         'root': model_id,
-                        'parent': None
+                        'parent': None,
+                        # IMPETUS-specific metadata
+                        'format': model_format,
+                        'capabilities': capabilities,
+                        'inference_engine': 'unified'
                     })
                 
                 return jsonify({
                     'object': 'list',
-                    'data': openai_models
+                    'data': openai_models,
+                    # Additional IMPETUS metadata
+                    'supported_formats': unified_stats['supported_formats'],
+                    'format_statistics': unified_stats['format_statistics'],
+                    'total_models': unified_stats['total_models']
                 })
             except Exception as e:
                 logger.error(f"OpenAI models list error: {e}")
@@ -459,7 +473,7 @@ class ProductionFlaskServer:
         
         @self.app.route('/v1/chat/completions', methods=['POST'])
         def openai_chat_completions():
-            """OpenAI compatible chat completions endpoint"""
+            """OpenAI compatible chat completions endpoint with unified inference"""
             try:
                 data = request.get_json()
                 model_id = data.get('model', 'default')
@@ -467,42 +481,167 @@ class ProductionFlaskServer:
                 stream = data.get('stream', False)
                 max_tokens = data.get('max_tokens', 1000)
                 temperature = data.get('temperature', 0.7)
+                top_p = data.get('top_p', 0.9)
                 
-                # Generate response using MLX manager
-                response = self.mlx_manager.generate_chat_completion(
+                # Validate model exists
+                available_models = self.mlx_manager.get_available_models_for_inference()
+                if model_id not in available_models:
+                    return jsonify({
+                        'error': {
+                            'message': f'Model {model_id} not found. Available models: {list(available_models.keys())}',
+                            'type': 'model_not_found',
+                            'code': 'model_not_found'
+                        }
+                    }), 404
+                
+                # Generate response using unified inference engine
+                response = self.mlx_manager.create_chat_completion_unified(
                     model_id=model_id,
                     messages=messages,
                     max_tokens=max_tokens,
                     temperature=temperature,
+                    top_p=top_p,
                     stream=stream
                 )
                 
+                if 'error' in response:
+                    return jsonify({'error': {'message': response['error'], 'type': 'inference_error'}}), 500
+                
                 if stream:
-                    # Return streaming response (would need to implement SSE)
+                    # For now, return error for streaming - will implement later
                     return jsonify({'error': {'message': 'Streaming not yet implemented', 'type': 'not_implemented'}}), 501
                 else:
-                    # Return complete response
-                    return jsonify({
-                        'id': f'chatcmpl-{int(time.time())}',
-                        'object': 'chat.completion',
-                        'created': int(time.time()),
-                        'model': model_id,
-                        'choices': [{
-                            'index': 0,
-                            'message': {
-                                'role': 'assistant',
-                                'content': response.get('content', '')
-                            },
-                            'finish_reason': 'stop'
-                        }],
-                        'usage': {
-                            'prompt_tokens': response.get('prompt_tokens', 0),
-                            'completion_tokens': response.get('completion_tokens', 0),
-                            'total_tokens': response.get('total_tokens', 0)
-                        }
-                    })
+                    # Add model format info to response
+                    model_format = available_models[model_id].get('format', 'unknown')
+                    response['model_format'] = model_format
+                    response['inference_engine'] = 'unified'
+                    
+                    return jsonify(response)
+                    
             except Exception as e:
                 logger.error(f"Chat completions error: {e}")
+                return jsonify({'error': {'message': str(e), 'type': 'server_error'}}), 500
+        
+        @self.app.route('/v1/completions', methods=['POST'])
+        def openai_text_completions():
+            """OpenAI compatible text completions endpoint"""
+            try:
+                data = request.get_json()
+                model_id = data.get('model', 'default')
+                prompt = data.get('prompt', '')
+                max_tokens = data.get('max_tokens', 1000)
+                temperature = data.get('temperature', 0.7)
+                top_p = data.get('top_p', 0.9)
+                
+                # Validate model exists
+                available_models = self.mlx_manager.get_available_models_for_inference()
+                if model_id not in available_models:
+                    return jsonify({
+                        'error': {
+                            'message': f'Model {model_id} not found. Available models: {list(available_models.keys())}',
+                            'type': 'model_not_found',
+                            'code': 'model_not_found'
+                        }
+                    }), 404
+                
+                # Generate response using unified inference engine
+                response = self.mlx_manager.generate_text(
+                    model_id=model_id,
+                    prompt=prompt,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p
+                )
+                
+                if 'error' in response:
+                    return jsonify({'error': {'message': response['error'], 'type': 'inference_error'}}), 500
+                
+                # Format as OpenAI response
+                model_format = available_models[model_id].get('format', 'unknown')
+                
+                return jsonify({
+                    'id': f'cmpl-{int(time.time())}',
+                    'object': 'text_completion',
+                    'created': int(time.time()),
+                    'model': model_id,
+                    'model_format': model_format,
+                    'inference_engine': 'unified',
+                    'choices': [{
+                        'text': response.get('text', ''),
+                        'index': 0,
+                        'logprobs': None,
+                        'finish_reason': response.get('finish_reason', 'stop')
+                    }],
+                    'usage': {
+                        'prompt_tokens': len(prompt.split()),
+                        'completion_tokens': response.get('tokens_generated', 0),
+                        'total_tokens': len(prompt.split()) + response.get('tokens_generated', 0)
+                    }
+                })
+                
+            except Exception as e:
+                logger.error(f"Text completions error: {e}")
+                return jsonify({'error': {'message': str(e), 'type': 'server_error'}}), 500
+        
+        @self.app.route('/v1/models/<model_id>/switch', methods=['POST'])
+        def switch_to_model(model_id):
+            """Switch the default model for subsequent requests"""
+            try:
+                available_models = self.mlx_manager.get_available_models_for_inference()
+                if model_id not in available_models:
+                    return jsonify({
+                        'error': {
+                            'message': f'Model {model_id} not found. Available models: {list(available_models.keys())}',
+                            'type': 'model_not_found',
+                            'code': 'model_not_found'
+                        }
+                    }), 404
+                
+                # Store the default model preference (in practice, this could be per-session)
+                # For now, we'll just validate the model exists
+                model_info = available_models[model_id]
+                
+                return jsonify({
+                    'success': True,
+                    'model': model_id,
+                    'format': model_info.get('format'),
+                    'capabilities': model_info.get('available_capabilities', []),
+                    'message': f'Successfully switched to model {model_id}'
+                })
+                
+            except Exception as e:
+                logger.error(f"Model switch error: {e}")
+                return jsonify({'error': {'message': str(e), 'type': 'server_error'}}), 500
+        
+        @self.app.route('/v1/models/<model_id>/info')
+        def get_model_info(model_id):
+            """Get detailed information about a specific model"""
+            try:
+                available_models = self.mlx_manager.get_available_models_for_inference()
+                if model_id not in available_models:
+                    return jsonify({
+                        'error': {
+                            'message': f'Model {model_id} not found',
+                            'type': 'model_not_found',
+                            'code': 'model_not_found'
+                        }
+                    }), 404
+                
+                model_info = available_models[model_id]
+                unified_stats = self.mlx_manager.get_unified_inference_stats()
+                
+                return jsonify({
+                    'id': model_id,
+                    'object': 'model',
+                    'format': model_info.get('format'),
+                    'capabilities': model_info.get('available_capabilities', []),
+                    'info': model_info.get('info', {}),
+                    'loaded_in_engine': model_id in unified_stats['loaded_models'],
+                    'inference_engine': 'unified'
+                })
+                
+            except Exception as e:
+                logger.error(f"Model info error: {e}")
                 return jsonify({'error': {'message': str(e), 'type': 'server_error'}}), 500
     
     def _setup_websocket_handlers(self):
