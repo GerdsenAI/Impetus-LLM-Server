@@ -1,4 +1,4 @@
-# IMPTETUS (Intelligent Model Platform Enabling Taskbar Unified Server)
+# IMPETUS (Intelligent Model Platform Enabling Taskbar Unified Server)
 # Todo List for Impetus-LLM-Server
 
 This document outlines actionable tasks for the development and maintenance of the Impetus-LLM-Server project, based on the provided README.md documentation. Tasks have been refined with priorities and estimated timelines to align with the project roadmap and guidelines from ai.md.
@@ -12,58 +12,84 @@ These tasks address immediate issues preventing proper server initialization and
   - Change `AppleFrameworksIntegration()` to `EnhancedAppleFrameworksIntegration()`
   - This is preventing the server from starting properly
 
-## MVP (Minimum Viable Product) - Load Local Model and Use with Cline
+## MVP (Minimum Viable Product) - Complete Production-Ready LLM Platform
 
-This section marks the completion of the MVP, where a local model of any type can be loaded and accessed to code with Cline in VS Code or VS Codium through a taskbar Electron app called "Impetus". Completion of these tasks signifies the core functionality required for the initial usable product.
+This section defines the expanded MVP scope, which includes essential features for a production-ready local LLM platform. The MVP now encompasses full ML integration, model management UI, and comprehensive testing infrastructure.
 
-**Current Progress**: 100% complete ✅ (All 6 model formats + factory pattern + unified inference + complete Electron app + built & installed executable)
+**Goal**: Complete production-ready app with ML capabilities, management UI, and testing suite
+**Current Progress**: 60% complete ✅ (Core infrastructure built, essential features in development)
 
-- [ ] **Universal Local Model Support for VS Code/Cline Integration** - **Priority: Critical, Timeline: Immediate**
-  - [x] GGUF format support (.gguf files) - Most common for quantized models
-    - Created GGUF loader in model_loaders/gguf_loader.py
-    - Integrated with IntegratedMLXManager
-    - Created GGUF inference engine with streaming support
-  - [ ] Implement dynamic model format detection and loading system:
-    - [x] SafeTensors support (.safetensors) - Hugging Face standard format
-      - Created SafeTensorsLoader with automatic architecture detection
-      - Full integration with IntegratedMLXManager
-    - [x] MLX native format (.mlx, .npz) - Apple Silicon optimized
-      - Created MLXLoader with Metal GPU optimization
-      - Device-specific optimization for M-series chips
-    - [x] CoreML models (.mlmodel, .mlpackage) - iOS/macOS native
-      - Created CoreMLLoader with Neural Engine support
-      - Model type detection and platform compatibility
-    - [ ] Foundation models - Direct Apple framework integration
-    - [x] PyTorch formats (.pt, .pth, .bin) - Standard deep learning format
-      - Created PyTorchLoader with MPS (Metal Performance Shaders) support
-      - Architecture detection and device optimization
-    - [x] ONNX format (.onnx) - Cross-platform compatibility
-      - Created ONNXLoader with execution provider support
-      - Apple Silicon CoreML optimization when available
-      - Cross-platform support (Windows DirectML, NVIDIA CUDA)
-  - [x] Create model download utilities
-    - Created model_downloader.py with HuggingFace integration
-    - Support for direct URL downloads
-    - Progress tracking and search functionality
-  - [ ] Create unified model management interface:
-    - [ ] Model browser UI with format filtering
-    - [ ] Local file browser option for selecting models from disk
-    - [ ] Automatic format conversion when needed (e.g., PyTorch to MLX)
-  - [ ] Implement model discovery and cataloging:
-    - [ ] Auto-scan common model directories
-    - [ ] Model metadata extraction (size, quantization, capabilities)
-    - [ ] Model compatibility checking for VS Code extensions
-  - [x] VS Code/Cline specific optimizations:
-    - [x] Ensure streaming support for GGUF models
-    - [x] OpenAI-compatible chat completion format
-    - [ ] Implement proper tokenization for each model type
-    - [ ] Add model-specific prompt templates
-    - [ ] Test with Cline, Continue.dev, and other popular extensions
-  - [x] Create model switching API endpoint for dynamic selection
-    - Created POST /v1/models/{id}/switch endpoint
-    - Enhanced OpenAI API with model switching capabilities
-  - [x] Initialize models on server startup with Apple Silicon optimization
-    - All model loaders support Apple Silicon Metal GPU acceleration
+### MVP Core Features (Expanded Scope)
+
+- [x] **Foundation Infrastructure** - COMPLETE ✅
+  - [x] All 6 model format loaders: GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX
+  - [x] Model loader factory with automatic format detection
+  - [x] Unified inference engine across all formats
+  - [x] Native macOS Electron app "Impetus" built and installed
+
+- [ ] **Full ML Integration** - **Priority: Critical, Timeline: Immediate**
+  - [ ] Create production_main_bundled.py for Electron environment
+    - Bridge between simplified server and full ML functionality
+    - Use conditional imports to handle bundled environment
+    - Implement lazy loading for ML components
+  - [ ] Implement modular ML loading system
+    - Extract core ML functionality into smaller modules
+    - Create dynamic import system that works in bundled context
+    - Add ML feature flags for gradual enablement
+  - [ ] Fix import dependencies for bundled context
+    - Resolve module path issues in production environment
+    - Test all ML components work in Electron bundle
+  - [ ] Enable model loading from ~/Models directory
+    - Integrate full IntegratedMLXManager into bundled app
+    - Test model scanning and detection
+  - [ ] Test inference with real GGUF models
+    - Download test models (qwen2.5-coder, phi-2, tinyllama)
+    - Verify end-to-end model loading and inference
+    - Test streaming chat completions
+
+- [ ] **Model Management UI** - **Priority: Critical, Timeline: Immediate**
+  - [ ] Create ModelLibrary components
+    - ModelCard.jsx for individual model display
+    - ModelGrid.jsx for grid layout
+    - ModelFilters.jsx for format/capability filters
+  - [ ] Implement drag & drop upload functionality
+    - DragDropZone.jsx component
+    - UploadProgress.jsx for progress tracking
+    - File validation and format detection
+  - [ ] Add HuggingFace model search and download
+    - ModelSearch.jsx for searching HF models
+    - DownloadManager.jsx with progress tracking
+    - Integration with backend download API
+  - [ ] Real-time loading progress and status updates
+    - WebSocket integration for live updates
+    - Progress bars and status indicators
+    - Error handling and retry mechanisms
+  - [ ] Model switching interface
+    - Quick model selector in UI
+    - Integration with backend switching API
+    - Status display for active model
+
+- [ ] **Testing Infrastructure** - **Priority: Critical, Timeline: Immediate**
+  - [ ] Download test model suite
+    - Small models for CI/CD: phi-2, tinyllama
+    - Medium models: mistral-7b, codellama-7b
+    - Large models: qwen2.5-coder-32b
+  - [ ] Create automated test pipeline
+    - test_model_loading.py for each format
+    - test_inference_quality.py for output validation
+    - test_performance.py for benchmarking
+  - [ ] Benchmark all model formats
+    - Performance comparison across GGUF, SafeTensors, MLX
+    - Memory usage analysis
+    - Loading time benchmarks
+  - [ ] VS Code integration end-to-end tests
+    - test_cline_integration.py
+    - Automated VS Code extension testing
+    - Chat completion validation with real models
+  - [ ] Performance validation pipeline
+    - Automated performance regression detection
+    - Hardware-specific optimization validation
+    - Memory leak detection
 - [x] **Electron App Integration (Impetus)** - **Priority: Critical, Timeline: Immediate**
   - [x] Create Electron wrapper for the Flask server
     - Complete Electron app structure created

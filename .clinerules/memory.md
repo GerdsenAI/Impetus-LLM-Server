@@ -67,22 +67,21 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 - **FIXED**: Added missing websockets dependency to requirements_production.txt
 - **STATUS**: Server now starts successfully from Electron app with simplified bundled version
 
-## MVP Status - 100% COMPLETE ✅
-The IMPETUS MVP has been successfully completed and deployed:
-- **MVP Goal**: Load ANY local model format and use it with Cline via Electron app "Impetus" ✅
-- **Status**: 100% COMPLETE - Production app built and installed
-- **Completed Deliverables**: 
+## MVP Status - 60% COMPLETE (Expanded Scope)
+The IMPETUS MVP has been expanded to include essential production features:
+- **MVP Goal**: Complete production-ready local LLM platform with full ML capabilities, management UI, and testing suite
+- **Status**: 60% COMPLETE - Core infrastructure built, essential features in development
+- **Completed Foundation**: 
   - ✅ All 6 model format loaders (GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX)
   - ✅ Model loader factory pattern with automatic format detection
-  - ✅ IntegratedMLXManager integration with factory pattern
   - ✅ Unified inference interface (UnifiedInferenceEngine)
-  - ✅ Enhanced OpenAI API endpoints with model switching
-  - ✅ Complete Electron app "Impetus" with native macOS taskbar integration
-  - ✅ Python environment bundling system for self-contained distribution
-  - ✅ Production build (249MB), ad-hoc signed, installed to /Applications
-  - ✅ Comprehensive testing and validation suite
-- **Ready for Use**: Launch IMPETUS from Applications → Start Server → Use with VS Code/Cline
-- **Next Phase**: Post-MVP enhancements (UI, advanced features, distribution)
+  - ✅ Native macOS Electron app "Impetus" built and installed
+- **In Progress (Critical MVP Features)**:
+  - ⏳ Full ML Integration - Integrate complete IntegratedMLXManager into bundled app
+  - ⏳ Model Management UI - React-based visual interface with drag & drop
+  - ⏳ Testing Infrastructure - Real model testing suite and benchmarking
+- **Current Status**: Core app works but needs essential features for production readiness
+- **Next Phase**: Complete expanded MVP features (ML integration, UI, testing)
 - **Electron App Features Implemented**:
   - ✅ Taskbar/menu bar application for quick access
   - ✅ Server start/stop controls
@@ -162,27 +161,25 @@ flake8 src/ gerdsen_ai_server/src/
 - Zero cloud dependencies, full privacy
 - No manual configuration of any kind required
 
-## Next Agent Should (Post-MVP Phase)
-1. **Start with ai.md** - Check the post-MVP workflow section
-2. **Review TODO.md post-MVP sections** - Focus on enhancements and features
-3. **Current Priorities** (Post-MVP):
-   - Model Management UI in React
-   - Drag-and-drop model upload
-   - Hugging Face integration
-   - Performance optimizations
-   - Distribution improvements (code signing, notarization)
-   - Multi-platform support (Windows, Linux)
-4. **Testing with Real Models**:
+## Next Agent Should (Expanded MVP Phase)
+1. **Start with ai.md** - Check the TL;DR and expanded MVP workflow section
+2. **Review TODO.md MVP section** - Focus on the three critical MVP areas
+3. **Current Priorities** (MVP - 60% Complete):
+   - **Full ML Integration** (Critical): Get complete IntegratedMLXManager working in bundled app
+   - **Model Management UI** (Critical): React-based visual interface with drag & drop
+   - **Testing Infrastructure** (Critical): Real model testing suite and benchmarking
+4. **Focus Areas**:
+   - Fix import dependencies for production environment
+   - Create production_main_bundled.py for Electron
+   - Implement ModelLibrary React components
+   - Download and test with real GGUF models (qwen2.5-coder, phi-2)
+   - Create automated test pipeline
+5. **Testing with Real Models**:
    - Download actual GGUF/SafeTensors models
    - Test model loading and switching
    - Verify chat completions with real models
-   - Optimize performance for different model sizes
-5. **Distribution Enhancements**:
-   - Apple Developer certificate for proper signing
-   - Notarization for Gatekeeper approval
-   - Auto-update functionality
-   - Installer packages for easier distribution
-6. **Remember**: MVP is COMPLETE - all work now is enhancement/improvement
+   - Benchmark performance across formats
+6. **Remember**: MVP is 60% COMPLETE - focus on essential features before enhancements
 
 ## Electron App Technical Context (COMPLETED)
 - **App Name**: IMPETUS (Intelligent Model Platform Enabling Taskbar Unified Server)

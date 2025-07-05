@@ -1,12 +1,12 @@
 # AI Documentation
 
 ## 🚀 TL;DR for Agents
-**MVP Goal**: Load ANY local model format and use with Cline via taskbar Electron app "Impetus"  
-**Current**: ✅ MVP COMPLETE + Server Fixed - App functional in /Applications/Impetus.app  
-**Latest Fix**: Server startup issue resolved with simplified bundled version  
-**Usage**: Launch Impetus → Click "Start Server" → Use with VS Code/Cline at localhost:8080  
-**Next Tasks**: Check TODO.md post-MVP sections for ML model integration enhancements  
-**Read Next**: `.clinerules/memory.md` → `TODO.md` post-MVP sections  
+**MVP Goal**: Complete production-ready local LLM platform with full ML capabilities, management UI, and testing suite  
+**Current**: ✅ Core app built (60% MVP complete) - Full ML integration, UI, and testing in progress  
+**Status**: MVP expanded to include essential features - Core infrastructure done, key features in development  
+**Usage**: Launch Impetus → Working basic server → Full ML features being integrated  
+**Next Tasks**: Check TODO.md MVP section for Full ML Integration, Model Management UI, and Testing Infrastructure  
+**Read Next**: `.clinerules/memory.md` → `TODO.md` MVP section (expanded scope)
 
 ## Executive Summary
 The Impetus-LLM-Server project provides a high-performance, local AI inference platform with FULLY DYNAMIC optimization for ALL Apple Silicon Macs and seamless VS Code integration, particularly with Cline and other AI coding assistants. 
@@ -285,30 +285,39 @@ When working with this codebase:
 3. Test inference: `POST /v1/chat/completions`
 4. Monitor performance: Connect to WebSocket for real-time metrics
 
-## MVP Definition
+## MVP Definition (Expanded Scope)
 
-The **Minimum Viable Product (MVP)** has been achieved! ✅
+The **Minimum Viable Product (MVP)** has been expanded to include essential production features.
 
-### MVP Deliverables (100% Complete):
-1. ✅ A local model of ANY format can be loaded into the server
-   - All 6 formats implemented: GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX
+### Core MVP Deliverables:
+1. ✅ **Foundation Infrastructure** (COMPLETE)
+   - All 6 model format loaders: GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX
    - Model loader factory with automatic format detection
-2. ✅ The model is accessible via OpenAI-compatible API
-   - Full `/v1/chat/completions` and `/v1/models` endpoints
-   - Model switching without server restart
-3. ✅ Developers can use Cline (or similar VS Code AI extensions) with the local model
-   - Streaming support and proper response formatting
    - Unified inference engine across all formats
-4. ✅ Basic inference works without errors
-   - Comprehensive testing suite validates all components
-5. ✅ **Electron app "Impetus" runs in taskbar/menu bar** for native macOS experience
-   - ✅ Server management from taskbar icon
-   - ✅ Quick model selection menu
-   - ✅ Performance optimized for Apple Silicon
-   - ✅ Minimal resource usage when idle
-   - ✅ Built, signed, and installed to /Applications/IMPETUS.app
+   - Native macOS Electron app "Impetus" built and installed
 
-**MVP Status**: 100% COMPLETE - Ready for production use!
+2. ⏳ **Full ML Integration** (IN PROGRESS - Critical)
+   - Integrate complete IntegratedMLXManager into bundled Electron app
+   - Fix import dependencies for production environment
+   - Enable actual model loading and inference from ~/Models directory
+   - Test with real GGUF models (qwen2.5-coder, etc.)
+
+3. ⏳ **Model Management UI** (IN PROGRESS - Critical)
+   - React-based visual model library interface
+   - Drag & drop model upload functionality
+   - HuggingFace model search and download
+   - Real-time loading progress and status updates
+   - Model switching interface
+
+4. ⏳ **Testing Infrastructure** (IN PROGRESS - Critical)
+   - Real model testing suite with popular models
+   - Performance benchmarking across all formats
+   - VS Code/Cline integration end-to-end tests
+   - Automated testing pipeline
+
+**MVP Status**: 60% Complete - Core built, essential features in development
+
+**Success Criteria**: Developer can launch Impetus → Load any model format → Use with VS Code/Cline with full UI management
 
 ## Implementation Status
 
