@@ -22,6 +22,7 @@ from gerdsen_ai_server.src.enhanced_apple_silicon_detector import (
 )
 from gerdsen_ai_server.src.dummy_model_loader import load_dummy_model, dummy_predict
 from gerdsen_ai_server.src.model_loaders import GGUFLoader
+from gerdsen_ai_server.src.inference import GGUFInferenceEngine, GenerationConfig
 
 # MLX imports
 try:
@@ -115,6 +116,9 @@ class IntegratedMLXManager:
         # Model loaders
         self.gguf_loader = GGUFLoader()
         
+        # Inference engines
+        self.gguf_inference = GGUFInferenceEngine()
+        
         # Configuration
         self.cache_dir = Path(cache_dir or os.path.expanduser("~/.gerdsen_ai/model_cache"))
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -194,6 +198,15 @@ class IntegratedMLXManager:
                     }
                     model_id = model_data['id']
                     self.model_cache[model_id] = {"path": model_path, "loader": "gguf", "data": model_data}
+                    
+                    # Load model into inference engine
+                    inference_success = self.gguf_inference.load_model_for_inference(
+                        model_id, model_path, model_data['info'].__dict__
+                    )
+                    if not inference_success:
+                        self.logger.error(f"Failed to load GGUF model into inference engine")
+                        return None
+                        
                 except Exception as e:
                     self.logger.error(f"Failed to load GGUF model: {e}")
                     return None
@@ -365,7 +378,59 @@ class IntegratedMLXManager:
             # Check system state and adjust if needed
             self._adjust_for_system_state(model_id)
             
-            # Run prediction using dummy predict
+            # Check if this is a GGUF model and handle accordingly
+            cache_data = self.model_cache.get(model_id, {})
+            if cache_data.get("loader") == "gguf":
+                # Use GGUF inference engine for chat/completions
+                if "messages" in input_data:
+                    # Chat completion request
+                    messages = input_data.get("messages", [])
+                    stream = kwargs.get("stream", False)
+                    
+                    # Create generation config from kwargs
+                    config = GenerationConfig(
+                        max_tokens=kwargs.get("max_tokens", 512),
+                        temperature=kwargs.get("temperature", 0.7),
+                        top_p=kwargs.get("top_p", 0.9),
+                        stream=stream
+                    )
+                    
+                    # Generate response
+                    response = self.gguf_inference.create_chat_completion(
+                        model_id, messages, config, stream
+                    )
+                    
+                    # For non-streaming, extract the content for backward compatibility
+                    if not stream and isinstance(response, dict):
+                        content = response['choices'][0]['message']['content']
+                        return {
+                            'content': content,
+                            'prompt_tokens': response['usage']['prompt_tokens'],
+                            'completion_tokens': response['usage']['completion_tokens'],
+                            'total_tokens': response['usage']['total_tokens']
+                        }
+                    
+                    return response
+                    
+                elif "prompt" in input_data:
+                    # Text completion request
+                    prompt = input_data.get("prompt", "")
+                    config = GenerationConfig(
+                        max_tokens=kwargs.get("max_tokens", 512),
+                        temperature=kwargs.get("temperature", 0.7),
+                        top_p=kwargs.get("top_p", 0.9)
+                    )
+                    
+                    result = self.gguf_inference.generate(model_id, prompt, config)
+                    
+                    return {
+                        'text': result.text,
+                        'prompt_tokens': len(prompt.split()),
+                        'completion_tokens': result.tokens_generated,
+                        'total_tokens': len(prompt.split()) + result.tokens_generated
+                    }
+            
+            # Fall back to dummy predict for non-GGUF models
             start_time = time.time()
             result = dummy_predict(input_data)
             inference_time = (time.time() - start_time) * 1000  # Convert to ms
@@ -676,8 +741,10 @@ class IntegratedMLXManager:
             # Check if it's a GGUF model
             cache_data = self.model_cache.get(model_id, {})
             if cache_data.get("loader") == "gguf":
-                # Unload GGUF model
-                success = self.gguf_loader.unload_model(model_id)
+                # Unload GGUF model from both loader and inference engine
+                loader_success = self.gguf_loader.unload_model(model_id)
+                inference_success = self.gguf_inference.unload_model(model_id)
+                success = loader_success and inference_success
             else:
                 # Unload from Apple frameworks
                 success = False
