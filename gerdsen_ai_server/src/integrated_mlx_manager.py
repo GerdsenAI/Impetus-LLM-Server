@@ -182,9 +182,18 @@ class IntegratedMLXManager:
             model_id = model_name
             self.model_cache[model_id] = {"path": model_path}
             
-            # Get model information
+            # Determine framework from load result if available
+            result_framework = model_load_result.get("format", framework)
+            
+            # Get model information with additional metadata from load result
             model_info = self._create_integrated_model_info(
-                model_id, model_name, model_path, framework, compute_device
+                model_id, 
+                model_name, 
+                model_path, 
+                result_framework, 
+                compute_device,
+                size_bytes=model_load_result.get("size_bytes", 0),
+                parameters=model_load_result.get("parameters", 0)
             )
             
             # Apply Apple Silicon optimizations
@@ -257,12 +266,14 @@ class IntegratedMLXManager:
                                     model_name: str, 
                                     model_path: str,
                                     framework: str,
-                                    compute_device: ComputeDevice) -> IntegratedModelInfo:
-        """Create integrated model information"""
+                                    compute_device: ComputeDevice,
+                                    size_bytes: int = 0,
+                                    parameters: int = 0) -> IntegratedModelInfo:
+        """Create integrated model information with provided metadata"""
         
         try:
-            # Get file size
-            size_bytes = os.path.getsize(model_path) if os.path.exists(model_path) else 0
+            # Get file size from provided value or fallback to actual file size
+            actual_size = size_bytes if size_bytes > 0 else (os.path.getsize(model_path) if os.path.exists(model_path) else 0)
             
             # Determine framework
             if framework == 'auto':
@@ -293,8 +304,8 @@ class IntegratedMLXManager:
                 path=model_path,
                 framework=framework_enum,
                 compute_device=compute_device,
-                size_bytes=size_bytes,
-                parameters=0,  # Will be determined during benchmarking
+                size_bytes=actual_size,
+                parameters=parameters,
                 quantization="unknown",
                 optimization_level="default",
                 performance_metrics=None,

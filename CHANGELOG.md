@@ -127,7 +127,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Environment Setup**: Created virtual environment and installed dependencies from `requirements_macos.txt`.
 - **Server Initialization**: Started Flask server on dynamic port 5001, confirming it runs without critical errors.
 - **API Verification**: Tested `/v1/models` and `/v1/chat/completions` endpoints, returning dummy responses as expected.
-- **Documentation**: Updated `todo.md` to reflect completion of server initialization testing tasks.
+- **Model Loading Enhancement**: Updated `dummy_model_loader.py` to simulate detailed model metadata (format, size, parameters, capabilities) for MLX and CoreML formats.
+- **Integration Update**: Modified `integrated_mlx_manager.py` to incorporate enhanced metadata into model information, advancing basic model loading simulation.
+- **Documentation**: Updated `todo.md` to reflect completion of server initialization testing tasks, including model loading confirmation.
 
 ## [1.0.0] - 2025-07-01
 

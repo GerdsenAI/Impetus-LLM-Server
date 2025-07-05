@@ -6,10 +6,24 @@ Dummy Model Loader for Testing Purposes
 import time
 
 def load_dummy_model(model_path: str):
-    """Simulates loading a model."""
+    """Simulates loading a model with detailed metadata."""
     print(f"Simulating loading model from: {model_path}")
     time.sleep(1)  # Simulate time taken to load
-    return {"status": "loaded", "model_path": model_path}
+    # Determine model format based on path or extension
+    model_format = "mlx" if "mlx" in model_path.lower() or model_path.endswith('.mlx') else "coreml"
+    # Simulate model size and parameters
+    model_size_bytes = 1024 * 1024 * 1024 if model_format == "mlx" else 512 * 1024 * 1024  # 1GB for MLX, 512MB for CoreML
+    model_parameters = 7000000000 if model_format == "mlx" else 3000000000  # 7B for MLX, 3B for CoreML
+    return {
+        "status": "loaded",
+        "model_path": model_path,
+        "format": model_format,
+        "size_bytes": model_size_bytes,
+        "parameters": model_parameters,
+        "capabilities": ["chat", "completion"] if model_format == "mlx" else ["chat"],
+        "requirements": {"memory_gb": 8 if model_format == "mlx" else 4, "compute": "gpu" if model_format == "mlx" else "neural_engine"},
+        "optimization_hints": {"device": "gpu" if model_format == "mlx" else "neural_engine", "quantization": "int8"}
+    }
 
 def dummy_predict(input_data: dict) -> dict:
     """Simulates a model prediction."""

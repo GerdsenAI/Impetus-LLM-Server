@@ -11,6 +11,30 @@ These tasks address immediate issues preventing proper server initialization and
   - Change `AppleFrameworksIntegration()` to `EnhancedAppleFrameworksIntegration()`
   - This is preventing the server from starting properly
 
+## VS Code/Cline Integration Requirements (Critical Priority)
+
+These tasks ensure seamless integration with VS Code AI extensions, particularly Cline.
+
+- [ ] **Model Format Support Infrastructure** - **Priority: Critical, Timeline: Immediate**
+  - [ ] Create model loader factory pattern to handle all formats dynamically
+  - [ ] Implement format-specific loaders inheriting from base loader class
+  - [ ] Add model format validation and compatibility checking
+  - [ ] Create unified inference interface regardless of underlying format
+
+- [ ] **Model Management UI** - **Priority: Critical, Timeline: Sprint 1**
+  - [ ] Design React component for model selection and management
+  - [ ] Implement drag-and-drop model upload functionality
+  - [ ] Add Hugging Face model search and download interface
+  - [ ] Create model library view with filtering by format, size, and capability
+  - [ ] Add real-time download progress and model conversion status
+
+- [ ] **OpenAI API Enhancement for Model Switching** - **Priority: Critical, Timeline: Sprint 1**
+  - [ ] Extend `/v1/models` endpoint to return all loaded models with metadata
+  - [ ] Add model parameter validation in chat/completion endpoints
+  - [ ] Implement dynamic model switching without server restart
+  - [ ] Add model-specific configuration (context length, tokens/sec, etc.)
+  - [ ] Ensure proper error handling for unsupported model requests
+
 ## Development Tasks
 
 These tasks focus on implementing upcoming features as outlined in the project's roadmap. Priorities and timelines are set to focus on immediate needs first.
@@ -26,10 +50,33 @@ These tasks focus on implementing upcoming features as outlined in the project's
   - [ ] Develop FastAPI endpoints in `src/main.py` for dynamic model interaction.
   - [ ] Implement endpoints for model selection and switching under `/v1/chat/completions` and `/v1/models`.
   - [ ] Apply CORS and rate-limiting configurations for security.
-- [ ] **AI Model Initialization** - **Priority: Critical, Timeline: Immediate**
-  - [ ] Implement actual model loading for Llama, Mistral, and Default LLM as described in ai.md.
-  - [ ] Create model files or establish download paths for models.
-  - [ ] Initialize models on server startup with Apple Silicon optimization.
+- [ ] **Universal Local Model Support for VS Code/Cline Integration** - **Priority: Critical, Timeline: Immediate**
+  - [ ] Implement dynamic model format detection and loading system:
+    - [ ] GGUF format support (.gguf files) - Most common for quantized models
+    - [ ] SafeTensors support (.safetensors) - Hugging Face standard format
+    - [ ] MLX native format (.mlx, .npz) - Apple Silicon optimized
+    - [ ] CoreML models (.mlmodel, .mlpackage) - iOS/macOS native
+    - [ ] Foundation models - Direct Apple framework integration
+    - [ ] PyTorch formats (.pt, .pth, .bin) - Standard deep learning format
+    - [ ] ONNX format (.onnx) - Cross-platform compatibility
+  - [ ] Create unified model management interface:
+    - [ ] Model browser UI with format filtering
+    - [ ] Download manager for Hugging Face models with progress tracking
+    - [ ] Local file browser option for selecting models from disk
+    - [ ] URL/link input for direct model downloads
+    - [ ] Automatic format conversion when needed (e.g., PyTorch to MLX)
+  - [ ] Implement model discovery and cataloging:
+    - [ ] Auto-scan common model directories
+    - [ ] Hugging Face model hub integration with search
+    - [ ] Model metadata extraction (size, quantization, capabilities)
+    - [ ] Model compatibility checking for VS Code extensions
+  - [ ] VS Code/Cline specific optimizations:
+    - [ ] Ensure streaming support for all model formats
+    - [ ] Implement proper tokenization for each model type
+    - [ ] Add model-specific prompt templates
+    - [ ] Test with Cline, Continue.dev, and other popular extensions
+  - [ ] Create model switching API endpoint for dynamic selection
+  - [ ] Initialize models on server startup with Apple Silicon optimization
 - [ ] **API Response Implementation** - **Priority: High, Timeline: Next Sprint**
   - [ ] Replace placeholder responses in `/v1/chat/completions` with actual model outputs.
   - [ ] Implement real text generation capabilities in `/v1/completions`.
@@ -54,7 +101,7 @@ These tasks ensure the stability and functionality of the server after critical 
 
 - [ ] **Server Initialization Testing** - **Priority: Critical, Timeline: Immediate**
   - [x] Verify server starts without errors after bug fixes.
-  - [ ] Confirm all models load successfully during initialization.
+  - [x] Confirm all models load successfully during initialization.
   - [x] Test each API endpoint to ensure they return meaningful responses.
   - [ ] Validate Apple Silicon optimizations are applied correctly.
 
