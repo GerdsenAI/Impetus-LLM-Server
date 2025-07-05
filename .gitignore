@@ -9,6 +9,14 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+bin/
+lib/
+include/
+share/
+pyvenv.cfg
+.pytest_cache/
+.coverage
+*.egg
 
 # Distribution / packaging
 .eggs/
@@ -100,3 +108,16 @@ reports/
 *.env.test.local
 *.env.production.local
 instance/
+
+# ML/AI Models
+models/
+*.ckpt
+*.pth
+*.h5
+*.mlmodel
+*.onnx
+model_cache/
+
+# Development/Testing
+.hypothesis/
+.benchmarks/

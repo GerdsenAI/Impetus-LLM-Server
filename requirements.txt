@@ -5,9 +5,8 @@ pydantic==1.10.5
 flask-sqlalchemy==3.1.1
 
 # Additional dependencies for AI model management
-transformers==4.26.1
-torch==1.13.1
-numpy==1.24.2
+torch==2.6.0
+numpy==1.26.4
 
 # Dependencies for Apple Silicon optimization
 # Note: Ensure torch is built for Apple Silicon (M1/M2) compatibility

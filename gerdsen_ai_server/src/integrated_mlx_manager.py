@@ -20,6 +20,7 @@ from .enhanced_apple_frameworks_integration import (
 from .enhanced_apple_silicon_detector import (
     EnhancedAppleSiliconDetector
 )
+from .dummy_model_loader import load_dummy_model, dummy_predict
 
 # MLX imports
 try:
@@ -173,12 +174,13 @@ class IntegratedMLXManager:
             if compute_device == ComputeDevice.AUTO:
                 compute_device = self._determine_optimal_device(model_path)
             
-            # Load model using Apple frameworks
-            model_id = self.apple_frameworks.load_model(model_path, framework, compute_device)
-            
-            if not model_id:
-                self.logger.error(f"Failed to load model: {model_path}")
+            # Load model using dummy loader
+            model_load_result = load_dummy_model(model_path)
+            if model_load_result["status"] != "loaded":
+                self.logger.error(f"Failed to load dummy model: {model_path}")
                 return None
+            model_id = model_name
+            self.model_cache[model_id] = {"path": model_path}
             
             # Get model information
             model_info = self._create_integrated_model_info(
@@ -324,41 +326,9 @@ class IntegratedMLXManager:
             # Check system state and adjust if needed
             self._adjust_for_system_state(model_id)
             
-            # Run prediction using Apple frameworks
+            # Run prediction using dummy predict
             start_time = time.time()
-            
-            # Simulate a prediction based on input
-            if 'messages' in input_data:
-                # Chat completion
-                last_message = input_data['messages'][-1]['content']
-                response_content = f"This is a simulated response to: '{last_message}'"
-                result = {
-                    'content': response_content,
-                    'prompt_tokens': len(last_message.split()),
-                    'completion_tokens': len(response_content.split()),
-                    'total_tokens': len(last_message.split()) + len(response_content.split())
-                }
-            elif 'prompt' in input_data:
-                # Text completion
-                prompt = input_data['prompt']
-                response_text = f"This is a simulated completion for the prompt: '{prompt}'"
-                result = {
-                    'text': response_text,
-                    'prompt_tokens': len(prompt.split()),
-                    'completion_tokens': len(response_text.split()),
-                    'total_tokens': len(prompt.split()) + len(response_text.split())
-                }
-            elif 'task' in input_data and input_data['task'] == 'embeddings':
-                # Embeddings
-                text_to_embed = input_data['input']
-                result = {
-                    'embedding': [0.1, 0.2, 0.3, 0.4, 0.5],
-                    'prompt_tokens': len(text_to_embed.split()),
-                    'total_tokens': len(text_to_embed.split())
-                }
-            else:
-                result = self.apple_frameworks.predict(model_id, input_data)
-
+            result = dummy_predict(input_data)
             inference_time = (time.time() - start_time) * 1000  # Convert to ms
             
             # Update performance metrics
