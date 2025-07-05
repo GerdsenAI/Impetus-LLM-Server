@@ -473,14 +473,14 @@ class ImpetusApp {
     }
     
     getBundledServerPath() {
-        // Get the path to the bundled server
+        // Get the path to the bundled server - use enhanced server for ML functionality
         if (app.isPackaged) {
             // In production, Python bundle is in Resources/
             const resourcesPath = process.resourcesPath;
-            return path.join(resourcesPath, 'python-bundle', 'src', 'production_main.py');
+            return path.join(resourcesPath, 'python-bundle', 'src', 'production_main_enhanced.py');
         } else {
             // In development, Python bundle is in resources/
-            return path.join(__dirname, '..', 'resources', 'python-bundle', 'src', 'production_main.py');
+            return path.join(__dirname, '..', 'resources', 'python-bundle', 'src', 'production_main_enhanced.py');
         }
     }
     
