@@ -21,7 +21,7 @@ from gerdsen_ai_server.src.enhanced_apple_silicon_detector import (
     EnhancedAppleSiliconDetector
 )
 from gerdsen_ai_server.src.dummy_model_loader import load_dummy_model, dummy_predict
-from gerdsen_ai_server.src.model_loaders import GGUFLoader, SafeTensorsLoader
+from gerdsen_ai_server.src.model_loaders import GGUFLoader, SafeTensorsLoader, MLXLoader
 from gerdsen_ai_server.src.inference import GGUFInferenceEngine, GenerationConfig
 
 # MLX imports
@@ -116,6 +116,7 @@ class IntegratedMLXManager:
         # Model loaders
         self.gguf_loader = GGUFLoader()
         self.safetensors_loader = SafeTensorsLoader()
+        self.mlx_loader = MLXLoader()
         
         # Inference engines
         self.gguf_inference = GGUFInferenceEngine()
@@ -233,6 +234,38 @@ class IntegratedMLXManager:
                     
                 except Exception as e:
                     self.logger.error(f"Failed to load SafeTensors model: {e}")
+                    return None
+                    
+            elif model_path.lower().endswith(('.mlx', '.npz')):
+                # Load MLX model
+                try:
+                    model_info = self.mlx_loader.load_model(model_path)
+                    model_load_result = {
+                        "status": "loaded",
+                        "format": "mlx",
+                        "size_bytes": model_info['file_size'],
+                        "parameters": model_info['total_parameters'],
+                        "architecture": model_info['architecture'],
+                        "device": model_info['device'],
+                        "optimized_for": model_info['optimized_for'],
+                        "capabilities": ["text-generation", "apple-silicon-optimized"]
+                    }
+                    model_id = Path(model_path).stem
+                    self.model_cache[model_id] = {"path": model_path, "loader": "mlx", "data": model_info}
+                    
+                    # Apply device-specific optimizations
+                    if self.silicon_detector and optimize_for_apple_silicon:
+                        device_profile = {
+                            'gpu_cores': self.silicon_detector.chip_info.get('specifications', {}).get('gpu_cores', 0),
+                            'neural_engine_cores': self.silicon_detector.chip_info.get('specifications', {}).get('neural_engine_cores', 0),
+                            'memory_gb': self.silicon_detector.chip_info.get('detected_memory_gb', 0)
+                        }
+                        self.mlx_loader.optimize_for_device(model_id, device_profile)
+                    
+                    self.logger.info(f"MLX model loaded successfully: {model_id}")
+                    
+                except Exception as e:
+                    self.logger.error(f"Failed to load MLX model: {e}")
                     return None
                     
             else:
