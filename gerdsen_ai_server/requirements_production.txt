@@ -1,0 +1,28 @@
+# IMPETUS Production Requirements
+# Minimal dependencies for production deployment
+
+# Core Web Framework
+flask==3.1.0
+flask-cors==4.0.0
+flask-socketio==5.3.6
+python-socketio==5.11.0
+
+# Essential Dependencies
+requests==2.31.0
+psutil==5.9.6
+numpy
+pydantic
+python-dotenv==1.0.0
+pyyaml==6.0.1
+
+# Logging
+structlog==23.2.0
+
+# Optional ML frameworks (install based on available models)
+# Comment out if not needed to reduce bundle size
+# mlx  # For Apple Silicon optimization
+# onnx>=1.15.0  # For ONNX models
+# onnxruntime>=1.16.3  # For ONNX inference
+# safetensors  # For SafeTensors format
+# torch  # For PyTorch models (very large)
+# coremltools  # For CoreML models
