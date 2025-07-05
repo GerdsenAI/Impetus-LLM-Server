@@ -1,6 +1,7 @@
 # IMPETUS - Intelligent Model Platform Enabling Taskbar Unified Server
+## By GerdsenAI - "Intelligence Without Boundaries"
 
-A comprehensive local LLM server optimized for Apple Silicon that supports ANY model format and integrates seamlessly with VS Code/Cline through a native macOS taskbar application. IMPETUS provides a privacy-first, zero-cloud-dependency solution for AI-assisted coding.
+A comprehensive local LLM server optimized for Apple Silicon that supports ANY model format and integrates seamlessly with VS Code/Cline through a native macOS taskbar application. IMPETUS embodies GerdsenAI's mission to democratize advanced AI through distributed, privacy-first technology that enhances human potential while maintaining complete control over data and processes.
 
 ## 🚀 Key Features
 
@@ -28,11 +29,12 @@ A comprehensive local LLM server optimized for Apple Silicon that supports ANY m
 - **Neural Engine**: Utilizes Apple's dedicated AI hardware when available
 - **Thermal Management**: Intelligent performance scaling based on thermal state
 
-### Privacy & Performance
-- **Local Processing**: All models run locally, no cloud dependencies
-- **Privacy First**: No data leaves your machine
+### Privacy & Performance (GerdsenAI Core Principles)
+- **Local-First Privacy**: All models run locally, embodying our commitment to data sovereignty
+- **Intelligence Without Boundaries**: No cloud dependencies, full offline capability
 - **Dynamic Optimization**: Performance scales with available hardware
 - **Efficient Resource Usage**: Optimized for Apple Silicon unified memory architecture
+- **Complete Control**: Your models, your data, your infrastructure
 
 ## 📋 Requirements
 

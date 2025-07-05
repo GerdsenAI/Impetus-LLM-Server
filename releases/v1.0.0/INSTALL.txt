@@ -1,0 +1,29 @@
+IMPETUS Installation Instructions
+=================================
+
+Thank you for downloading IMPETUS!
+
+INSTALLATION:
+1. Double-click the DMG file to mount it
+2. Drag the IMPETUS icon to your Applications folder
+3. Eject the DMG (drag to trash or right-click → Eject)
+4. Launch IMPETUS from your Applications folder
+
+FIRST LAUNCH:
+- You may see a security warning on first launch
+- Right-click IMPETUS in Applications and select "Open"
+- Click "Open" in the security dialog
+- This only needs to be done once
+
+GETTING STARTED:
+1. Click the IMPETUS icon in your menu bar
+2. Select "Start Server" to begin
+3. Add AI models to ~/Models/GGUF/chat/
+4. Configure your VS Code extensions to use http://localhost:8080
+
+TROUBLESHOOTING:
+- If IMPETUS won't open: Right-click → Open (bypasses Gatekeeper)
+- If menu bar icon doesn't appear: Check Activity Monitor and quit any existing IMPETUS processes
+- For other issues: Check Console.app for error messages
+
+Enjoy using IMPETUS with your local AI models!

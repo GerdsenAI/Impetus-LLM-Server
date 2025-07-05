@@ -39,7 +39,8 @@ class ImpetusApp {
             applicationVersion: app.getVersion(),
             version: app.getVersion(),
             copyright: 'Copyright © 2025 GerdsenAI',
-            credits: 'Intelligent Model Platform Enabling Taskbar Unified Server'
+            credits: 'Intelligent Model Platform Enabling Taskbar Unified Server\n\nBy GerdsenAI - "Intelligence Without Boundaries"\n\nLocal-first AI that respects your privacy.',
+            website: 'https://gerdsenai.com'
         });
         
         // App event handlers
