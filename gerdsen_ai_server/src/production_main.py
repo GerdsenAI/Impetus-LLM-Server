@@ -19,17 +19,18 @@ from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 
 # Import our production components
-from src.production_gerdsen_ai import (
+from gerdsen_ai_server.src.production_gerdsen_ai import (
     ProductionGerdsenAI, 
     ProductionConfig, 
     RealTimeMetricsCollector
 )
-from src.enhanced_apple_silicon_detector import EnhancedAppleSiliconDetector
-from src.integrated_mlx_manager import IntegratedMLXManager
-from src.enhanced_apple_frameworks_integration import EnhancedAppleFrameworksIntegration
-from src.routes.terminal import terminal_bp
-from src.routes.hardware import hardware_bp
-from src.routes.service_management import service_mgmt_bp
+from .enhanced_apple_silicon_detector import EnhancedAppleSiliconDetector
+from .integrated_mlx_manager import IntegratedMLXManager
+from .enhanced_apple_frameworks_integration import EnhancedAppleFrameworksIntegration
+from .routes.terminal import terminal_bp
+from .routes.hardware import hardware_bp
+from .routes.service_management import service_mgmt_bp
+from .routes.mcp_routes import mcp_bp
 
 # Configure logging
 logging.basicConfig(
@@ -88,6 +89,7 @@ class ProductionFlaskServer:
         self.app.register_blueprint(terminal_bp, url_prefix='/api/terminal')
         self.app.register_blueprint(hardware_bp, url_prefix='/api/hardware')
         self.app.register_blueprint(service_mgmt_bp, url_prefix='/api/service')
+        self.app.register_blueprint(mcp_bp)  # MCP routes at /mcp
         
         @self.app.route('/')
         def index():

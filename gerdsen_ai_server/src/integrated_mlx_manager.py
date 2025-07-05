@@ -14,13 +14,13 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 
 # Import our Apple frameworks integration
-from .enhanced_apple_frameworks_integration import (
+from gerdsen_ai_server.src.enhanced_apple_frameworks_integration import (
     EnhancedAppleFrameworksIntegration
 )
-from .enhanced_apple_silicon_detector import (
+from gerdsen_ai_server.src.enhanced_apple_silicon_detector import (
     EnhancedAppleSiliconDetector
 )
-from .dummy_model_loader import load_dummy_model, dummy_predict
+from gerdsen_ai_server.src.dummy_model_loader import load_dummy_model, dummy_predict
 
 # MLX imports
 try:
@@ -97,14 +97,14 @@ class IntegratedModelInfo:
 class IntegratedMLXManager:
     """MLX Manager with full Apple frameworks integration"""
     
-    def __init__(self, cache_dir: str = None):
+    def __init__(self, cache_dir: str = None, apple_detector=None, frameworks=None):
         self.logger = logging.getLogger(__name__)
         
         # Initialize Apple frameworks integration
-        self.apple_frameworks = EnhancedAppleFrameworksIntegration()
+        self.apple_frameworks = frameworks
         
         # Initialize Apple Silicon detector
-        self.silicon_detector = EnhancedAppleSiliconDetector()
+        self.silicon_detector = apple_detector
         
         # Model management
         self.models = {}

@@ -23,7 +23,12 @@ When starting with "initialize from ai.md", follow this optimized workflow:
 
 ### 1. Critical Context Loading (30 seconds)
 ```bash
-# Read these files in order:
+# With MCP tools (RECOMMENDED - 80% less tokens):
+1. mcp_tool("memory", "recall_session_summary")  # Get previous work
+2. mcp_tool("context-manager", "get_critical_issues")  # Current blockers
+3. Read ai.md (this file) - Only for major updates
+
+# Without MCP (fallback):
 1. ai.md (this file) - Project overview and current phase
 2. .clinerules/memory.md - Critical bugs and known issues  
 3. .clinerules/development_rules.md - Core principles and standards

@@ -45,16 +45,20 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 - Updated all docs for dynamic Apple Silicon optimization
 - Added optimized agent workflow to ai.md with TL;DR section
 - All performance targets now scale with hardware automatically
+- **NEW**: MCP (Model Context Protocol) tools configured for efficiency
+- **NEW**: Context sharing between Claude and Gemini agents
+- **IMPORTANT**: Use MCP tools to reduce token usage by 80%+
 
 ## Common Agent Tasks
 
-### When Starting Work
-1. **Read ai.md first** - Has TL;DR and optimized workflow
-2. Check git status (currently on `Initial-Phase` branch)
-3. Follow the quick decision tree in ai.md
-4. Verify server can start: `python gerdsen_ai_server/src/production_main.py`
-5. Check `/v1/models` endpoint
-6. Review `todo.md` for current priorities
+### When Starting Work (WITH MCP)
+1. **Load previous context**: `mcp_tool("memory", "recall_session_summary")`
+2. **Read ai.md first** - Has TL;DR and optimized workflow
+3. Check git status (currently on `Initial-Phase` branch)
+4. Follow the quick decision tree in ai.md
+5. Verify server can start: `python gerdsen_ai_server/src/production_main.py`
+6. Check `/v1/models` endpoint
+7. **Use MCP for todos**: `mcp_tool("memory", "get_todo_status")`
 
 ### When Implementing Features
 1. Always maintain OpenAI API compatibility
@@ -107,7 +111,16 @@ flake8 src/ gerdsen_ai_server/src/
 - `CLAUDE.md` → `.clinerules/CLAUDE.md`
 - `memory.md` → `.clinerules/memory.md`
 - `development_rules.md` → `.clinerules/development_rules.md` (NEW)
+- `mcp_configuration.md` → `.clinerules/mcp_configuration.md` (NEW)
+- `mcp_usage_guide.md` → `.clinerules/mcp_usage_guide.md` (NEW)
 - `ai.md` - Now has optimized agent workflow with TL;DR
+
+## MCP Tools Available
+- **Context Manager**: Share findings between agents
+- **Smart Search**: Get code snippets without loading entire files
+- **Memory**: Persist important information across sessions
+- **Cost Optimizer**: Reduce token usage by 80%+
+- **Research Assistant**: Cache research results
 
 ## Resources
 - Main docs: `ai.md` (project overview)
