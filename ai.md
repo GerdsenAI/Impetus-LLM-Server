@@ -17,7 +17,7 @@ The Impetus-LLM-Server project provides a high-performance, local AI inference p
 - **Key Features**: Universal model format support, dynamic hardware optimization, automatic performance scaling
 - **Dynamic Optimization**: Automatically detects M1/M2/M3/M4 variants (Base/Pro/Max/Ultra) and scales performance
 - **Target Users**: Developers on any Apple Silicon Mac who want local, private AI assistance
-- **Status**: MVP 100% COMPLETE ✅ - Production app built, installed to /Applications/IMPETUS.app
+- **Status**: MVP 100% COMPLETE ✅ - Production app built, installed to /Applications/Impetus.app
 
 ## Agent Initialization Workflow
 
