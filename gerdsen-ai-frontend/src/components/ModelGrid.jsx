@@ -33,7 +33,7 @@ const ModelGrid = ({
   const [selectedCapability, setSelectedCapability] = useState('all');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [activeModel, setActiveModel] = useState(null);
-  const [loadingModels, setLoadingModels] = useState(new Set());
+  const [loadingModels, setLoadingModels] = useState({}); // Use object instead of Set for better React state handling
 
   // Available formats and capabilities for filtering
   const [availableFormats, setAvailableFormats] = useState(['all']);
@@ -133,7 +133,7 @@ const ModelGrid = ({
     const model = models.find(m => m.id === modelId);
     if (!model) return;
 
-    setLoadingModels(prev => new Set([...prev, modelId]));
+    setLoadingModels(prev => ({ ...prev, [modelId]: true }));
     
     try {
       const response = await fetch(`${serverUrl}/api/models/load`, {
@@ -163,9 +163,9 @@ const ModelGrid = ({
       setError(`Failed to load model: ${err.message}`);
     } finally {
       setLoadingModels(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(modelId);
-        return newSet;
+        const newState = { ...prev };
+        delete newState[modelId];
+        return newState;
       });
     }
   };
@@ -381,7 +381,7 @@ const ModelGrid = ({
               key={model.id}
               model={model}
               isActive={activeModel === model.id}
-              isLoading={loadingModels.has(model.id)}
+              isLoading={!!loadingModels[model.id]}
               onLoad={handleModelLoad}
               onUnload={handleModelUnload}
               onSwitch={handleModelSwitch}

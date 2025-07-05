@@ -66,13 +66,15 @@ const DragDropZone = ({
 
   const uploadFile = async (file) => {
     const uploadId = Date.now() + Math.random();
+    let xhr = null;
     
-    // Add to uploading files
+    // Add to uploading files with xhr reference
     setUploadingFiles(prev => [...prev, {
       id: uploadId,
       file,
       progress: 0,
-      status: 'uploading'
+      status: 'uploading',
+      xhr: null
     }]);
 
     try {
@@ -80,7 +82,12 @@ const DragDropZone = ({
       formData.append('model', file);
 
       // Create XMLHttpRequest for progress tracking
-      const xhr = new XMLHttpRequest();
+      xhr = new XMLHttpRequest();
+      
+      // Store xhr reference for cleanup
+      setUploadingFiles(prev => prev.map(f => 
+        f.id === uploadId ? { ...f, xhr } : f
+      ));
       
       return new Promise((resolve, reject) => {
         xhr.upload.addEventListener('progress', (event) => {
@@ -93,6 +100,11 @@ const DragDropZone = ({
         });
 
         xhr.addEventListener('load', () => {
+          // Clear xhr reference
+          setUploadingFiles(prev => prev.map(f => 
+            f.id === uploadId ? { ...f, xhr: null } : f
+          ));
+          
           if (xhr.status === 200) {
             try {
               const response = JSON.parse(xhr.responseText);
@@ -109,23 +121,54 @@ const DragDropZone = ({
               onUploadComplete?.(file, response);
               resolve(response);
             } catch (e) {
+              // Handle error properly
+              setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+              setErrors(prev => [...prev, {
+                id: uploadId,
+                file,
+                error: 'Invalid response from server'
+              }]);
               reject(new Error('Invalid response from server'));
             }
           } else {
+            let errorMessage;
             try {
               const errorResponse = JSON.parse(xhr.responseText);
-              reject(new Error(errorResponse.error || 'Upload failed'));
+              errorMessage = errorResponse.error || 'Upload failed';
             } catch (e) {
-              reject(new Error(`Upload failed with status ${xhr.status}`));
+              errorMessage = `Upload failed with status ${xhr.status}`;
             }
+            
+            // Handle error properly
+            setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+            setErrors(prev => [...prev, {
+              id: uploadId,
+              file,
+              error: errorMessage
+            }]);
+            reject(new Error(errorMessage));
           }
         });
 
         xhr.addEventListener('error', () => {
+          // Clear xhr reference and handle error
+          setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+          setErrors(prev => [...prev, {
+            id: uploadId,
+            file,
+            error: 'Network error during upload'
+          }]);
           reject(new Error('Network error during upload'));
         });
 
         xhr.addEventListener('abort', () => {
+          // Clear xhr reference and handle abort
+          setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+          setErrors(prev => [...prev, {
+            id: uploadId,
+            file,
+            error: 'Upload cancelled'
+          }]);
           reject(new Error('Upload cancelled'));
         });
 
@@ -134,6 +177,15 @@ const DragDropZone = ({
       });
 
     } catch (error) {
+      // Abort any ongoing request
+      if (xhr) {
+        try {
+          xhr.abort();
+        } catch (e) {
+          // Ignore abort errors
+        }
+      }
+      
       // Remove from uploading files and add to errors
       setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
       setErrors(prev => [...prev, {
@@ -216,8 +268,19 @@ const DragDropZone = ({
   };
 
   const cancelUpload = (uploadId) => {
-    // In a real implementation, you'd cancel the XMLHttpRequest
-    setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+    // Find the upload and cancel its XMLHttpRequest
+    const upload = uploadingFiles.find(f => f.id === uploadId);
+    if (upload && upload.xhr) {
+      try {
+        upload.xhr.abort();
+      } catch (e) {
+        // If abort fails, still remove from list
+        setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+      }
+    } else {
+      // No xhr reference, just remove from list
+      setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+    }
   };
 
   return (

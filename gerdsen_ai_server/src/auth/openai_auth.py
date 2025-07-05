@@ -30,17 +30,26 @@ class OpenAIAuth:
         """Initialize authentication with Flask app"""
         self.app = app
         
-        # Load configuration
-        self.master_key = app.config.get('OPENAI_MASTER_KEY', 'gerdsen-ai-master-key-2025')
+        # Load configuration from environment
+        self.master_key = os.environ.get('OPENAI_MASTER_KEY', app.config.get('OPENAI_MASTER_KEY'))
         
-        # Load API keys from environment or config
+        # Warn if no master key is set
+        if not self.master_key:
+            self.logger.warning("No OPENAI_MASTER_KEY configured - admin operations will be disabled")
+        
+        # Load API keys from environment
         env_keys = os.environ.get('OPENAI_API_KEYS', '')
         if env_keys:
-            self.api_keys.update(env_keys.split(','))
+            # Clean and add keys, stripping whitespace
+            keys = [k.strip() for k in env_keys.split(',') if k.strip()]
+            self.api_keys.update(keys)
+            self.logger.info(f"Loaded {len(keys)} API keys from environment")
         
-        # Add default development keys
-        self.api_keys.add('sk-dev-gerdsen-ai-local-development-key')
-        self.api_keys.add('sk-test-gerdsen-ai-testing-key')
+        # In development mode only, allow any sk- prefixed key if no keys configured
+        if app.debug and not self.api_keys:
+            self.logger.warning("DEBUG MODE: No API keys configured, accepting any 'sk-' prefixed key")
+        elif not self.api_keys:
+            self.logger.warning("No API keys configured - authentication will reject all requests")
         
         self.logger.info(f"OpenAI Auth initialized with {len(self.api_keys)} API keys")
     

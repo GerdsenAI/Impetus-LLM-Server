@@ -14,14 +14,34 @@ from pathlib import Path
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
+# Add path for utils
+sys.path.insert(0, os.path.dirname(__file__))
+try:
+    from utils.config import load_env_file, get_cors_origins, get_api_config, get_env
+    # Load environment variables
+    load_env_file()
+except ImportError:
+    # Fallback if utils not available
+    def get_cors_origins():
+        return os.environ.get('ALLOWED_ORIGINS', 'http://localhost:8080,http://127.0.0.1:8080').split(',')
+    def get_api_config():
+        return {'secret_key': os.environ.get('SECRET_KEY', 'dev-secret-key')}
+    def get_env(key, default=None):
+        return os.environ.get(key, default)
 
-logger = logging.getLogger(__name__)
+# Configure logging
+try:
+    from utils.logging_config import setup_structured_logging
+    setup_structured_logging()
+    logger = logging.getLogger(__name__)
+except ImportError:
+    # Fallback to basic logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[logging.StreamHandler(sys.stdout)]
+    )
+    logger = logging.getLogger(__name__)
 
 class EnhancedProductionServer:
     """Enhanced production server that progressively loads ML functionality"""
@@ -30,20 +50,31 @@ class EnhancedProductionServer:
         """Initialize the enhanced server with progressive ML loading"""
         self.app = Flask(__name__)
         
-        # Configure Flask app
-        self.app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
+        # Configure Flask app with environment-based settings
+        api_config = get_api_config()
+        self.app.config['SECRET_KEY'] = api_config.get('secret_key', get_env('SECRET_KEY', 'dev-secret-key'))
         
-        # Initialize CORS
-        CORS(self.app, origins=['http://localhost:*', 'http://127.0.0.1:*'])
+        # Initialize CORS with environment-based origins
+        cors_origins = get_cors_origins()
+        logger.info(f"Configuring CORS with origins: {cors_origins}")
+        CORS(self.app, origins=cors_origins)
         
         # Progressive ML initialization flags
         self.ml_components_loaded = False
         self.ml_manager = None
         self.apple_detector = None
         self.frameworks = None
+        self.ml_lock = threading.Lock()  # Lock for thread-safe ML access
         
         # Setup routes
         self._setup_routes()
+        
+        # Initialize secure upload handler
+        try:
+            from api.upload_handler import init_upload_routes
+            init_upload_routes(self.app)
+        except ImportError:
+            logger.warning("Upload handler not available")
         
         # Initialize ML components in background
         self._init_ml_components_async()
@@ -62,12 +93,13 @@ class EnhancedProductionServer:
                     from enhanced_apple_frameworks_integration import EnhancedAppleFrameworksIntegration
                     from integrated_mlx_manager import IntegratedMLXManager
                     
-                    # Initialize components
-                    self.apple_detector = EnhancedAppleSiliconDetector()
-                    self.frameworks = EnhancedAppleFrameworksIntegration()
-                    self.ml_manager = IntegratedMLXManager()
-                    
-                    self.ml_components_loaded = True
+                    # Initialize components with thread safety
+                    with self.ml_lock:
+                        self.apple_detector = EnhancedAppleSiliconDetector()
+                        self.frameworks = EnhancedAppleFrameworksIntegration()
+                        self.ml_manager = IntegratedMLXManager()
+                        
+                        self.ml_components_loaded = True
                     logger.info("✅ ML components loaded successfully")
                     
                 except ImportError as e:
@@ -257,28 +289,30 @@ class EnhancedProductionServer:
             }
             
             # Enhanced scanning if ML components are loaded
-            if self.ml_components_loaded and self.ml_manager:
-                try:
-                    models = self.ml_manager.scan_user_models()
-                    basic_result.update({
-                        "models": models,
-                        "count": len(models),
-                        "status": "ready"
-                    })
-                except Exception as e:
-                    logger.error(f"Model scanning error: {e}")
-                    basic_result["error"] = str(e)
+            with self.ml_lock:
+                if self.ml_components_loaded and self.ml_manager:
+                    try:
+                        models = self.ml_manager.scan_user_models()
+                        basic_result.update({
+                            "models": models,
+                            "count": len(models),
+                            "status": "ready"
+                        })
+                    except Exception as e:
+                        logger.error(f"Model scanning error: {e}")
+                        basic_result["error"] = str(e)
             
             return jsonify(basic_result)
         
         @self.app.route('/api/models/load', methods=['POST'])
         def load_model():
             """Load a model from file path"""
-            if not self.ml_components_loaded or not self.ml_manager:
-                return jsonify({
-                    "error": "ML components not ready",
-                    "status": "loading"
-                }), 503
+            with self.ml_lock:
+                if not self.ml_components_loaded or not self.ml_manager:
+                    return jsonify({
+                        "error": "ML components not ready",
+                        "status": "loading"
+                    }), 503
             
             try:
                 data = request.json
@@ -288,10 +322,12 @@ class EnhancedProductionServer:
                 if not model_path:
                     return jsonify({"error": "Model path required"}), 400
                 
-                success = self.ml_manager.load_model_from_path(
-                    model_path,
-                    model_id
-                )
+                # Thread-safe model loading
+                with self.ml_lock:
+                    success = self.ml_manager.load_model_from_path(
+                        model_path,
+                        model_id
+                    )
                 
                 if success:
                     return jsonify({
@@ -334,14 +370,17 @@ class EnhancedProductionServer:
         @self.app.route('/v1/models/<model_id>/switch', methods=['POST'])
         def switch_model(model_id):
             """Switch to a different model"""
-            if not self.ml_components_loaded or not self.ml_manager:
-                return jsonify({
-                    "error": "ML components not ready",
-                    "status": "loading"
-                }), 503
+            with self.ml_lock:
+                if not self.ml_components_loaded or not self.ml_manager:
+                    return jsonify({
+                        "error": "ML components not ready",
+                        "status": "loading"
+                    }), 503
             
             try:
-                success = self.ml_manager.switch_model(model_id)
+                # Thread-safe model switching
+                with self.ml_lock:
+                    success = self.ml_manager.switch_model(model_id)
                 if success:
                     return jsonify({
                         "status": "success",

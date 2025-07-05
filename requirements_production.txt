@@ -45,6 +45,10 @@ toml==0.10.2
 structlog==23.2.0
 colorlog==6.8.0
 
+# Production WSGI servers
+gunicorn==21.2.0  # Unix/Linux production server
+waitress==2.1.2  # Cross-platform production server
+
 # File handling and compression
 pathlib2==2.3.7
 zipfile36==0.1.3
