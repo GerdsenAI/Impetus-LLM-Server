@@ -7,7 +7,9 @@
 **Read Next**: `.clinerules/memory.md` for specifics  
 
 ## Executive Summary
-The Impetus-LLM-Server project provides a high-performance, local AI inference platform with dynamic optimization for ALL Apple Silicon Macs and seamless VS Code integration, particularly with Cline and other AI coding assistants. The system supports all major local model formats (GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX) with automatic hardware detection and performance scaling.
+The Impetus-LLM-Server project provides a high-performance, local AI inference platform with FULLY DYNAMIC optimization for ALL Apple Silicon Macs and seamless VS Code integration, particularly with Cline and other AI coding assistants. 
+
+**EVERYTHING IS DYNAMIC**: No hardcoded memory allocations, no fixed performance targets, no assumptions about hardware configurations. The system automatically detects CPU/GPU/Neural Engine cores, unified memory amount, and all hardware capabilities, then optimizes accordingly in real-time.
 
 - **Primary Goal**: Enable developers to use local LLMs with VS Code AI extensions on any Apple Silicon Mac
 - **Key Features**: Universal model format support, dynamic hardware optimization, automatic performance scaling
@@ -75,6 +77,19 @@ Is the import bug fixed? (line 106)
 - **Purpose**: Enable developers to run any local LLM through VS Code AI extensions with optimal performance on Apple Silicon.
 - **Core Value**: Privacy-first AI development with no cloud dependencies, full model control, and seamless IDE integration.
 - **Scope**: Universal model format support, VS Code extension compatibility, Apple Silicon optimization, and intuitive model management.
+
+## Dynamic Philosophy
+This application contains ZERO hardcoded values for:
+- Memory allocations (determined at runtime)
+- Performance targets (emerge from available resources)
+- Hardware assumptions (detected dynamically)
+- Resource limits (adapt to system state)
+
+Every aspect scales automatically based on:
+- Available CPU/GPU/Neural Engine cores
+- Unified memory amount and current usage
+- Thermal state and power availability
+- System load and competing processes
 
 ## VS Code/Cline Integration (Priority)
 The server is designed as a drop-in replacement for OpenAI API, enabling immediate use with VS Code AI extensions.
@@ -147,8 +162,8 @@ A React-based interface for effortless model management:
 │ │  [Active]│ │ [Load]  │ │ [Load]  │   │
 │ └─────────┘ └─────────┘ └─────────┘   │
 │                                         │
-│ Performance: 45 tokens/sec              │
-│ Memory: 8.2GB / 32GB                    │
+│ Performance: [Dynamic based on hardware]│
+│ Memory: [Auto-scaled to system]         │
 └─────────────────────────────────────────┘
 ```
 
@@ -438,25 +453,18 @@ The Impetus-LLM-Server supports integration with MCP servers to extend capabilit
 **Goal**: Make it fast enough for productive development on ALL Apple Silicon
 
 1. **Dynamic Apple Silicon Optimization**
-   - Detect specific M-series chip variant (M1-M4, Base/Pro/Max/Ultra)
-   - Auto-scale performance targets based on hardware
+   - Detect all hardware capabilities at runtime
+   - Auto-scale performance based on available resources
    - Implement MLX conversions for non-native formats
    - Use Metal/Neural Engine when beneficial
-   - **Success**: Achieve optimal tokens/sec for each chip:
-     - M1 Base: 15+ tokens/sec
-     - M1 Pro: 25+ tokens/sec
-     - M1 Max: 40+ tokens/sec
-     - M1 Ultra: 60+ tokens/sec
-     - M2-M4: Scale proportionally higher
+   - **Success**: System achieves optimal performance for detected hardware without any fixed targets
 
 2. **Memory Management**
    - Implement intelligent model caching
-   - Dynamic loading/unloading based on available unified memory
-   - Scale to system capabilities:
-     - 8GB: Optimize for single model
-     - 16GB: Support 2-3 models
-     - 32GB+: Multiple large models
-   - **Success**: Efficient memory use across all configurations
+   - Dynamic loading/unloading based on real-time memory availability
+   - Algorithm determines optimal model count and size
+   - No assumptions about memory configurations
+   - **Success**: Memory usage adapts perfectly to each system
 
 3. **Context Optimization**
    - Smart context windowing for long files
@@ -486,10 +494,10 @@ The Impetus-LLM-Server supports integration with MCP servers to extend capabilit
 ### Success Metrics
 - **Week 1**: First developer successfully uses Cline with local model
 - **Week 2**: Support 10+ different model formats
-- **Week 3**: Achieve optimal performance on each Apple Silicon variant:
+- **Week 3**: Achieve optimal performance through dynamic optimization:
   - Automatic hardware detection working
-  - Performance scales with chip capabilities
-  - No manual tuning required
+  - Performance emerges from resource availability
+  - Zero configuration or assumptions
 - **Week 4**: 100+ active users across all Mac models, <10 min setup time
 
 ## Future Enhancements

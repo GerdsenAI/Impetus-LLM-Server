@@ -96,13 +96,12 @@ python setup_macos.py py2app  # Alternative build method
 
 1. **OpenAI API Compatibility**: Full compatibility for VS Code extensions (Cline, Continue). Default port 8080, API key authentication.
 
-2. **Performance Targets**: Dynamically optimized for all Apple Silicon:
-   - M1/M2 Base: 15-25 tokens/sec
-   - M1/M2 Pro: 25-40 tokens/sec  
-   - M1/M2 Max: 40-60 tokens/sec
-   - M1/M2/M3/M4 Ultra: 60-100+ tokens/sec
-   - Model loading: 5-10x faster (scales with chip)
-   - Memory usage: 30-50% reduction through intelligent caching
+2. **Performance**: Fully dynamic optimization for all Apple Silicon:
+   - Automatically detects CPU/GPU/Neural Engine cores
+   - Performance scales with available resources
+   - No fixed targets - adapts to hardware capabilities
+   - Model loading speed based on I/O bandwidth
+   - Memory usage optimized for each system
 
 3. **Current State**: Hybrid implementation with production Flask server and dummy model system. Active development on model integration (see modified files in git status).
 
@@ -146,10 +145,7 @@ When implementing model support, prioritize in this order:
 
 - Developer can use Cline with local model in <10 minutes
 - Support all major model formats
-- Performance scales with hardware:
-  - M1 Air: 15+ tokens/sec
-  - M2 Pro: 30+ tokens/sec
-  - M3 Max: 50+ tokens/sec
-  - M4 Ultra: 80+ tokens/sec
+- Performance automatically optimized for available hardware
+- Dynamic resource allocation based on system capabilities
 - Seamless VS Code integration
-- Automatic hardware optimization without configuration
+- Zero manual configuration required

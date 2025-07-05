@@ -29,11 +29,12 @@ Create the premier local LLM inference server for developers, with flawless VS C
 Apple Silicon machines vary greatly in capability. Our server must adapt intelligently:
 
 #### Hardware Detection & Optimization
-- **M1/M2 (Base)**: Optimize for efficiency, target 15-25 tokens/sec
-- **M1/M2 Pro**: Balance performance/memory, target 25-40 tokens/sec
-- **M1/M2 Max**: Leverage additional GPU cores, target 40-60 tokens/sec
-- **M1/M2/M3/M4 Ultra**: Maximum performance, target 60-100+ tokens/sec
-- **Future M-series**: Automatic capability detection and scaling
+The server dynamically detects hardware capabilities and optimizes accordingly:
+- **Automatic Detection**: Identifies CPU/GPU/Neural Engine cores and unified memory
+- **Dynamic Scaling**: Performance scales based on available resources
+- **No Fixed Targets**: Token generation speed depends on model size, quantization, and available resources
+- **Real-time Adaptation**: Continuously adjusts based on thermal state and system load
+- **Future-proof**: Automatically adapts to new Apple Silicon without updates
 
 #### Dynamic Optimization Features
 - Auto-detect chip variant and available resources
@@ -43,14 +44,15 @@ Apple Silicon machines vary greatly in capability. Our server must adapt intelli
 - Leverage Neural Engine when beneficial
 - Thermal-aware performance throttling
 
-#### Performance Targets (Dynamically Scaled)
+#### Performance Optimization Algorithm
 ```
-Base Performance = Chip Performance Factor × Model Efficiency × Thermal Headroom
+Dynamic Performance = f(Available Resources, Model Requirements, System State)
 
 Where:
-- Chip Performance Factor: M1=1.0, M1 Pro=1.8, M1 Max=2.5, M1 Ultra=4.0, etc.
-- Model Efficiency: GGUF Q4=1.0, Q5=0.85, Q8=0.7, FP16=0.5
-- Thermal Headroom: 100% when cool, scales down under load
+- Available Resources: Detected at runtime (cores, memory, bandwidth)
+- Model Requirements: Determined by model metadata
+- System State: Current thermal, memory pressure, and competing processes
+- All factors are discovered and calculated dynamically
 ```
 
 ### 5. Privacy and Security
@@ -114,13 +116,13 @@ Where:
 - Memory leak detection
 - Thermal throttling behavior
 
-### Hardware-Specific Testing
-Test on diverse Apple Silicon hardware:
-- [ ] M1 MacBook Air (base performance tier)
-- [ ] M1/M2 Pro (mid-tier)
-- [ ] M1/M2 Max (high-tier)
-- [ ] M1/M2 Ultra (maximum performance)
-- [ ] Memory configurations: 8GB, 16GB, 32GB, 64GB+
+### Hardware-Agnostic Testing
+Test dynamic adaptation on any available Apple Silicon:
+- [ ] Verify hardware detection works correctly
+- [ ] Confirm performance scales with available resources
+- [ ] Test memory allocation adapts to system
+- [ ] Validate thermal throttling behavior
+- [ ] Ensure no assumptions about specific configurations
 
 ## Architecture Guidelines
 
@@ -145,12 +147,16 @@ VS Code Extension → OpenAI API Endpoint → Model Manager → Inference Engine
                                         Model Selector   Hardware Optimizer
 ```
 
-### Memory Management (Dynamic)
-- Base allocation: 10% of unified memory
-- Model allocation: Up to 60% of unified memory
-- Buffer: 30% for system and other apps
-- Auto-adjust based on system pressure
-- Configurable limits with hardware-aware defaults
+### Memory Management (Fully Dynamic)
+- **Runtime Detection**: Query available memory at startup and continuously
+- **Intelligent Allocation**: Algorithm determines optimal allocation based on:
+  - Total unified memory
+  - Current system usage
+  - Model requirements
+  - Active applications
+- **No Fixed Percentages**: Allocation adjusts in real-time
+- **Pressure Response**: Automatically reduces usage under memory pressure
+- **User Configurable**: Optional limits, but defaults are fully dynamic
 
 ## Feature Implementation Priority
 
@@ -184,20 +190,20 @@ VS Code Extension → OpenAI API Endpoint → Model Manager → Inference Engine
 
 ## Success Metrics (Hardware-Aware)
 
-### Performance Metrics (Dynamically Scaled)
-- **M1 Base**: 15+ tokens/sec on 7B models
-- **M1 Pro**: 25+ tokens/sec on 7B models, 15+ on 13B
-- **M1 Max**: 40+ tokens/sec on 7B models, 25+ on 13B
-- **M1 Ultra**: 60+ tokens/sec on 7B models, 40+ on 13B, 20+ on 30B
-- **Model Loading**: 5-10x faster than baseline (scaled by chip)
-- **Memory Efficiency**: 30-50% reduction vs naive implementation
+### Performance Metrics (Fully Dynamic)
+- **Token Generation**: Determined by actual hardware capabilities
+- **Model Loading**: Optimized based on available I/O bandwidth
+- **Memory Efficiency**: Measured against system-specific baseline
+- **No Fixed Targets**: Performance emerges from resource optimization
+- **Benchmarking**: System profiles itself on first run
+- **Continuous Learning**: Performance improves over time
 
 ### User Metrics
 - Setup time: < 10 minutes on any Mac
 - Time to first inference: < 2 minutes
 - Model switching time: < 5 seconds
 - Error rate: < 1%
-- Hardware utilization: > 80% of available resources
+- Hardware utilization: Optimal for current thermal envelope
 
 ## Common Pitfalls to Avoid
 

@@ -28,16 +28,16 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 ### Architecture Decisions
 - **Model Loading**: Dynamic, format-agnostic with factory pattern
 - **UI**: React frontend for model management
-- **Performance**: Dynamically scaled by hardware:
-  - M1 Base: 15+ tokens/sec
-  - M1 Pro: 25+ tokens/sec
-  - M1 Max: 40+ tokens/sec
-  - M1 Ultra: 60+ tokens/sec
-  - Auto-detection and optimization for all variants
-- **Memory**: Intelligent allocation based on unified memory:
-  - 8GB systems: 1 model at a time
-  - 16GB systems: 2-3 small models
-  - 32GB+ systems: Multiple large models
+- **Performance**: Fully dynamic based on detected hardware:
+  - Automatic detection of CPU/GPU/Neural Engine cores
+  - Performance scales with available resources
+  - No fixed targets - system determines optimal speed
+  - Continuous adaptation based on thermal state
+- **Memory**: Intelligent allocation with no fixed rules:
+  - Runtime detection of available unified memory
+  - Dynamic allocation based on system state
+  - Adapts to memory pressure in real-time
+  - Number of models determined by actual capacity
 
 ## Latest Updates (December 2024)
 - Reorganized documentation to .clinerules/ directory
@@ -88,12 +88,12 @@ flake8 src/ gerdsen_ai_server/src/
 ## Success Metrics
 - Developer can use Cline with local model in <10 minutes
 - Support all major model formats without conversion
-- Performance scales automatically with hardware:
-  - Detects Apple Silicon variant (M1-M4, Base/Pro/Max/Ultra)
-  - Optimizes for available GPU cores and memory
-  - Achieves maximum possible tokens/sec for each chip
+- Performance optimization is fully automatic:
+  - Detects all hardware capabilities at runtime
+  - No assumptions about specific configurations
+  - Achieves optimal performance for available resources
 - Zero cloud dependencies, full privacy
-- No manual performance tuning required
+- No manual configuration of any kind required
 
 ## Next Agent Should
 1. **Start with ai.md** - Follow the optimized workflow
