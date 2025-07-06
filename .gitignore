@@ -162,6 +162,35 @@ htmlcov/
 .clinerules/agent_memory/
 .clinerules/search_index/
 
+# MCP temporary setup files and local MCP directory
+**/mcp/
+**/debug/
+**/research/
+setup_mcp.py
+test_mcp_setup.py
+MCP_SETUP_COMPLETE.md
+SETUP_MCP_FOR_OTHER_PROJECTS.md
+MCP_TEMPLATE_SETUP_COMPLETE.md
+
+# Local MCP directory (project-specific)
+.MCP/
+
+# Home directory and user-specific paths
+~/
+~/*
+/Users/*/
+*.mcp
+.mcp/
+
+# SSL Certificates and Security
+certs/
+*.pem
+*.crt
+*.key
+*.cert
+*.p12
+*.pfx
+
 # Logs
 logs/
 *.log
@@ -171,3 +200,11 @@ gerdsen_ai_server.log
 .env
 .env.*
 !.env.example
+
+# Git problematic entries
+.git/info/exclude
+.git/objects/
+.git/refs/
+.git/HEAD
+.git/index
+.git/logs/

@@ -38,8 +38,20 @@ group = None
 tmp_upload_dir = None
 
 # SSL/TLS
-keyfile = os.environ.get('SSL_KEY_PATH')
-certfile = os.environ.get('SSL_CERT_PATH')
+ssl_enabled = os.environ.get('SSL_ENABLED', '').lower() == 'true'
+if ssl_enabled:
+    keyfile = os.environ.get('SSL_KEY_PATH', 'certs/server.key')
+    certfile = os.environ.get('SSL_CERT_PATH', 'certs/server.crt')
+    # Additional SSL options
+    ssl_version = 'TLSv1_2'
+    cert_reqs = 0  # 0 = ssl.CERT_NONE
+    ca_certs = None
+    suppress_ragged_eofs = True
+    do_handshake_on_connect = False
+    ciphers = 'TLSv1.2'
+else:
+    keyfile = None
+    certfile = None
 
 # Server hooks
 def when_ready(server):

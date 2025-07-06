@@ -57,6 +57,17 @@ zipfile36==0.1.3
 httpx==0.25.2
 aiohttp==3.9.1
 
+# MCP Tools and Workspace Management
+pyppeteer==1.0.2  # Puppeteer for web testing/debugging
+GitPython==3.1.40  # Git repository detection for workspace identification
+sqlite3  # Built-in SQLite support for workspace databases
+beautifulsoup4==4.12.2  # HTML parsing for web scraping if needed
+selenium==4.15.2  # Alternative web automation (optional)
+
+# API integrations
+brave-search-api  # Brave Search API integration (if package exists)
+# Note: May need to use requests directly for Brave Search API
+
 # Development and testing (optional)
 pytest==7.4.3
 pytest-asyncio==0.21.1
@@ -73,4 +84,3 @@ mypy==1.7.1
 # Optional: For enhanced system monitoring on macOS
 # py-applescript>=1.0.3  # For AppleScript integration
 # osascript>=0.1.0  # Alternative AppleScript interface
-
