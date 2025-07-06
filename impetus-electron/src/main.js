@@ -477,10 +477,10 @@ class ImpetusApp {
         if (app.isPackaged) {
             // In production, Python bundle is in Resources/
             const resourcesPath = process.resourcesPath;
-            return path.join(resourcesPath, 'python-bundle', 'src', 'production_main_enhanced.py');
+            return path.join(resourcesPath, 'python-bundle', 'src', 'production_main_bundled.py');
         } else {
             // In development, Python bundle is in resources/
-            return path.join(__dirname, '..', 'resources', 'python-bundle', 'src', 'production_main_enhanced.py');
+            return path.join(__dirname, '..', 'resources', 'python-bundle', 'src', 'production_main_bundled.py');
         }
     }
     

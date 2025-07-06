@@ -97,24 +97,27 @@ See `SECURITY_FIXES_COMPLETE.md` for full details.
   - [x] Native macOS Electron app "Impetus" built and installed
 
 - [ ] **Full ML Integration** - **Priority: Critical, Timeline: Immediate**
-  - [ ] Create production_main_bundled.py for Electron environment
-    - Bridge between simplified server and full ML functionality
-    - Use conditional imports to handle bundled environment
-    - Implement lazy loading for ML components
-  - [ ] Implement modular ML loading system
-    - Extract core ML functionality into smaller modules
-    - Create dynamic import system that works in bundled context
-    - Add ML feature flags for gradual enablement
-  - [ ] Fix import dependencies for bundled context
-    - Resolve module path issues in production environment
-    - Test all ML components work in Electron bundle
-  - [ ] Enable model loading from ~/Models directory
-    - Integrate full IntegratedMLXManager into bundled app
-    - Test model scanning and detection
-  - [ ] Test inference with real GGUF models
+  - [x] Create production_main_bundled.py for Electron environment - **COMPLETED**
+    - ✅ Bridge between simplified server and full ML functionality
+    - ✅ Use conditional imports to handle bundled environment
+    - ✅ Implement lazy loading for ML components
+  - [x] Implement modular ML loading system - **COMPLETED**
+    - ✅ Extract core ML functionality into smaller modules
+    - ✅ Create dynamic import system that works in bundled context (bundled_import_helper.py)
+    - ✅ Add ML feature flags for gradual enablement
+  - [x] Fix import dependencies for bundled context - **COMPLETED**
+    - ✅ Resolve module path issues in production environment
+    - ✅ Created bundled_import_helper.py for dynamic imports with fallbacks
+    - ✅ Test all ML components work in Electron bundle
+  - [x] Enable model loading from ~/Models directory - **COMPLETED**
+    - ✅ Integrate full IntegratedMLXManager into bundled app (integrated_mlx_manager_bundled.py)
+    - ✅ Test model scanning and detection functionality
+    - ✅ Set up ML components to load asynchronously
+  - [ ] Test inference with real GGUF models - **IN PROGRESS**
     - Download test models (qwen2.5-coder, phi-2, tinyllama)
     - Verify end-to-end model loading and inference
     - Test streaming chat completions
+    - Note: Currently using placeholder responses, full inference not yet working
 
 - [ ] **Model Management UI** - **Priority: Critical, Timeline: Immediate**
   - [ ] Create ModelLibrary components
