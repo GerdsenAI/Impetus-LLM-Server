@@ -397,10 +397,65 @@ See `SECURITY_FIXES_COMPLETE.md` for full details.
 ### Next Phase: Post-MVP Enhancements
 All tasks below are enhancements beyond the core MVP functionality.
 
+## 🔧 Developer Tools & MCP Integration - COMPLETED ✅ (July 6, 2025)
+
+**MAJOR ENHANCEMENT**: Specialized MCP (Model Context Protocol) servers for advanced IMPETUS development
+
+### 🎯 **MCP Server Integration Complete** - **COMPLETED ✅**
+- [x] **IMPETUS Filesystem Manager** - **COMPLETED ✅**
+  - ✅ Advanced model file discovery and validation system
+  - ✅ Support for all IMPETUS model formats (GGUF, SafeTensors, MLX, CoreML, ONNX, PyTorch)
+  - ✅ File metadata extraction with SHA256 checksums for integrity verification
+  - ✅ Bulk model scanning with recursive directory support
+  - ✅ Duplicate detection and organization suggestions
+  - ✅ Integration with IMPETUS model directories (`~/Models`, `~/.gerdsen_ai/model_cache`)
+  
+- [x] **IMPETUS System Monitor** - **COMPLETED ✅**
+  - ✅ Apple Silicon chip detection and specifications (M1/M2/M3/M4 with variants)
+  - ✅ Real-time performance metrics (CPU, GPU, Memory, Thermal)
+  - ✅ Thermal throttling detection and recommendations
+  - ✅ Model performance estimation based on hardware specs
+  - ✅ Dynamic optimization recommendations per hardware configuration
+  - ✅ Integration with IMPETUS server metrics API
+
+- [x] **Claude.app Integration** - **COMPLETED ✅**
+  - ✅ Auto-configured for immediate use in Claude.app
+  - ✅ Available MCP tools for model management and system monitoring
+  - ✅ TypeScript implementation with robust error handling
+  - ✅ Comprehensive documentation and usage examples
+
+### 🚀 **MCP Tools Available Now**
+```typescript
+// Model Management
+use_mcp_tool("impetus-filesystem-manager", "scan_models", {
+  "directory": "/Users/gerdsenai/Models",
+  "recursive": true
+})
+
+// System Monitoring  
+use_mcp_tool("impetus-system-monitor", "get_system_overview", {})
+
+// Performance Estimation
+use_mcp_tool("impetus-system-monitor", "estimate_model_performance", {
+  "model_size_gb": 2.5,
+  "model_format": "gguf"
+})
+```
+
+### 📋 **Next Steps for MCP Integration**
+- [ ] **IMPETUS UI Integration** - Connect MCP tools to React frontend
+- [ ] **Automated Optimization** - Auto-tune settings based on MCP recommendations  
+- [ ] **Performance Dashboards** - Real-time MCP data visualization in UI
+- [ ] **Model Recommendations** - AI-driven model suggestions based on hardware
+
+**Status**: ✅ Production Ready - Two specialized MCP servers with Apple Silicon optimization
+**Documentation**: See `MCP_IMPETUS_INTEGRATION_COMPLETE.md` for full details
+**Location**: `/Users/gerdsenai/Documents/Cline/MCP/`
+
 ## 🎨 Post-MVP UI Enhancements - "Best Possible UI"
 
 ### Phase 1: Core Enhancements (Priority: HIGH - 2 weeks)
-- [ ] Performance Dashboard with real-time metrics
+- [ ] Performance Dashboard with real-time metrics (enhanced with MCP data)
 - [ ] Advanced Model Cards with enhanced visualizations
 - [ ] Smart Discovery with semantic search capabilities
 - [ ] Visual Polish (icons, animations, status indicators)
