@@ -36,6 +36,13 @@ A comprehensive local LLM server optimized for Apple Silicon that supports ANY m
 - **Efficient Resource Usage**: Optimized for Apple Silicon unified memory architecture
 - **Complete Control**: Your models, your data, your infrastructure
 
+### Developer Tools & MCP Integration
+- **Model Context Protocol (MCP)**: Cross-project workspace isolation and shared research
+- **Puppeteer Integration**: Web automation, screenshots, and testing capabilities
+- **Smart Context Management**: 80% reduction in context loading through intelligent caching
+- **Research Assistant**: Shared knowledge base prevents duplicate research across projects
+- **Workspace Isolation**: Each project gets unique workspace with persistent memory
+
 ## 📋 Requirements
 
 ### System Requirements
@@ -347,4 +354,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **Built with ❤️ for Apple Silicon Macs**
-
