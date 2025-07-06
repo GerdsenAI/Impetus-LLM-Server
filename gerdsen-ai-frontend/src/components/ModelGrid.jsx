@@ -3,6 +3,7 @@ import ModelCard from './ModelCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useModelWebSocket } from '@/hooks/useWebSocket';
 import { 
   RefreshCw, 
   Search, 
@@ -13,7 +14,9 @@ import {
   Download,
   FolderOpen,
   Loader,
-  AlertCircle
+  AlertCircle,
+  WifiOff,
+  Wifi
 } from 'lucide-react';
 
 const ModelGrid = ({ 
@@ -38,6 +41,9 @@ const ModelGrid = ({
   // Available formats and capabilities for filtering
   const [availableFormats, setAvailableFormats] = useState(['all']);
   const [availableCapabilities, setAvailableCapabilities] = useState(['all']);
+
+  // WebSocket connection for real-time updates
+  const { isConnected, modelStatus, serverStatus, subscribe } = useModelWebSocket(serverUrl);
 
   // Fetch models from server
   const fetchModels = async () => {
@@ -127,6 +133,29 @@ const ModelGrid = ({
   useEffect(() => {
     fetchModels();
   }, []);
+
+  // Subscribe to WebSocket model status updates
+  useEffect(() => {
+    const unsubscribe = subscribe('model_status_update', (message) => {
+      // Update model status from WebSocket
+      setModels(prev => prev.map(model => 
+        model.id === message.model_id 
+          ? { ...model, status: message.status }
+          : model
+      ));
+      
+      // Update loading state if needed
+      if (message.status === 'loaded' || message.status === 'error') {
+        setLoadingModels(prev => {
+          const newState = { ...prev };
+          delete newState[message.model_id];
+          return newState;
+        });
+      }
+    });
+
+    return unsubscribe;
+  }, [subscribe]);
 
   // Handle model actions
   const handleModelLoad = async (modelId) => {

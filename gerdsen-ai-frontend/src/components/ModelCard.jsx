@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import ModelStatusIndicator from './ModelStatusIndicator';
 import { 
   Play, 
   Pause, 
@@ -10,10 +11,7 @@ import {
   Info, 
   Cpu, 
   HardDrive, 
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Loader
+  Clock
 } from 'lucide-react';
 
 const ModelCard = ({ 
@@ -26,19 +24,6 @@ const ModelCard = ({
   onGetInfo,
   onSwitch
 }) => {
-  const getStatusIcon = () => {
-    if (isLoading) return <Loader className="h-4 w-4 animate-spin" />;
-    if (model.status === 'loaded') return <CheckCircle className="h-4 w-4 text-green-500" />;
-    if (model.status === 'error') return <AlertCircle className="h-4 w-4 text-red-500" />;
-    return <Clock className="h-4 w-4 text-gray-400" />;
-  };
-
-  const getStatusColor = () => {
-    if (model.status === 'loaded') return 'bg-green-100 text-green-800 border-green-200';
-    if (model.status === 'error') return 'bg-red-100 text-red-800 border-red-200';
-    if (model.status === 'loading') return 'bg-blue-100 text-blue-800 border-blue-200';
-    return 'bg-gray-100 text-gray-800 border-gray-200';
-  };
 
   const formatSize = (bytes) => {
     if (!bytes) return 'Unknown';
@@ -73,11 +58,13 @@ const ModelCard = ({
               {model.description || `${model.format?.toUpperCase()} model`}
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2 ml-2">
-            {getStatusIcon()}
-            <Badge variant="outline" className={getStatusColor()}>
-              {model.status || 'Unknown'}
-            </Badge>
+          <div className="ml-2">
+            <ModelStatusIndicator 
+              modelId={model.id}
+              status={isLoading ? 'loading' : model.status}
+              isActive={isActive}
+              showDetails={false}
+            />
           </div>
         </div>
       </CardHeader>
@@ -98,14 +85,14 @@ const ModelCard = ({
         {/* Model Details */}
         <div className="grid grid-cols-2 gap-3 text-sm">
           {model.parameters && (
-            <div className="flex items-center gap-1 text-gray-600">
+            <div className="flex items-center gap-1 text-gray-600" title="Number of model parameters">
               <Cpu className="h-3 w-3" />
               <span>{model.parameters}</span>
             </div>
           )}
-          
+
           {(model.size_gb || model.sizeMB) && (
-            <div className="flex items-center gap-1 text-gray-600">
+            <div className="flex items-center gap-1 text-gray-600" title="Model file size">
               <HardDrive className="h-3 w-3" />
               <span>
                 {model.size_gb 
@@ -117,15 +104,39 @@ const ModelCard = ({
           )}
 
           {model.quantization && (
-            <div className="text-gray-600">
+            <div className="text-gray-600" title="Quantization type">
               <span className="font-medium">Quantization:</span> {model.quantization}
             </div>
           )}
 
           {model.load_time && (
-            <div className="flex items-center gap-1 text-gray-600">
+            <div className="flex items-center gap-1 text-gray-600" title="Model load time">
               <Clock className="h-3 w-3" />
               <span>{model.load_time.toFixed(1)}s load</span>
+            </div>
+          )}
+
+          {model.context_length && (
+            <div className="flex items-center gap-1 text-gray-600" title="Maximum context length (tokens)">
+              <span className="font-medium">Context:</span> {model.context_length}
+            </div>
+          )}
+
+          {model.tokens_per_sec && (
+            <div className="flex items-center gap-1 text-gray-600" title="Tokens generated per second">
+              <span className="font-medium">Speed:</span> {model.tokens_per_sec} tok/s
+            </div>
+          )}
+
+          {model.last_used && (
+            <div className="flex items-center gap-1 text-gray-600" title="Last used">
+              <span className="font-medium">Last used:</span> {model.last_used}
+            </div>
+          )}
+
+          {model.created_at && (
+            <div className="flex items-center gap-1 text-gray-600" title="Date added">
+              <span className="font-medium">Added:</span> {model.created_at}
             </div>
           )}
         </div>
@@ -178,8 +189,13 @@ const ModelCard = ({
                 className="flex-1"
                 disabled
               >
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Active
+                <ModelStatusIndicator 
+                  modelId={model.id}
+                  status="loaded"
+                  isActive={true}
+                  showDetails={false}
+                />
+                <span className="ml-1">Active</span>
               </Button>
             )}
             <Button 
