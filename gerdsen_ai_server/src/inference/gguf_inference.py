@@ -100,11 +100,13 @@ class GGUFInferenceEngine:
                 if not os.path.exists(model_path):
                     raise FileNotFoundError(f"Model file not found: {model_path}")
                 
-                # Initialize Llama model
+                # Initialize Llama model with Metal GPU support
                 model = Llama(
                     model_path=model_path,
                     n_ctx=model_info.get('context_length', 2048),
                     n_threads=os.cpu_count() // 2,  # Use half the CPU cores
+                    n_gpu_layers=-1,  # Use all layers on GPU (Metal)
+                    use_mlock=True,   # Lock model in memory
                     verbose=False
                 )
                 

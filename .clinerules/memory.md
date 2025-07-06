@@ -20,10 +20,19 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 - **Authentication**: Optional, default key: `sk-dev-gerdsen-ai-local-development-key`
 
 ### Model Format Priority
-1. **GGUF** - Most common for quantized models (Code Llama, Mistral)
-2. **SafeTensors** - Hugging Face standard
-3. **MLX** - Apple Silicon optimized
-4. Others: CoreML, PyTorch, ONNX
+1. **GGUF** - Most common for quantized models (Code Llama, Mistral) ✅ WORKING
+2. **SafeTensors** - Hugging Face standard ❌ PLACEHOLDER ONLY
+3. **MLX** - Apple Silicon optimized ❌ MOCK IMPLEMENTATION
+4. Others: CoreML, PyTorch, ONNX ❌ ALL PLACEHOLDERS
+
+### Current Limitations (July 6, 2025)
+- **Only GGUF models work** - All other formats return dummy responses
+- **No Model Management UI** - Must manually place models in ~/Models/GGUF/chat/
+- **No format conversion** - Cannot convert between model formats
+- **MLX not installed** - MockMX class used as fallback
+- **Neural Engine unused** - Detected but not utilized
+- **Benchmarks are fake** - All performance metrics are hardcoded
+- **~80% of code is placeholders** - Most features are not implemented
 
 ### Architecture Decisions
 - **Model Loading**: Dynamic, format-agnostic with factory pattern
@@ -39,7 +48,7 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
   - Adapts to memory pressure in real-time
   - Number of models determined by actual capacity
 
-## Latest Updates (December 2024)
+## Latest Updates (July 2025)
 - Reorganized documentation to .clinerules/ directory
 - Created development_rules.md with comprehensive guidelines
 - Updated all docs for dynamic Apple Silicon optimization
@@ -48,6 +57,12 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 - **NEW**: MCP (Model Context Protocol) tools configured for efficiency
 - **NEW**: Context sharing between Claude and Gemini agents
 - **IMPORTANT**: Use MCP tools to reduce token usage by 80%+
+- **CRITICAL UPDATE (July 6, 2025)**: System audit reveals only GGUF inference is real
+  - GGUF: Working at 138.61 tokens/sec with Metal acceleration ✅
+  - Other formats: All use dummy/placeholder responses ❌
+  - Apple Silicon optimization: Mostly mocked except GGUF Metal ⚠️
+  - Actual implementation: ~20% real, ~80% placeholders
+  - MVP claim "100% complete" is overstated - should be "GGUF MVP Complete"
 - **NEW**: TODO.md reorganized with clear MVP section at top
 - **NEW**: MVP = Load any model + use with Cline (nothing more needed)
 

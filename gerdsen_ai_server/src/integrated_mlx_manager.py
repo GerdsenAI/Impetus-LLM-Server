@@ -164,6 +164,9 @@ class IntegratedMLXManager:
         
         self.logger.info("Integrated MLX Manager initialized with Apple frameworks")
         self._load_models_from_config()
+        
+        # Auto-load models from user's Models directory
+        self._auto_load_models_from_directory()
     
     def _load_models_from_config(self, config_dir: str = "config/models"):
         """Load all models from the specified configuration directory."""
@@ -187,6 +190,50 @@ class IntegratedMLXManager:
                         self.logger.error(f"Invalid JSON in model config: {file_path}")
                     except KeyError as e:
                         self.logger.error(f"Missing key in model config {file_path}: {e}")
+
+    def _auto_load_models_from_directory(self):
+        """Automatically load models from ~/Models directory on startup"""
+        try:
+            self.logger.info("Auto-loading models from ~/Models directory...")
+            
+            # Scan for available models
+            available_models = self.scan_models_directory()
+            
+            if not available_models:
+                self.logger.info("No models found in ~/Models directory")
+                return
+                
+            # Load chat models first (priority for VS Code/Cline)
+            loaded_count = 0
+            for model_name, model_variants in available_models.items():
+                for model_info in model_variants:
+                    if model_info.get('capability') == 'chat' and model_info.get('format') == 'gguf':
+                        try:
+                            # Load the model
+                            model_id = self.load_model_from_path(
+                                model_info['path'],
+                                model_id=f"{model_name}-{model_info['format']}"
+                            )
+                            
+                            if model_id:
+                                self.logger.info(f"Auto-loaded model: {model_name} ({model_info['format']})")
+                                loaded_count += 1
+                                
+                                # Limit auto-loading to prevent memory issues
+                                if loaded_count >= 2:
+                                    self.logger.info("Auto-load limit reached (2 models)")
+                                    break
+                                    
+                        except Exception as e:
+                            self.logger.warning(f"Failed to auto-load {model_name}: {e}")
+                            
+                if loaded_count >= 2:
+                    break
+                    
+            self.logger.info(f"Auto-loaded {loaded_count} models from ~/Models directory")
+            
+        except Exception as e:
+            self.logger.error(f"Error during model auto-loading: {e}")
 
     def load_model(self, 
                    model_path: str, 
