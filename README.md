@@ -52,10 +52,9 @@ A comprehensive local LLM server optimized for Apple Silicon that supports ANY m
 - **Storage**: 2GB free space for application and models
 
 ### Software Dependencies
-- **Python**: 3.11+ (included with macOS)
-- **Xcode Command Line Tools**: For compilation of native extensions
-- **Optional**: MLX framework for advanced AI acceleration
-- **Optional**: Core ML Tools for model optimization
+- ~~**Python**: 3.11+ (included with macOS)~~ **Not required** - Python is bundled in the app!
+- **No external dependencies** - Everything is included
+- **Optional**: Download GGUF models for local AI inference
 
 ## 📁 Model Directory Structure
 
@@ -90,11 +89,13 @@ python3 scripts/download_example_model.py
 
 ## 🛠 Installation
 
-### Production App (Recommended)
-1. **Download IMPETUS.app** from releases
-2. **Drag to Applications** folder
-3. **Launch IMPETUS** from Applications
-4. Model directories will be created automatically on first launch
+### Production App (Recommended) - v1.0.0 Available! 🎉
+1. **Download** [Impetus-1.0.0-arm64.dmg](impetus-electron/dist/Impetus-1.0.0-arm64.dmg) for Apple Silicon
+2. **Install** by dragging Impetus to Applications folder
+3. **Launch** from Applications - no Python installation required!
+4. **Start Server** from menu bar and configure VS Code
+
+The app is now **fully self-contained** with bundled Python environment. See [INSTALLATION.md](INSTALLATION.md) for detailed instructions.
 
 ### Development Setup
 ```bash

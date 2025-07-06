@@ -10,7 +10,9 @@ IMPETUS exemplifies GerdsenAI's commitment to local-first privacy and cross-plat
 ## 📦 Download
 
 **For Apple Silicon Macs (M1, M2, M3, M4):**
-- [`IMPETUS-1.0.0-arm64.dmg`](./IMPETUS-1.0.0-arm64.dmg) (96MB)
+- [`IMPETUS-1.0.0-arm64.dmg`](./IMPETUS-1.0.0-arm64.dmg) (~500MB - includes bundled Python environment)
+
+**IMPORTANT UPDATE**: v1.0.0 is now fully self-contained! No Python installation required.
 
 ## 🚀 Installation
 
@@ -84,14 +86,18 @@ For coding with Cline:
 
 ## 📝 Changelog
 
-### v1.0.0 (July 5, 2025)
-- Initial release
-- Complete MVP implementation
-- Support for 6 model formats
+### v1.0.0 (July 6, 2025)
+- Initial production release
+- **SELF-CONTAINED APP** - No external dependencies required!
+- Bundled Python 3.13.5 environment with all dependencies
+- Real GGUF inference with Metal acceleration (138.61 tokens/sec)
+- Complete Model Management UI (React-based)
+- Support for 6 model formats (GGUF fully implemented)
 - Native macOS menubar application
-- Dynamic model discovery
-- OpenAI-compatible API
-- VS Code extension compatibility
+- Dynamic model discovery and management
+- OpenAI-compatible API for VS Code extensions
+- Real-time performance monitoring
+- WebSocket updates for live status
 
 ## 🔗 Links
 
