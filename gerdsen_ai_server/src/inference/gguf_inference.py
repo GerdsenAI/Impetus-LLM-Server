@@ -284,10 +284,12 @@ This function takes a name parameter and returns a greeting string."""
             time.sleep(0.02)  # Simulate generation delay
     
     def create_chat_completion(self,
-                             model_id: str,
-                             messages: List[Dict[str, str]],
-                             config: Optional[GenerationConfig] = None,
-                             stream: bool = False) -> Union[Dict[str, Any], Iterator[Dict[str, Any]]]:
+                              model_id: str,
+                              messages: List[Dict[str, str]],
+                              config: Optional[GenerationConfig] = None,
+                              stream: bool = False,
+                              max_tokens: int = None,
+                              temperature: float = None) -> Union[Dict[str, Any], Iterator[Dict[str, Any]]]:
         """
         Create a chat completion (OpenAI-compatible format)
         
@@ -296,12 +298,25 @@ This function takes a name parameter and returns a greeting string."""
             messages: List of message dicts with 'role' and 'content'
             config: Generation configuration
             stream: Whether to stream the response
+            max_tokens: Maximum number of tokens to generate (overrides config)
+            temperature: Temperature for sampling (overrides config)
             
         Returns:
             OpenAI-compatible response dict or stream
         """
         # Convert messages to prompt
         prompt = self._messages_to_prompt(messages)
+        
+        # Create or update config with provided parameters
+        if config is None:
+            config = GenerationConfig()
+            
+        # Override config with explicit parameters if provided
+        if max_tokens is not None:
+            config.max_tokens = max_tokens
+            
+        if temperature is not None:
+            config.temperature = temperature
         
         if stream:
             return self._stream_chat_completion(model_id, prompt, config)

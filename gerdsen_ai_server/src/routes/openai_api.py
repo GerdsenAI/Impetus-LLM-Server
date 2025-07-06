@@ -475,11 +475,32 @@ def chat_completions():
             )
         else:
             # Generate response
-            response_content = chat_engine.generate_response(
-                messages,
-                max_tokens=max_tokens,
-                temperature=temperature
-            )
+            try:
+                # Check if chat_engine has create_chat_completion method
+                if hasattr(chat_engine, 'create_chat_completion'):
+                    # Use the GGUF inference engine's create_chat_completion method directly
+                    response = chat_engine.create_chat_completion(
+                        model=model,
+                        messages=[msg.dict() for msg in messages],
+                        max_tokens=max_tokens,
+                        temperature=temperature
+                    )
+                    response_content = response['choices'][0]['message']['content']
+                else:
+                    # Fall back to generate_response method
+                    response_content = chat_engine.generate_response(
+                        messages,
+                        max_tokens=max_tokens,
+                        temperature=temperature
+                    )
+            except Exception as e:
+                logging.error(f"Error in chat completion generation: {e}")
+                # Fall back to generate_response method if create_chat_completion fails
+                response_content = chat_engine.generate_response(
+                    messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature
+                )
             
             # Return OpenAI-compatible response
             return jsonify({
