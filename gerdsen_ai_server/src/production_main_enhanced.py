@@ -23,7 +23,19 @@ try:
 except ImportError:
     # Fallback if utils not available
     def get_cors_origins():
-        return os.environ.get('ALLOWED_ORIGINS', 'http://localhost:8080,http://127.0.0.1:8080').split(',')
+        env_origins = os.environ.get('ALLOWED_ORIGINS', '')
+        default_origins = [
+            'http://localhost:8080',
+            'http://127.0.0.1:8080',
+            'http://localhost:5173',
+            'http://localhost:3000',
+            'http://127.0.0.1:3000'
+        ]
+        origins = [o.strip() for o in env_origins.split(',') if o.strip()] if env_origins else default_origins
+        # Always include frontend dev server for local development
+        if 'http://localhost:5173' not in origins:
+            origins.append('http://localhost:5173')
+        return origins
     def get_api_config():
         return {'secret_key': os.environ.get('SECRET_KEY', 'dev-secret-key')}
     def get_env(key, default=None):
@@ -57,7 +69,8 @@ class EnhancedProductionServer:
         # Initialize CORS with environment-based origins
         cors_origins = get_cors_origins()
         logger.info(f"Configuring CORS with origins: {cors_origins}")
-        CORS(self.app, origins=cors_origins)
+        # DEVELOPMENT: Allow all origins and headers for CORS (no credentials)
+        CORS(self.app, origins="*", allow_headers="*", send_wildcard=True)
         
         # Progressive ML initialization flags
         self.ml_components_loaded = False
