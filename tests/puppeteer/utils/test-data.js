@@ -123,25 +123,102 @@ const testData = {
     // Common elements
     body: 'body',
     title: 'h1',
+    header: 'header',
     
-    // Model management
-    modelCard: '.model-card',
-    modelList: '.model-list',
+    // React UI - Tab Navigation
+    tabsList: '[role="tablist"]',
+    tabLibrary: 'button[role="tab"]:contains("Model Library")',
+    tabUpload: 'button[role="tab"]:contains("Upload Model")',
+    tabHuggingFace: 'button[role="tab"]:contains("HuggingFace")',
+    tabInfo: 'button[role="tab"]:contains("About")',
+    tabContent: '[role="tabpanel"]',
+    
+    // Model Management
+    modelCard: '[class*="ModelCard"], .card',
+    modelGrid: '[class*="ModelGrid"], .grid',
+    modelTitle: '.card-title',
+    modelStatus: '[class*="ModelStatusIndicator"], .badge',
+    loadButton: 'button:contains("Load Model")',
+    unloadButton: 'button svg[class*="Pause"]',
+    switchButton: 'button:contains("Switch To")',
+    deleteButton: 'button svg[class*="Trash2"]',
+    infoButton: 'button svg[class*="Info"]',
+    
+    // Search and Filter
+    searchInput: 'input[placeholder*="Search models"]',
+    formatFilter: 'select:has(option:contains("All Formats"))',
+    capabilityFilter: 'select:has(option:contains("All Capabilities"))',
+    refreshButton: 'button:contains("Refresh")',
+    addModelButton: 'button:contains("Add Model")',
+    
+    // Drag & Drop Upload
+    dropZone: '[class*="DragDropZone"], .border-dashed',
+    browseButton: 'button:contains("Browse Files")',
+    fileInput: 'input[type="file"]',
+    uploadProgress: '.progress',
+    uploadStatus: '[class*="upload-status"]',
+    
+    // HuggingFace Search
+    hfSearchInput: 'input[placeholder*="Search HuggingFace"]',
+    hfSearchButton: 'button:contains("Search")',
+    hfModelCard: '[class*="ModelSearch"] .card',
+    downloadButton: 'button:contains("Download Model")',
+    downloadProgress: '[class*="Progress"], .progress',
+    
+    // Notifications
+    notification: '[class*="Alert"], .alert',
+    notificationTitle: '.alert-title',
+    notificationDescription: '.alert-description',
+    successNotification: '.border-green-200',
+    errorNotification: '.border-red-200',
+    infoNotification: '.border-blue-200',
+    
+    // WebSocket Status
+    connectionStatus: 'span:contains("Connected"), span:contains("Disconnected")',
+    wifiIcon: 'svg[class*="Wifi"]',
+    wifiOffIcon: 'svg[class*="WifiOff"]',
+    
+    // Performance Metrics
+    memoryUsage: 'span:contains("Memory Usage")',
+    tokensPerSec: 'span:contains("tok/s")',
+    loadTime: 'span:contains("load")',
+    
+    // Old selectors (kept for compatibility)
     modelSelector: 'select[name="model"]',
-    
-    // Chat interface (if exists)
     chatInput: 'textarea[placeholder*="query"], input[placeholder*="message"]',
     sendButton: 'button[type="submit"], button:contains("Send")',
     chatResponse: '.ai-response, .response',
-    
-    // Status indicators
     statusIndicator: '.status, .health-status',
-    loadingSpinner: '.loading, .spinner',
-    
-    // Navigation
+    loadingSpinner: '.loading, .spinner, .animate-spin',
     navMenu: 'nav, .navigation',
     homeLink: 'a[href="/"], a:contains("Home")',
     modelsLink: 'a[href="/models"], a:contains("Models")'
+  },
+
+  // React-specific test scenarios
+  reactUIScenarios: {
+    modelUpload: {
+      description: 'Upload a GGUF model file',
+      fileName: 'test-model.gguf',
+      fileSize: 1024 * 1024 * 100, // 100MB
+      expectedTab: 'library'
+    },
+    huggingFaceDownload: {
+      description: 'Download TinyLlama from HuggingFace',
+      searchQuery: 'TinyLlama',
+      modelId: 'TinyLlama/TinyLlama-1.1B-Chat-v1.0',
+      expectedSize: '1.1B'
+    },
+    modelSwitch: {
+      description: 'Switch between loaded models',
+      firstModel: 'tinyllama',
+      secondModel: 'qwen2.5-coder'
+    },
+    webSocketReconnect: {
+      description: 'Test WebSocket reconnection',
+      disconnectTime: 5000,
+      reconnectTimeout: 10000
+    }
   },
 
   // API endpoints to test

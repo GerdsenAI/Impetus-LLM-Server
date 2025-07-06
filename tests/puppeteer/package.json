@@ -8,9 +8,15 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "jest --testPathPattern=e2e",
     "test:performance": "jest --testPathPattern=performance",
+    "test:integration": "jest --testPathPattern=integration",
     "test:app": "jest --testPathPattern=app-lifecycle",
     "test:api": "jest --testPathPattern=api-endpoints",
-    "test:cline": "jest --testPathPattern=cline-simulation"
+    "test:cline": "jest --testPathPattern=cline-simulation",
+    "test:react": "jest --testPathPattern=react-ui",
+    "test:model-mgmt": "jest --testPathPattern=model-management",
+    "test:react-perf": "jest --testPathPattern=react-performance",
+    "test:web": "jest --testPathPattern=web-interface",
+    "test:all": "jest --verbose"
   },
   "dependencies": {
     "puppeteer": "^21.11.0",

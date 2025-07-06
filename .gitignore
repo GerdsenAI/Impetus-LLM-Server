@@ -211,3 +211,4 @@ gerdsen_ai_server.log
 # macOS system files
 .DS_Store
 */.DS_Store
+gerdsen-ai-frontend/.DS_Store

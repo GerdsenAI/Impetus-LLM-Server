@@ -37,6 +37,16 @@ describe('IMPETUS Web Interface Tests', () => {
       const hasBody = await screenshot.elementExists('body');
       expect(hasBody).toBe(true);
       
+      // Check for React UI elements
+      const hasTabsList = await screenshot.elementExists(testData.selectors.tabsList);
+      const hasHeader = await screenshot.elementExists(testData.selectors.header);
+      
+      if (hasTabsList) {
+        console.log('✅ React UI detected with tab navigation');
+      } else {
+        console.log('ℹ️ Legacy UI detected');
+      }
+      
       console.log(`✅ Main interface loaded with title: "${title}"`);
     });
 
