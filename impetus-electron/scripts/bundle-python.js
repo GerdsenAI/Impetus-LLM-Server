@@ -315,8 +315,7 @@ See requirements_production.txt for the full list of dependencies.
         return new Promise((resolve, reject) => {
             const child = spawn(command, args, {
                 stdio: options.capture ? ['pipe', 'pipe', 'pipe'] : 'inherit',
-                cwd: options.cwd || process.cwd(),
-                shell: true
+                cwd: options.cwd || process.cwd()
             });
             
             let stdout = '';

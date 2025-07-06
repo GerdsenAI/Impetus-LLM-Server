@@ -21,9 +21,9 @@ structlog==23.2.0
 
 # Optional ML frameworks (install based on available models)
 # Comment out if not needed to reduce bundle size
-# mlx  # For Apple Silicon optimization
-# onnx>=1.15.0  # For ONNX models
-# onnxruntime>=1.16.3  # For ONNX inference
-# safetensors  # For SafeTensors format
-# torch  # For PyTorch models (very large)
-# coremltools  # For CoreML models
+mlx  # For Apple Silicon optimization
+onnx>=1.15.0  # For ONNX models
+onnxruntime>=1.16.3  # For ONNX inference
+safetensors  # For SafeTensors format
+torch  # For PyTorch models (very large)
+coremltools  # For CoreML models

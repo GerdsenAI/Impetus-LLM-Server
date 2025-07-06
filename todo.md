@@ -619,6 +619,77 @@ These tasks encourage community involvement and streamline contribution processe
   - ✅ SELF_CONTAINED_APP_COMPLETE.md technical details
 - **STATUS**: Ready for public distribution!
 
+## 🔍 Codebase Audit Findings - July 6, 2025
+
+A comprehensive audit of the Impetus LLM Server codebase was conducted to identify orphaned files, outdated code, and integration issues. The following issues were identified and require attention:
+
+### 1. API Parameter Compatibility Issues
+
+- [ ] **Fix `max_tokens` Parameter in GGUF Inference** - **Priority: HIGH, Timeline: Immediate**
+  - 🐛 **Issue**: The chat completions endpoint (`/v1/chat/completions`) fails with an error about unexpected `max_tokens` argument
+  - 🔍 **Root Cause**: Parameter mismatch between `openai_api.py` and `gguf_inference.py`
+  - 📝 **Details**: 
+    - `openai_api.py` (line 450) extracts `max_tokens` from the request
+    - `gguf_inference.py` (line 286-302) `create_chat_completion()` method doesn't accept this parameter
+    - The parameter is passed to `generate()` method but not properly handled in the chat completion flow
+  - ✅ **Fix Required**: Update `create_chat_completion()` method to accept and use `max_tokens` parameter
+
+### 2. Duplicate/Redundant Files
+
+- [ ] **Consolidate Multiple Production Main Files** - **Priority: MEDIUM, Timeline: Next Sprint**
+  - 🔄 **Issue**: Multiple versions of production_main.py with unclear usage patterns
+  - 📋 **Files Affected**:
+    - `/impetus-electron/resources/python-bundle/src/production_main.py`
+    - `/impetus-electron/resources/python-bundle/src/production_main_bundled.py`
+    - `/impetus-electron/resources/python-bundle/src/production_main_enhanced.py`
+    - `/impetus-electron/resources/python-bundle/src/production_main_simple.py`
+    - `/impetus-electron/resources/python-bundle/src/production_main_ssl.py`
+  - ✅ **Fix Required**: Document the purpose of each variant or consolidate into a single configurable file
+
+- [ ] **Consolidate Apple Framework Integration Files** - **Priority: MEDIUM, Timeline: Next Sprint**
+  - 🔄 **Issue**: Multiple versions of Apple framework integration with unclear relationships
+  - 📋 **Files Affected**:
+    - `/src/apple_frameworks_integration.py`
+    - `/src/enhanced_apple_frameworks_integration.py`
+    - `/src/apple_silicon_detector.py`
+    - `/src/enhanced_apple_silicon_detector.py`
+  - ✅ **Fix Required**: Document differences or merge functionality into a single module
+
+### 3. Test File Organization
+
+- [ ] **Organize Test Files** - **Priority: MEDIUM, Timeline: Next Sprint**
+  - 🔄 **Issue**: Test files are scattered across the repository root and `/tests` directory
+  - 📋 **Files Affected**:
+    - Root directory: `test_*.py` files (11+ files)
+    - `/tests` directory: Organized test files
+  - ✅ **Fix Required**: Move all test files to `/tests` directory with proper organization
+
+### 4. Integration Issues
+
+- [ ] **Fix Chat Completions Integration** - **Priority: HIGH, Timeline: Immediate**
+  - 🐛 **Issue**: The chat completions API endpoint returns errors when using real models
+  - 🔍 **Root Cause**: Parameter handling inconsistency between API layer and inference engine
+  - ✅ **Fix Required**: 
+    - Update `openai_api.py` to properly map OpenAI API parameters to inference engine parameters
+    - Add parameter validation and transformation layer
+
+- [ ] **Standardize Model Loading Interface** - **Priority: MEDIUM, Timeline: Next Sprint**
+  - 🔄 **Issue**: Inconsistent model loading interfaces across different formats
+  - 📋 **Components Affected**:
+    - Model loaders in `/src/model_loaders/`
+    - Inference engines in `/src/inference/`
+  - ✅ **Fix Required**: Create a consistent interface for all model formats
+
+### 5. Documentation Gaps
+
+- [ ] **Create Architecture Documentation** - **Priority: MEDIUM, Timeline: Next Sprint**
+  - 📝 **Issue**: Missing comprehensive architecture documentation explaining component relationships
+  - ✅ **Fix Required**: Create `ARCHITECTURE.md` with component diagrams and interaction flows
+
+- [ ] **Document Model Format Support** - **Priority: MEDIUM, Timeline: Next Sprint**
+  - 📝 **Issue**: Unclear documentation about which model formats are fully supported vs. placeholders
+  - ✅ **Fix Required**: Create `MODEL_SUPPORT.md` with detailed support matrix
+
 ---
 
 **Note**: This todo list is a living document and should be updated as tasks are completed or new priorities emerge. Timelines and priorities are based on the current project roadmap and may be adjusted based on feedback or changing requirements.

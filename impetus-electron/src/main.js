@@ -477,10 +477,10 @@ class ImpetusApp {
         if (app.isPackaged) {
             // In production, Python bundle is in Resources/
             const resourcesPath = process.resourcesPath;
-            return path.join(resourcesPath, 'python-bundle', 'src', 'production_main_bundled.py');
+            return path.join(resourcesPath, 'python-bundle', 'src', 'production_main_simple.py');
         } else {
             // In development, Python bundle is in resources/
-            return path.join(__dirname, '..', 'resources', 'python-bundle', 'src', 'production_main_bundled.py');
+            return path.join(__dirname, '..', 'resources', 'python-bundle', 'src', 'production_main_simple.py');
         }
     }
     
@@ -527,9 +527,13 @@ class ImpetusApp {
         store.set('serverPort', this.serverPort);
         store.set('serverHost', this.serverHost);
     }
-    
+
+    /**
+     * Setup IPC handlers for renderer communication
+     */
     setupIpcHandlers() {
-        ipcMain.handle('get-server-status', () => {
+        ipcMain.handle('get-server-status', async () => {
+            await this.checkServerStatus();
             return {
                 status: this.serverStatus,
                 host: this.serverHost,
@@ -538,20 +542,12 @@ class ImpetusApp {
                 currentModel: this.currentModel
             };
         });
-        
-        ipcMain.handle('start-server', () => {
-            return this.startServer();
-        });
-        
-        ipcMain.handle('stop-server', () => {
-            return this.stopServer();
-        });
-        
-        ipcMain.handle('switch-model', (event, modelId) => {
-            return this.switchToModel(modelId);
-        });
-        
-        ipcMain.handle('open-external', (event, url) => {
+
+        ipcMain.handle('start-server', () => this.startServer());
+        ipcMain.handle('stop-server', () => this.stopServer());
+        ipcMain.handle('switch-model', (_event, modelId) => this.switchToModel(modelId));
+
+        ipcMain.handle('open-external', (_event, url) => {
             shell.openExternal(url);
         });
         

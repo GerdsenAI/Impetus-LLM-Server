@@ -182,6 +182,7 @@ MCP_TEMPLATE_SETUP_COMPLETE.md
 *.mcp
 .mcp/
 
+
 # SSL Certificates and Security
 certs/
 *.pem
@@ -212,3 +213,6 @@ gerdsen_ai_server.log
 .DS_Store
 */.DS_Store
 gerdsen-ai-frontend/.DS_Store
+.azure/Impetus_LLM_Server_Setup.md
+/.azure
+"""Run this model in Python.py

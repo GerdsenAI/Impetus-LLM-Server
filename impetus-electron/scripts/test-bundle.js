@@ -108,7 +108,7 @@ except ImportError as e:
 
 try:
     import mlx
-    print(f"MLX: {mlx.__version__}")
+    print(f"MLX: imported successfully")
 except ImportError as e:
     print(f"MLX import failed: {e}")
 
@@ -147,7 +147,7 @@ print("Dependencies check completed")
             ? path.join(this.bundlePath, 'venv', 'Scripts', 'python.exe')
             : path.join(this.bundlePath, 'venv', 'bin', 'python');
         
-        const serverPath = path.join(this.bundlePath, 'src', 'production_main.py');
+        const serverPath = path.join(this.bundlePath, 'src', 'production_main_simple.py');
         
         // Start server in test mode
         const child = spawn(pythonPath, [serverPath], {
@@ -200,8 +200,7 @@ print("Dependencies check completed")
             const child = spawn(command, args, {
                 stdio: ['pipe', 'pipe', 'pipe'],
                 cwd: options.cwd || process.cwd(),
-                env: options.env || process.env,
-                shell: true
+                env: options.env || process.env
             });
             
             let stdout = '';
