@@ -105,9 +105,12 @@ class MLXLoader:
             logger.error(f"Failed to load MLX model: {str(e)}")
             raise
             
-    def _load_npz_weights(self, file_path: str) -> Dict[str, mx.array]:
+    def _load_npz_weights(self, file_path: str) -> Dict[str, Any]:
         """Load weights from NPZ file format"""
         weights = {}
+        
+        if not MLX_AVAILABLE:
+            raise RuntimeError("MLX is not available. Please install mlx to use MLX models.")
         
         # Load numpy arrays
         np_weights = np.load(file_path)
@@ -119,7 +122,7 @@ class MLXLoader:
             
         return weights
         
-    def _load_mlx_weights(self, file_path: str) -> Dict[str, mx.array]:
+    def _load_mlx_weights(self, file_path: str) -> Dict[str, Any]:
         """Load weights from MLX native format"""
         # For now, treat .mlx files as .npz
         # In the future, this could be a custom MLX format

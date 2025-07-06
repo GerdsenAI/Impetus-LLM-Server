@@ -5,7 +5,7 @@ Provides real-time hardware monitoring and Apple Silicon optimization endpoints
 """
 
 from flask import Blueprint, jsonify, request
-from src.enhanced_apple_frameworks_integration import EnhancedAppleFrameworksIntegration
+from ..enhanced_apple_frameworks_integration import EnhancedAppleFrameworksIntegration
 import logging
 import time
 import threading
@@ -461,4 +461,3 @@ def start_metrics_updater():
 
 # Start the background updater when module is imported
 start_metrics_updater()
-

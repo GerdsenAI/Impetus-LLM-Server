@@ -122,7 +122,7 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 max-w-xl">
+          <TabsList className="grid w-full grid-cols-5 max-w-2xl">
             <TabsTrigger value="library">Model Library</TabsTrigger>
             <TabsTrigger value="upload">Upload Model</TabsTrigger>
             <TabsTrigger value="huggingface">HuggingFace</TabsTrigger>

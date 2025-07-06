@@ -61,7 +61,7 @@ aiohttp==3.9.1
 # MCP Tools and Workspace Management
 pyppeteer==1.0.2  # Puppeteer for web testing/debugging
 GitPython==3.1.40  # Git repository detection for workspace identification
-sqlite3  # Built-in SQLite support for workspace databases
+# sqlite3 is built-in to Python, no need to install
 beautifulsoup4==4.12.2  # HTML parsing for web scraping if needed
 selenium==4.15.2  # Alternative web automation (optional)
 

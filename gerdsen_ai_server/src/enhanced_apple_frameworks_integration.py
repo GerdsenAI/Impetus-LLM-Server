@@ -341,39 +341,6 @@ class EnhancedAppleFrameworksIntegration:
         # Metal version is typically tied to macOS version, not a separate package version
         return platform.mac_ver()[0] if self.mps_available else None
 
-    def get_system_info(self) -> Dict[str, Any]:
-        return self.detector.get_system_info()
-
-    def initialize(self):
-        """Initialize the EnhancedAppleFrameworksIntegration."""
-        self._initialized = True
-        self.logger.info("EnhancedAppleFrameworksIntegration initialized successfully.")
-
-    def is_initialized(self) -> bool:
-        """Check if the component is initialized."""
-        return self._initialized
-
-    def is_coreml_available(self) -> bool:
-        return self.coreml_available
-
-    def get_coreml_version(self) -> Optional[str]:
-        return ct.__version__ if self.coreml_available else None
-
-    def is_mlx_available(self) -> bool:
-        return self.mlx_available
-
-    def get_mlx_version(self) -> Optional[str]:
-        return mx.__version__ if self.mlx_available else None
-
-    def is_metal_available(self) -> bool:
-        return self.mps_available
-
-    def get_metal_version(self) -> Optional[str]:
-        # Metal version is typically tied to macOS version, not a separate package version
-        return platform.mac_ver()[0] if self.mps_available else None
-
-    def get_system_info(self) -> Dict[str, Any]:
-        return self.detector.get_system_info()
     
     def optimize_model_for_apple_silicon(self, model_path: str, target_format: str = 'coreml') -> OptimizationResult:
         """Optimize model for Apple Silicon with real implementation"""
