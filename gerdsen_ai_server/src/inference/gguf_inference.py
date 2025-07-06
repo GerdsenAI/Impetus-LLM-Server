@@ -11,17 +11,42 @@ from typing import Dict, List, Optional, Any, Iterator, Union
 from dataclasses import dataclass
 import numpy as np
 
-# MLX imports
-try:
-    import mlx.core as mx
-    import mlx.nn as nn
-    from mlx_lm import load, generate
-    MLX_AVAILABLE = True
-except ImportError:
-    MLX_AVAILABLE = False
-    logging.warning("MLX not available - GGUF inference will be limited")
+# Try multiple GGUF inference backends
+INFERENCE_BACKEND = None
 
 logger = logging.getLogger(__name__)
+
+# Try llama-cpp-python first (most reliable for GGUF)
+try:
+    from llama_cpp import Llama
+    INFERENCE_BACKEND = "llama_cpp"
+    logger.info("✅ Using llama-cpp-python for GGUF inference")
+except ImportError:
+    pass
+
+# Try MLX as fallback
+if INFERENCE_BACKEND is None:
+    try:
+        import mlx.core as mx
+        import mlx.nn as nn
+        from mlx_lm import load, generate
+        INFERENCE_BACKEND = "mlx"
+        logger.info("✅ Using MLX for GGUF inference")
+    except ImportError:
+        pass
+
+# Try transformers as last resort
+if INFERENCE_BACKEND is None:
+    try:
+        from transformers import AutoTokenizer, AutoModelForCausalLM
+        INFERENCE_BACKEND = "transformers"
+        logger.info("⚠️ Using transformers for GGUF inference (may have limited GGUF support)")
+    except ImportError:
+        pass
+
+if INFERENCE_BACKEND is None:
+    logger.warning("❌ No GGUF inference backend available - using dummy responses")
+    INFERENCE_BACKEND = "dummy"
 
 
 @dataclass
@@ -68,30 +93,54 @@ class GGUFInferenceEngine:
             True if successful, False otherwise
         """
         try:
-            if not MLX_AVAILABLE:
-                # Fallback implementation without MLX
-                self.logger.warning(f"MLX not available, using dummy inference for {model_id}")
+            self.logger.info(f"Loading GGUF model {model_id} for inference using {INFERENCE_BACKEND}")
+            
+            if INFERENCE_BACKEND == "llama_cpp":
+                # Load with llama-cpp-python
+                if not os.path.exists(model_path):
+                    raise FileNotFoundError(f"Model file not found: {model_path}")
+                
+                # Initialize Llama model
+                model = Llama(
+                    model_path=model_path,
+                    n_ctx=model_info.get('context_length', 2048),
+                    n_threads=os.cpu_count() // 2,  # Use half the CPU cores
+                    verbose=False
+                )
+                
+                self.loaded_models[model_id] = {
+                    'type': 'llama_cpp',
+                    'info': model_info,
+                    'path': model_path,
+                    'model': model,
+                    'tokenizer': None
+                }
+                
+                self.logger.info(f"✅ GGUF model {model_id} loaded successfully with llama-cpp-python")
+                return True
+                
+            elif INFERENCE_BACKEND == "mlx":
+                # Load with MLX
+                self.loaded_models[model_id] = {
+                    'type': 'mlx',
+                    'info': model_info,
+                    'path': model_path,
+                    'model': None,  # Would be actual MLX model
+                    'tokenizer': None  # Would be actual tokenizer
+                }
+                
+                self.logger.info(f"✅ Model {model_id} prepared for MLX inference")
+                return True
+                
+            else:
+                # Fallback to dummy
+                self.logger.warning(f"No inference backend available, using dummy inference for {model_id}")
                 self.loaded_models[model_id] = {
                     'type': 'dummy',
                     'info': model_info,
                     'path': model_path
                 }
                 return True
-            
-            # Load model using MLX
-            self.logger.info(f"Loading GGUF model {model_id} for inference")
-            
-            # For now, store model info - actual MLX loading would go here
-            self.loaded_models[model_id] = {
-                'type': 'mlx',
-                'info': model_info,
-                'path': model_path,
-                'model': None,  # Would be actual MLX model
-                'tokenizer': None  # Would be actual tokenizer
-            }
-            
-            self.logger.info(f"Model {model_id} loaded successfully")
-            return True
             
         except Exception as e:
             self.logger.error(f"Failed to load model {model_id}: {e}")
@@ -119,17 +168,42 @@ class GGUFInferenceEngine:
             config = GenerationConfig()
         
         start_time = time.time()
-        
         model_data = self.loaded_models[model_id]
         
-        if model_data['type'] == 'dummy' or not MLX_AVAILABLE:
+        if model_data['type'] == 'llama_cpp':
+            # Real llama-cpp-python inference
+            model = model_data['model']
+            
+            # Prepare generation parameters
+            stop_sequences = config.stop_sequences or []
+            
+            # Generate text
+            response = model(
+                prompt,
+                max_tokens=config.max_tokens,
+                temperature=config.temperature,
+                top_p=config.top_p,
+                top_k=config.top_k,
+                repeat_penalty=config.repetition_penalty,
+                stop=stop_sequences,
+                echo=False
+            )
+            
+            generated_text = response['choices'][0]['text']
+            tokens_generated = response['usage']['completion_tokens']
+            finish_reason = response['choices'][0]['finish_reason']
+            
+        elif model_data['type'] == 'mlx':
+            # Real MLX generation would go here
+            generated_text = f"[MLX inference not yet implemented for: {prompt[:50]}...]"
+            tokens_generated = 20
+            finish_reason = "stop"
+            
+        else:
             # Dummy implementation for testing
             generated_text = self._dummy_generate(prompt, config)
             tokens_generated = len(generated_text.split())
-        else:
-            # Real MLX generation would go here
-            generated_text = f"[MLX would generate from: {prompt[:50]}...]"
-            tokens_generated = config.max_tokens
+            finish_reason = "stop"
         
         time_taken = time.time() - start_time
         tokens_per_second = tokens_generated / time_taken if time_taken > 0 else 0
@@ -139,7 +213,7 @@ class GGUFInferenceEngine:
             tokens_generated=tokens_generated,
             time_taken=time_taken,
             tokens_per_second=tokens_per_second,
-            finish_reason="stop"
+            finish_reason=finish_reason
         )
     
     def generate_stream(self,
@@ -165,11 +239,11 @@ class GGUFInferenceEngine:
         
         model_data = self.loaded_models[model_id]
         
-        if model_data['type'] == 'dummy' or not MLX_AVAILABLE:
+        if model_data['type'] == 'dummy':
             # Dummy streaming implementation
             yield from self._dummy_stream(prompt, config)
         else:
-            # Real MLX streaming would go here
+            # Real streaming implementation would go here
             test_response = f"This is a streaming response to: {prompt}"
             for word in test_response.split():
                 yield word + " "
