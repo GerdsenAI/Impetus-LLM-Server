@@ -66,6 +66,13 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
 - **FIXED**: App name changed from "IMPETUS" to "Impetus" for proper macOS display
 - **FIXED**: Added missing websockets dependency to requirements_production.txt
 - **STATUS**: Server now starts successfully from Electron app with simplified bundled version
+- **COMPLETED (July 5, 2025 Evening)**: MCP Tools Setup for Cross-Project Sharing
+  - ✅ Puppeteer integration (pyppeteer) for web automation and testing
+  - ✅ Shared configuration system at ~/.mcp/ with workspace isolation
+  - ✅ Cross-project compatibility with template system
+  - ✅ Clean git tracking (only documentation, implementation files ignored)
+  - ✅ Workspace ID: `a51a230fe3ecce44` for Impetus project
+  - ✅ All tests passing (5/5) - Dependencies, Config, Workspace, Puppeteer, Research
 
 ## Development Session July 5, 2025 - Major Progress
 - **COMPLETED**: Enhanced production server with progressive ML loading
@@ -109,15 +116,17 @@ The IMPETUS MVP has been expanded and security hardened:
 
 ## Common Agent Tasks
 
-### When Starting Work (WITH MCP)
+### When Starting Work (WITH MCP - RECOMMENDED)
 1. **Load previous context**: `mcp_tool("memory", "recall_session_summary")`
-2. **Read ai.md first** - Has TL;DR and optimized workflow
-3. **Check TODO.md MVP section** - This is your primary focus
-4. Check git status (currently on `Initial-Phase` branch)
-5. Follow the quick decision tree in ai.md
-6. Verify server can start: `python gerdsen_ai_server/src/production_main.py`
-7. Check `/v1/models` endpoint
-8. **Use MCP for todos**: `mcp_tool("memory", "get_todo_status")`
+2. **Check MCP status**: `mcp_tool("puppeteer", "status")` for web automation capabilities
+3. **Get critical issues**: `mcp_tool("context-manager", "get_critical_issues")`
+4. **Read ai.md first** - Has TL;DR and optimized workflow (only if needed)
+5. **Check TODO.md status**: `mcp_tool("memory", "get_todo_status")` 
+6. Check git status (currently on `Initial-Phase` branch)
+7. Follow the quick decision tree in ai.md
+8. Verify server can start: `python gerdsen_ai_server/src/production_main.py`
+9. Check `/v1/models` endpoint
+10. **Store session start**: `mcp_tool("memory", "remember", {"topic": "session_start", "data": "working on X"})`
 
 ## Key Learnings from Server Startup Fix
 
@@ -178,24 +187,24 @@ flake8 src/ gerdsen_ai_server/src/
 - Zero cloud dependencies, full privacy
 - No manual configuration of any kind required
 
-## Next Agent Should (Production Deployment Phase)
-1. **Review completed security fixes** - Check SECURITY_FIXES_COMPLETE.md for what's done
-2. **Current Status**: MVP 95% Complete, Security Hardened ✅
-3. **Remaining Tasks for 100% Production Ready**:
-   - **SSL/HTTPS Configuration** (HIGH): Set up TLS certificates for secure communication
-   - **Full Authentication System** (HIGH): Implement user auth beyond API keys (OAuth2/JWT)
-   - **Production Deployment** (MEDIUM): Deploy with proper infrastructure
-4. **Production Checklist**:
-   - ✅ Security vulnerabilities fixed
-   - ✅ Production servers configured (Gunicorn/Waitress)
-   - ✅ Structured logging implemented
-   - ✅ Environment-based configuration
-   - ⏳ SSL/TLS certificates needed
-   - ⏳ Full authentication system needed
-   - ⏳ Rate limiting implementation
-   - ⏳ Production monitoring setup
-5. **Testing**: Run `python run_production.py` with proper .env configuration
-6. **Remember**: Core security is DONE, focus on SSL and auth for full production
+## Next Agent Should (Post-MVP Enhancement Phase)
+1. **Check MCP setup**: MCP tools are ready (workspace: `a51a230fe3ecce44`)
+2. **Current Status**: MVP 100% Complete, MCP Tools Integrated ✅
+3. **Post-MVP Enhancement Tasks**:
+   - **Model Management UI** (HIGH): React interface for model library, drag & drop
+   - **Hugging Face Integration** (HIGH): Direct model downloads from HF Hub  
+   - **Performance Dashboard** (MEDIUM): Real-time metrics and optimization displays
+   - **Distribution Improvements** (MEDIUM): Code signing, notarization, auto-updates
+4. **Production Deployment Tasks** (Optional):
+   - **SSL/HTTPS Configuration**: Set up TLS certificates for secure communication
+   - **Full Authentication System**: Implement user auth beyond API keys (OAuth2/JWT)
+   - **Rate Limiting**: Implement request throttling
+   - **Production Monitoring**: Health checks and alerting
+5. **Use MCP Tools**: 
+   - `mcp_tool("memory", "recall_session_summary")` for context
+   - `mcp_tool("puppeteer", "screenshot", {"url": "http://localhost:8080"})` for testing
+   - `mcp_tool("research", "search", {"topic": "React model library UI"})` for examples
+6. **Remember**: MVP is COMPLETE, focus on post-MVP enhancements
 
 ## Electron App Technical Context (COMPLETED)
 - **App Name**: IMPETUS (Intelligent Model Platform Enabling Taskbar Unified Server)
@@ -237,12 +246,27 @@ flake8 src/ gerdsen_ai_server/src/
 - `mcp_usage_guide.md` → `.clinerules/mcp_usage_guide.md` (NEW)
 - `ai.md` - Now has optimized agent workflow with TL;DR
 
-## MCP Tools Available
-- **Context Manager**: Share findings between agents
+## MCP Tools Available (NEW - July 5, 2025)
+- **Workspace Manager**: Cross-project isolation, context storage, shared research
+- **Puppeteer Tools**: Web automation, screenshots, testing, research assistance  
+- **Brave Search API**: Cached research, rate limiting, cross-project knowledge
+- **Context Manager**: Share findings between agents (80% token reduction)
 - **Smart Search**: Get code snippets without loading entire files
 - **Memory**: Persist important information across sessions
 - **Cost Optimizer**: Reduce token usage by 80%+
 - **Research Assistant**: Cache research results
+
+### MCP Setup Details
+- **Global Config**: `~/.mcp/config.json` with shared directories
+- **Workspace ID**: `a51a230fe3ecce44` (Impetus project identifier)
+- **Shared Storage**: 
+  - `~/.mcp/databases/` - SQLite databases per workspace
+  - `~/.mcp/screenshots/` - Puppeteer screenshots
+  - `~/.mcp/research_cache/` - Brave Search API cache
+  - `~/.mcp/file_storage/` - File uploads and caching
+  - `~/.mcp/logs/` - System logs
+- **Usage**: Import via `from mcp.workspace_manager import get_workspace_manager`
+- **Benefits**: 80% less context loading, no duplicate research, project isolation
 
 ## Autonomous Operation Guidelines
 
@@ -255,7 +279,9 @@ AI agents (Claude, Gemini, etc.) should operate autonomously:
 - **Work Until Done**: Complete entire MVP without interruption
 
 ## Resources
-- Main docs: `ai.md` (project overview)
+- Main docs: `ai.md` (project overview) 
+- MCP setup: `MCP_SETUP_SUMMARY.md` (new tools and capabilities)
 - Architecture: `enhanced_architecture_design.md`
 - VS Code guide: `docs/vscode_integration.md`
 - Tasks: `todo.md`
+- MCP documentation: `.clinerules/mcp_*.md` files

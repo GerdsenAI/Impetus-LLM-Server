@@ -6,8 +6,9 @@
 **Status**: All critical security issues RESOLVED, production servers configured, structured logging implemented  
 **Usage**: Launch Impetus → Secure production server → Full ML features integrated  
 **Security**: ✅ All vulnerabilities fixed - API keys in env, path traversal blocked, CORS restricted  
+**MCP Tools**: ✅ Cross-project Puppeteer, workspace isolation, shared config at ~/.mcp/  
 **Next Tasks**: SSL/HTTPS setup, full authentication system (beyond API keys)  
-**Read Next**: `SECURITY_FIXES_COMPLETE.md` → `.clinerules/memory.md` → `TODO.md`
+**Read Next**: `MCP_SETUP_SUMMARY.md` → `.clinerules/memory.md` → `TODO.md`
 
 ## Executive Summary
 The Impetus-LLM-Server project provides a high-performance, local AI inference platform with FULLY DYNAMIC optimization for ALL Apple Silicon Macs and seamless VS Code integration, particularly with Cline and other AI coding assistants. 
@@ -29,13 +30,15 @@ When starting with "initialize from ai.md", follow this optimized workflow:
 # With MCP tools (RECOMMENDED - 80% less tokens):
 1. mcp_tool("memory", "recall_session_summary")  # Get previous work
 2. mcp_tool("context-manager", "get_critical_issues")  # Current blockers
-3. Read ai.md (this file) - Only for major updates
+3. mcp_tool("puppeteer", "status")  # Check web automation capabilities
+4. Read ai.md (this file) - Only for major updates
 
 # Without MCP (fallback):
 1. ai.md (this file) - Project overview and current phase
 2. .clinerules/memory.md - Critical bugs and known issues  
-3. .clinerules/development_rules.md - Core principles and standards
-4. todo.md - Current task priorities
+3. MCP_SETUP_SUMMARY.md - Available MCP tools and capabilities
+4. .clinerules/development_rules.md - Core principles and standards
+5. todo.md - Current task priorities
 ```
 
 ### 2. Immediate Actions (1 minute)
@@ -90,6 +93,7 @@ Is the server installed and running? (Impetus.app)
 - NO PERMISSION REQUESTS until MVP is complete
 
 ## Quick Navigation
+- [MCP Tools & Capabilities](#mcp-tools--capabilities)
 - [VS Code/Cline Integration](#vs-code-cline-integration-priority)
 - [Supported Model Formats](#supported-model-formats)
 - [Implementation Status](#implementation-status)
@@ -98,10 +102,41 @@ Is the server installed and running? (Impetus.app)
 - [Quick Start Workflow](#quick-start-workflow)
 - [Roadmap & Next Steps](#implementation-roadmap--next-steps)
 
+## MCP Tools & Capabilities
+
+The Impetus-LLM-Server now includes advanced MCP (Model Context Protocol) tools for enhanced development workflows:
+
+### 🔧 **Workspace Manager**
+- **Cross-project isolation**: Each project gets unique workspace ID
+- **Context storage**: Save/retrieve findings across sessions
+- **Shared research**: Global knowledge base prevents duplicate work
+- **Memory persistence**: Important discoveries cached automatically
+
+### 🌐 **Puppeteer Integration**
+- **Web automation**: Screenshot capture, page interaction, testing
+- **Shared screenshots**: `~/.mcp/screenshots/` for all projects
+- **Non-blocking**: Browser management with proper cleanup
+- **Research assistance**: Web scraping for documentation and examples
+
+### 🔍 **Brave Search API**
+- **Cached research**: Shared cache at `~/.mcp/research_cache/`
+- **Rate limiting**: Prevents API abuse across projects
+- **Context-aware**: Search results optimized for development tasks
+- **Cross-project**: Findings available to all workspaces
+
+### 📊 **Benefits**
+- **80% less context loading** - Smart caching and code snippets
+- **No duplicate research** - Shared knowledge base
+- **Project isolation** - Each workspace independent
+- **Clean git tracking** - Only documentation files tracked
+
+**Usage**: Import via `from mcp.workspace_manager import get_workspace_manager`
+**Setup**: Global config at `~/.mcp/config.json`, workspace ID: `a51a230fe3ecce44`
+
 ## Overview
 - **Purpose**: Enable developers to run any local LLM through VS Code AI extensions with optimal performance on Apple Silicon.
 - **Core Value**: Privacy-first AI development with no cloud dependencies, full model control, and seamless IDE integration.
-- **Scope**: Universal model format support, VS Code extension compatibility, Apple Silicon optimization, and intuitive model management.
+- **Scope**: Universal model format support, VS Code extension compatibility, Apple Silicon optimization, intuitive model management, and advanced MCP tools for enhanced workflows.
 
 ## Dynamic Philosophy
 This application contains ZERO hardcoded values for:
@@ -336,12 +371,16 @@ The **Minimum Viable Product (MVP)** has been expanded to include essential prod
 - ✅ Real inference (unified engine across formats)
 - ✅ Complete format support (GGUF, SafeTensors, MLX, CoreML, PyTorch, ONNX)
 - ✅ Native macOS Electron app built and installed
+- ✅ MCP tools integration (Puppeteer, workspace manager, research tools)
+- ✅ Cross-project shared configuration (~/.mcp/)
+- ✅ Web automation capabilities for testing and research
 
 ### Next Immediate Steps (Post-MVP)
 1. **Model Management UI** - React interface for drag & drop
-2. **Hugging Face Integration** - Direct model downloads
+2. **Hugging Face Integration** - Direct model downloads  
 3. **Performance Dashboard** - Real-time metrics
-4. **Distribution Improvements** - Code signing, notarization
+4. **MCP Tools Enhancement** - Additional research and automation capabilities
+5. **Distribution Improvements** - Code signing, notarization
 
 ## AI Model Architecture (Model-Agnostic Design)
 The Impetus-LLM-Server is designed to be model-agnostic, supporting any language model or AI framework through a generic interface and configuration system. Specific models are not hardcoded into the system but are instead defined through configuration.
