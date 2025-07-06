@@ -208,3 +208,6 @@ gerdsen_ai_server.log
 .git/HEAD
 .git/index
 .git/logs/
+# macOS system files
+.DS_Store
+*/.DS_Store
