@@ -31,6 +31,7 @@ from gerdsen_ai_server.src.routes.terminal import terminal_bp
 from gerdsen_ai_server.src.routes.hardware import hardware_bp
 from gerdsen_ai_server.src.routes.service_management import service_mgmt_bp
 from gerdsen_ai_server.src.routes.mcp_routes import mcp_bp
+from gerdsen_ai_server.src.routes.performance import performance_bp
 
 # Configure logging
 logging.basicConfig(
@@ -90,6 +91,7 @@ class ProductionFlaskServer:
         self.app.register_blueprint(hardware_bp, url_prefix='/api/hardware')
         self.app.register_blueprint(service_mgmt_bp, url_prefix='/api/service')
         self.app.register_blueprint(mcp_bp)  # MCP routes at /mcp
+        self.app.register_blueprint(performance_bp, url_prefix='/api/performance')
         
         @self.app.route('/')
         def index():
@@ -969,4 +971,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
