@@ -98,6 +98,10 @@ class BundledProductionServer:
         self.loaded_models = {}
         self.active_model = None
         
+        # GGUF support
+        self.gguf_loader = None
+        self.gguf_inference = None
+        
         # Setup routes
         self._setup_routes()
         
@@ -165,6 +169,20 @@ class BundledProductionServer:
                         self.frameworks is not None or 
                         self.ml_manager is not None
                     )
+                    
+                    # Try to load GGUF support
+                    try:
+                        from model_loaders.gguf_loader import GGUFLoader
+                        from inference.gguf_inference import GGUFInferenceEngine
+                        
+                        self.gguf_loader = GGUFLoader()
+                        self.gguf_inference = GGUFInferenceEngine()
+                        logger.info("✅ GGUF support initialized")
+                        self.ml_components_loaded = True
+                    except ImportError as e:
+                        logger.warning(f"GGUF support not available: {e}")
+                    except Exception as e:
+                        logger.error(f"Failed to initialize GGUF support: {e}")
                     
                     if self.ml_components_loaded:
                         logger.info("✅ ML components loaded successfully")
@@ -352,26 +370,39 @@ class BundledProductionServer:
         @self.app.route('/v1/models', methods=['GET'])
         def list_models():
             """List available models"""
-            if not self.ml_manager:
-                return jsonify({
-                    "object": "list",
-                    "data": [],
-                    "status": "ml_components_loading"
-                })
+            models = []
             
-            try:
-                models = self.ml_manager.get_available_models()
-                return jsonify({
-                    "object": "list",
-                    "data": models
-                })
-            except Exception as e:
-                logger.error(f"Error listing models: {e}")
-                return jsonify({
-                    "object": "list",
-                    "data": [],
-                    "error": str(e)
-                })
+            # Get GGUF models
+            if self.gguf_loader:
+                try:
+                    for model_id, model_info in self.gguf_loader._loaded_models.items():
+                        models.append({
+                            "id": model_id,
+                            "object": "model",
+                            "created": int(time.time()),
+                            "owned_by": "local",
+                            "permission": [],
+                            "root": model_id,
+                            "parent": None,
+                            "format": "gguf",
+                            "loaded": True
+                        })
+                except Exception as e:
+                    logger.error(f"Error listing GGUF models: {e}")
+            
+            # Get other models from ml_manager
+            if self.ml_manager:
+                try:
+                    ml_models = self.ml_manager.get_available_models()
+                    models.extend(ml_models)
+                except Exception as e:
+                    logger.error(f"Error listing ML models: {e}")
+            
+            return jsonify({
+                "object": "list",
+                "data": models,
+                "status": "ready" if self.ml_components_loaded else "loading"
+            })
         
         @self.app.route('/v1/models/<model_id>', methods=['GET'])
         def get_model(model_id):
@@ -390,7 +421,7 @@ class BundledProductionServer:
         @self.app.route('/v1/chat/completions', methods=['POST'])
         def chat_completions():
             """Chat completions endpoint"""
-            if not self.ml_manager:
+            if not self.gguf_inference and not self.ml_manager:
                 return jsonify({
                     "error": {
                         "message": "ML components are still loading. Please wait.",
@@ -401,30 +432,95 @@ class BundledProductionServer:
             
             try:
                 data = request.json
-                response = self.ml_manager.create_chat_completion(
-                    model=data.get('model', 'default'),
-                    messages=data.get('messages', []),
-                    max_tokens=data.get('max_tokens', 1000),
-                    temperature=data.get('temperature', 0.7),
-                    stream=data.get('stream', False)
-                )
+                model = data.get('model', 'default')
+                messages = data.get('messages', [])
                 
-                if data.get('stream', False):
-                    # Handle streaming response
-                    def generate():
-                        yield f"data: {json.dumps(response)}\n\n"
-                        yield "data: [DONE]\n\n"
+                # Try GGUF inference first
+                if self.gguf_inference:
+                    # Get loaded GGUF models
+                    if self.gguf_loader:
+                        loaded_models = list(self.gguf_loader._loaded_models.keys())
+                        if loaded_models:
+                            # Use first loaded model if default requested
+                            if model == 'default' and loaded_models:
+                                model = loaded_models[0]
+                            
+                            # Check if model is loaded
+                            if model in self.gguf_loader._loaded_models:
+                                # Create generation config
+                                from inference.gguf_inference import GenerationConfig
+                                config = GenerationConfig(
+                                    max_tokens=data.get('max_tokens', 1000),
+                                    temperature=data.get('temperature', 0.7)
+                                )
+                                
+                                response = self.gguf_inference.create_chat_completion(
+                                    model_id=model,
+                                    messages=messages,
+                                    config=config,
+                                    stream=data.get('stream', False)
+                                )
+                                
+                                if data.get('stream', False):
+                                    # Handle streaming response
+                                    def generate():
+                                        for chunk in response:
+                                            yield f"data: {json.dumps(chunk)}\n\n"
+                                        yield "data: [DONE]\n\n"
+                                    
+                                    return Response(
+                                        generate(),
+                                        mimetype='text/event-stream',
+                                        headers={
+                                            'Cache-Control': 'no-cache',
+                                            'X-Accel-Buffering': 'no'
+                                        }
+                                    )
+                                
+                                return jsonify(response)
                     
-                    return Response(
-                        generate(),
-                        mimetype='text/event-stream',
-                        headers={
-                            'Cache-Control': 'no-cache',
-                            'X-Accel-Buffering': 'no'
-                        }
+                    # Fallback to dummy response
+                    response = self.gguf_inference.create_chat_completion(
+                        model_id='dummy',
+                        messages=messages,
+                        max_tokens=data.get('max_tokens', 1000),
+                        temperature=data.get('temperature', 0.7),
+                        stream=False
                     )
+                    return jsonify(response)
+                    
+                elif self.ml_manager:
+                    response = self.ml_manager.create_chat_completion(
+                        model=model,
+                        messages=messages,
+                        max_tokens=data.get('max_tokens', 1000),
+                        temperature=data.get('temperature', 0.7),
+                        stream=data.get('stream', False)
+                    )
+                    
+                    if data.get('stream', False):
+                        # Handle streaming response
+                        def generate():
+                            yield f"data: {json.dumps(response)}\n\n"
+                            yield "data: [DONE]\n\n"
+                        
+                        return Response(
+                            generate(),
+                            mimetype='text/event-stream',
+                            headers={
+                                'Cache-Control': 'no-cache',
+                                'X-Accel-Buffering': 'no'
+                            }
+                        )
+                    
+                    return jsonify(response)
                 
-                return jsonify(response)
+                return jsonify({
+                    "error": {
+                        "message": "No inference engine available",
+                        "type": "no_engine"
+                    }
+                }), 503
                 
             except Exception as e:
                 logger.error(f"Chat completion error: {e}")
@@ -471,7 +567,27 @@ class BundledProductionServer:
                 "status": "ready" if self.ml_components_loaded else "loading"
             }
             
-            if self.ml_manager:
+            # Try GGUF loader first
+            if self.gguf_loader:
+                try:
+                    gguf_models = []
+                    for gguf_file in models_dir.rglob("*.gguf"):
+                        model_info = {
+                            "id": gguf_file.stem,
+                            "name": gguf_file.name,
+                            "path": str(gguf_file),
+                            "format": "gguf",
+                            "size": gguf_file.stat().st_size
+                        }
+                        gguf_models.append(model_info)
+                    
+                    result.update({
+                        "models": gguf_models,
+                        "count": len(gguf_models)
+                    })
+                except Exception as e:
+                    logger.error(f"GGUF scan error: {e}")
+            elif self.ml_manager:
                 try:
                     models = self.ml_manager.scan_user_models()
                     result.update({
@@ -487,21 +603,37 @@ class BundledProductionServer:
         @self.app.route('/api/models/load', methods=['POST'])
         def load_model():
             """Load a model"""
-            if not self.ml_manager:
+            if not self.gguf_loader and not self.ml_manager:
                 return jsonify({"error": "ML components not ready"}), 503
             
             try:
                 data = request.json
                 model_path = data.get('path')
+                model_id = data.get('id')
                 
                 if not model_path:
                     return jsonify({"error": "Model path required"}), 400
                 
-                with self.ml_lock:
-                    success = self.ml_manager.load_model_from_path(
-                        model_path,
-                        data.get('id')
-                    )
+                # Try GGUF loader first
+                if self.gguf_loader and model_path.endswith('.gguf'):
+                    with self.ml_lock:
+                        success = self.gguf_loader.load_model(model_path, model_id)
+                        if success and self.gguf_inference:
+                            # Also load into inference engine
+                            model_info = self.gguf_loader.get_model_info(model_id or Path(model_path).stem)
+                            self.gguf_inference.load_model_for_inference(
+                                model_id or Path(model_path).stem,
+                                model_path,
+                                model_info
+                            )
+                elif self.ml_manager:
+                    with self.ml_lock:
+                        success = self.ml_manager.load_model_from_path(
+                            model_path,
+                            model_id
+                        )
+                else:
+                    return jsonify({"error": "No loader available for this model type"}), 400
                 
                 if success:
                     return jsonify({
