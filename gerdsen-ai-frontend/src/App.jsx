@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from './components/ui/alert'
 import { CheckCircle, InfoIcon, Loader, Wifi, WifiOff } from 'lucide-react'
+import PerformanceDashboard from './components/PerformanceDashboard'
 
 function App() {
   const [activeTab, setActiveTab] = useState('library')
@@ -125,6 +126,7 @@ function App() {
             <TabsTrigger value="library">Model Library</TabsTrigger>
             <TabsTrigger value="upload">Upload Model</TabsTrigger>
             <TabsTrigger value="huggingface">HuggingFace</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="info">About</TabsTrigger>
           </TabsList>
 
@@ -178,6 +180,11 @@ function App() {
                 />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Performance Tab */}
+          <TabsContent value="performance" className="space-y-4">
+            <PerformanceDashboard serverUrl="http://localhost:8080" />
           </TabsContent>
 
           {/* Info Tab */}
