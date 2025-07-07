@@ -4,40 +4,42 @@
 
 ### For End Users
 
-1. **Download the installer**
-   - [Impetus-1.0.0-arm64.dmg](impetus-electron/dist/Impetus-1.0.0-arm64.dmg) - For Apple Silicon Macs (M1/M2/M3/M4)
-   - [Impetus-1.0.0.dmg](impetus-electron/dist/Impetus-1.0.0.dmg) - For Intel Macs
+1. **Download the latest release**
+   - Visit the [Releases](https://github.com/GerdsenAI/Impetus-LLM-Server/releases) page
+   - Download the appropriate version for your system
 
-2. **Install the app**
-   - Double-click the downloaded DMG file
-   - Drag Impetus to your Applications folder
-   - Eject the DMG
+2. **Install dependencies**
+   - Ensure Python 3.9+ is installed on your system
+   - Install required packages: `pip install -r requirements.txt`
 
-3. **First launch**
-   - Open Impetus from your Applications folder
-   - If macOS shows a security warning:
-     - Right-click Impetus and select "Open"
-     - Or go to System Settings > Privacy & Security > "Open Anyway"
+3. **Launch the tray app**
+   - Run `python impetus_tray.py`
+   - A tray icon will appear in your system tray/menu bar
 
 4. **Start using**
-   - Click the rocket icon in your menu bar
-   - Select "Start Server"
+   - Click the tray icon to access the menu
+   - Select "Start Server" to launch the LLM server
+   - Select "Open Web UI" to configure settings in your browser
    - Configure VS Code/Cline with `http://localhost:8080`
 
-That's it! No Python installation or setup required.
+That's it! The tray app provides a lightweight interface to control the server.
 
 ## 🎯 VS Code Configuration
 
 ### For Cline
+
 1. Open VS Code Settings (⌘,)
 2. Search for "Cline API"
 3. Set Base URL: `http://localhost:8080`
 4. Set API Key: `sk-dummy` (or leave blank)
 5. Save and start using Cline!
 
+
 ### For Continue.dev
+
 1. Open Continue settings
 2. Add custom model:
+
 ```json
 {
   "models": [{
@@ -47,47 +49,67 @@ That's it! No Python installation or setup required.
     "apiBase": "http://localhost:8080/v1"
   }]
 }
+
 ```
 
 ## 📦 What's Included
 
-- **Complete Python Environment**: Python 3.13.5 with all dependencies
 - **GGUF Model Support**: Hardware-accelerated inference with Metal
 - **Model Management UI**: Web interface for managing models
 - **Real-time Monitoring**: Performance metrics and system status
 - **OpenAI API Compatibility**: Works with any OpenAI-compatible extension
 
-## 🛠️ Building from Source
+## 💻 Developer Installation
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Python 3.11+ (for development only)
-- macOS 12.0 or later
 
-### Build Steps
+
+- macOS 12+ (Monterey or newer) recommended
+- Python 3.9+ with pip
+- Git (for cloning the repository)
+
+
+### Steps
+
+
+1. **Clone the repository**
+   
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/Impetus-LLM-Server.git
+git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
 cd Impetus-LLM-Server
-
-# Install dependencies
-cd impetus-electron
-npm install
-
-# Build self-contained app
-npm run dist-with-python
-
-# Install to Applications
-./install-impetus.sh
 ```
+
+
+2. **Install dependencies**
+   
+```bash
+pip install -r requirements.txt
+```
+
+
+3. **Run in development mode**
+   
+```bash
+python impetus_tray.py
+```
+
+
+4. **Build a standalone executable (optional)**
+   
+```bash
+# Using PyInstaller (install with: pip install pyinstaller)
+pyinstaller --onefile --windowed --icon=assets/icon.ico --name Impetus impetus_tray.py
+```
+
+   This creates a standalone executable in the `dist` folder.
 
 ## 🔧 Troubleshooting
 
-### App won't open
-- Right-click and select "Open" to bypass Gatekeeper
-- Or run in Terminal: `xattr -cr /Applications/Impetus.app`
+- Run in Terminal: `xattr -cr /Applications/Impetus.app`
+
 
 ### Server won't start
+
 - Check if port 8080 is available
 - View logs in the Impetus window
 - Restart the app if needed
@@ -137,8 +159,8 @@ MIT License - See LICENSE file for details
 
 ## 🤝 Support
 
-- GitHub Issues: [Report bugs or request features](https://github.com/yourusername/Impetus-LLM-Server/issues)
-- Documentation: [Full docs](https://github.com/yourusername/Impetus-LLM-Server/wiki)
+- GitHub Issues: [Report bugs or request features](https://github.com/GerdsenAI/Impetus-LLM-Server/issues)
+- [Full Documentation](https://github.com/GerdsenAI/Impetus-LLM-Server/wiki)
 
 ---
 
