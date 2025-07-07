@@ -452,33 +452,6 @@ All tasks below are enhancements beyond the core MVP functionality.
   - ✅ TypeScript implementation with robust error handling
   - ✅ Comprehensive documentation and usage examples
 
-### 🚀 **MCP Tools Available Now**
-```typescript
-// Model Management
-use_mcp_tool("impetus-filesystem-manager", "scan_models", {
-  "directory": "/Users/gerdsenai/Models",
-  "recursive": true
-})
-
-// System Monitoring  
-use_mcp_tool("impetus-system-monitor", "get_system_overview", {})
-
-// Performance Estimation
-use_mcp_tool("impetus-system-monitor", "estimate_model_performance", {
-  "model_size_gb": 2.5,
-  "model_format": "gguf"
-})
-```
-
-### 📋 **Next Steps for MCP Integration**
-- [ ] **IMPETUS UI Integration** - Connect MCP tools to React frontend
-- [ ] **Automated Optimization** - Auto-tune settings based on MCP recommendations  
-- [ ] **Performance Dashboards** - Real-time MCP data visualization in UI
-- [ ] **Model Recommendations** - AI-driven model suggestions based on hardware
-
-**Status**: ✅ Production Ready - Two specialized MCP servers with Apple Silicon optimization
-**Documentation**: See `MCP_IMPETUS_INTEGRATION_COMPLETE.md` for full details
-**Location**: `/Users/gerdsenai/Documents/Cline/MCP/`
 
 ## 🎨 Post-MVP UI Enhancements - "Best Possible UI"
 
@@ -625,14 +598,17 @@ A comprehensive audit of the Impetus LLM Server codebase was conducted to identi
 
 ### 1. API Parameter Compatibility Issues
 
-- [ ] **Fix `max_tokens` Parameter in GGUF Inference** - **Priority: HIGH, Timeline: Immediate**
+- [x] **Fix `max_tokens` Parameter in GGUF Inference** - **COMPLETED ✅ (July 6, 2025)**
   - 🐛 **Issue**: The chat completions endpoint (`/v1/chat/completions`) fails with an error about unexpected `max_tokens` argument
   - 🔍 **Root Cause**: Parameter mismatch between `openai_api.py` and `gguf_inference.py`
   - 📝 **Details**: 
     - `openai_api.py` (line 450) extracts `max_tokens` from the request
-    - `gguf_inference.py` (line 286-302) `create_chat_completion()` method doesn't accept this parameter
-    - The parameter is passed to `generate()` method but not properly handled in the chat completion flow
-  - ✅ **Fix Required**: Update `create_chat_completion()` method to accept and use `max_tokens` parameter
+    - `gguf_inference.py` (line 286-302) `create_chat_completion()` method didn't accept this parameter
+    - The parameter is passed to `generate()` method but wasn't properly handled in the chat completion flow
+  - ✅ **Fix Implemented**: 
+    - Updated `create_chat_completion()` method to accept and use `max_tokens` parameter
+    - Added proper parameter handling and config overrides
+    - Enhanced OpenAI API route handler to use the correct method
 
 ### 2. Duplicate/Redundant Files
 
@@ -666,12 +642,21 @@ A comprehensive audit of the Impetus LLM Server codebase was conducted to identi
 
 ### 4. Integration Issues
 
-- [ ] **Fix Chat Completions Integration** - **Priority: HIGH, Timeline: Immediate**
+- [x] **Fix Chat Completions Integration** - **COMPLETED ✅ (July 6, 2025)**
   - 🐛 **Issue**: The chat completions API endpoint returns errors when using real models
   - 🔍 **Root Cause**: Parameter handling inconsistency between API layer and inference engine
-  - ✅ **Fix Required**: 
-    - Update `openai_api.py` to properly map OpenAI API parameters to inference engine parameters
-    - Add parameter validation and transformation layer
+  - ✅ **Fix Implemented**: 
+    - Updated `openai_api.py` to properly map OpenAI API parameters to inference engine parameters
+    - Added parameter validation and transformation layer
+    - Enhanced error handling for better diagnostics
+
+- [x] **Implement Port Conflict Error Handling** - **COMPLETED ✅ (July 6, 2025)**
+  - 🐛 **Issue**: Server fails with unhelpful error when port 8080 is already in use
+  - 🔍 **Root Cause**: Missing robust error handling for port conflicts
+  - ✅ **Fix Implemented**: 
+    - Added detailed error messages with process identification
+    - Implemented alternative port suggestions
+    - Added proper exception handling throughout server initialization
 
 - [ ] **Standardize Model Loading Interface** - **Priority: MEDIUM, Timeline: Next Sprint**
   - 🔄 **Issue**: Inconsistent model loading interfaces across different formats
