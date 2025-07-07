@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-macOS Application Setup Script for GerdsenAI MLX Manager
-Creates proper .app bundle with menu bar integration
+macOS Application Setup Script for Impetus Tray App
+Creates proper .app bundle with menu bar integration for the headless tray app
 """
 
 from setuptools import setup, find_packages
@@ -22,16 +22,16 @@ except ImportError:
     PY2APP_AVAILABLE = False
     print("py2app not available - install with: pip install py2app")
 
-APP_NAME = "GerdsenAI MLX Manager"
+APP_NAME = "Impetus"
 APP_VERSION = "2.0.0"
-APP_IDENTIFIER = "com.gerdsen.ai.mlx.manager"
+APP_IDENTIFIER = "com.gerdsen.ai.impetus"
 
 # Application entry point
-APP = ['src/macos_service.py']
+APP = ['impetus_tray.py']
 
 # Data files to include in the bundle
 DATA_FILES = [
-    ('gerdsen_ai_server', ['gerdsen_ai_server']),
+    ('src', ['src']),
     ('ui', ['ui']),
     ('assets', ['assets']),
 ]
@@ -75,10 +75,9 @@ OPTIONS = {
                 'aiohttp',
             ],
             'includes': [
-                'src.macos_service',
+                'src.tray_app',
                 'src.apple_silicon_detector',
-                'src.enhanced_mlx_manager',
-                'gerdsen_ai_server.src.main',
+                'src.production_main',
             ],
             'excludes': [
                 'tkinter',
@@ -88,7 +87,7 @@ OPTIONS = {
                 'jupyter',
             ],
             'resources': [
-                'gerdsen_ai_server/src/static',
+                'src/static',
                 'ui',
                 'assets',
             ],
@@ -172,7 +171,7 @@ def create_info_plist():
 
 def main():
     """Main setup function"""
-    print(f"Setting up {APP_NAME} for macOS...")
+    print(f"Setting up {APP_NAME} Tray App for macOS...")
     
     # Create necessary files
     create_app_icon()
@@ -183,14 +182,13 @@ def main():
         setup(
             app=APP,
             data_files=DATA_FILES,
-            options=OPTIONS['py2app']['options'],
+            options={'py2app': OPTIONS['py2app']['options']},
             setup_requires=['py2app'],
             install_requires=[
                 'flask>=3.1.1',
                 'flask-socketio>=5.4.1',
                 'flask-cors>=5.0.0',
                 'psutil>=6.1.0',
-                'rumps>=0.4.0',
                 'pystray>=0.19.5',
                 'Pillow>=11.0.0',
                 'requests>=2.32.3',
@@ -203,7 +201,7 @@ def main():
         setup(
             name=APP_NAME,
             version=APP_VERSION,
-            description="Advanced MLX model management for Apple Silicon",
+            description="Impetus LLM Server Tray App for local AI models",
             author="GerdsenAI",
             packages=find_packages(),
             install_requires=[
@@ -220,7 +218,7 @@ def main():
             ],
             entry_points={
                 'console_scripts': [
-                    'gerdsen-ai-mlx=src.macos_service:main',
+                    'impetus-tray=src.tray_app:main',
                 ],
             },
             classifiers=[

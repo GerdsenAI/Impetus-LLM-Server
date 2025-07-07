@@ -52,10 +52,10 @@
 - File size and format validation
 - Usage tips and format descriptions
 
-### 3. Electron App Integration
-**File**: `impetus-electron/src/main.js`  
+### 3. Tray App Integration
+**File**: `src/tray_app.py`  
 **Change**: Updated server path to use enhanced production server  
-**Impact**: Electron app now uses progressive ML loading
+**Impact**: Tray app now uses progressive ML loading
 
 ### 4. Testing Infrastructure
 
@@ -112,7 +112,7 @@
 - Input validation on all endpoints
 - Error message sanitization
 
-### 3. Electron App Security
+### 3. Tray App Security
 - No node integration in renderer
 - Context isolation enabled
 - Preload script for secure IPC
@@ -145,7 +145,7 @@
 ### Integration Testing
 - ✅ VS Code/Cline compatibility
 - ✅ Model loading workflows
-- ✅ Electron app integration
+- ✅ Tray app integration
 - ✅ File upload processes
 
 ### Manual Testing

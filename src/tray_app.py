@@ -19,6 +19,9 @@ import sys
 import threading
 import time
 import webbrowser
+import tempfile
+import fcntl
+import atexit
 from pathlib import Path
 
 import pystray
@@ -50,9 +53,10 @@ class ImpetusServerMonitor:
         
         # Determine server script path
         if server_script_path is None:
-            # Get the directory of the current script
+            # Get the project root directory
             current_dir = Path(__file__).parent.resolve()
-            self.server_script_path = current_dir / "production_main.py"
+            project_root = current_dir.parent
+            self.server_script_path = project_root / "gerdsen_ai_server" / "src" / "production_main.py"
         else:
             self.server_script_path = Path(server_script_path)
             
@@ -271,8 +275,62 @@ class ImpetusTrayApp:
         self.icon.run()
 
 
+def is_already_running():
+    """Check if another instance of the application is already running.
+    
+    Returns:
+        bool: True if another instance is running, False otherwise.
+    """
+    lock_file = os.path.join(tempfile.gettempdir(), 'impetus_tray_app.lock')
+    
+    try:
+        # Try to create and lock the file
+        global lock_fd
+        lock_fd = open(lock_file, 'w')
+        fcntl.lockf(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        
+        # If we got here, no other instance is running
+        # Write PID to the lock file
+        lock_fd.write(str(os.getpid()))
+        lock_fd.flush()
+        
+        # Register cleanup function
+        atexit.register(cleanup_lock)
+        
+        return False
+    except IOError:
+        # Another instance has the lock
+        return True
+
+
+def cleanup_lock():
+    """Clean up the lock file when the application exits."""
+    try:
+        if 'lock_fd' in globals():
+            fcntl.lockf(lock_fd, fcntl.LOCK_UN)
+            lock_fd.close()
+    except Exception:
+        pass
+
+
 def main():
     """Main entry point for the tray application."""
+    # Check if another instance is already running
+    if is_already_running():
+        print("Another instance of Impetus Tray App is already running.")
+        # If running from GUI, show a notification
+        try:
+            import tkinter as tk
+            from tkinter import messagebox
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showinfo("Impetus", "Impetus is already running in the menu bar.")
+            root.destroy()
+        except Exception:
+            pass
+        sys.exit(0)
+    
+    # No other instance is running, start the app
     app = ImpetusTrayApp()
     app.run()
 

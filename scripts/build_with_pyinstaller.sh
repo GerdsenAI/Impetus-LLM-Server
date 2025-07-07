@@ -1,6 +1,6 @@
 #!/bin/bash
-# Build script for Impetus Tray App on macOS
-# This script creates a proper .app bundle for the headless tray app
+# Build script for Impetus Tray App using PyInstaller
+# This script creates a standalone application for the headless tray app
 
 set -e  # Exit on any error
 
@@ -9,7 +9,7 @@ APP_VERSION="2.0.0"
 BUILD_DIR="build"
 DIST_DIR="dist"
 
-echo "🚀 Building $APP_NAME v$APP_VERSION for macOS"
+echo "🚀 Building $APP_NAME v$APP_VERSION for macOS using PyInstaller"
 echo "=================================================="
 
 # Check if we're on macOS
@@ -52,19 +52,19 @@ else
     pip install flask flask-socketio flask-cors psutil pystray Pillow requests numpy pandas
 fi
 
-# Install py2app if not already installed
-echo "📱 Installing py2app..."
-pip install py2app
+# Install PyInstaller if not already installed
+echo "📱 Installing PyInstaller..."
+pip install pyinstaller
 
 # Clean previous builds
 echo "🧹 Cleaning previous builds..."
-rm -rf "$BUILD_DIR" "$DIST_DIR"
+rm -rf "$BUILD_DIR/$APP_NAME" "$DIST_DIR/$APP_NAME"
 
 # Create assets directory if it doesn't exist
 mkdir -p assets
 
 # Create a simple icon if it doesn't exist
-if [ ! -f "assets/icon.icns" ]; then
+if [ ! -f "assets/icon.png" ]; then
     echo "🎨 Creating application icon..."
     
     # Create a simple PNG icon first
@@ -96,47 +96,33 @@ for i in range(0, 360, 30):
 img.save('assets/icon.png')
 print('Created icon.png')
 "
-
-    # Convert PNG to ICNS using sips (macOS built-in tool)
-    if command -v sips >/dev/null 2>&1; then
-        echo "🔄 Converting PNG to ICNS..."
-        mkdir -p icon.iconset
-        
-        # Create different sizes for the iconset
-        sips -z 16 16 assets/icon.png --out icon.iconset/icon_16x16.png
-        sips -z 32 32 assets/icon.png --out icon.iconset/icon_16x16@2x.png
-        sips -z 32 32 assets/icon.png --out icon.iconset/icon_32x32.png
-        sips -z 64 64 assets/icon.png --out icon.iconset/icon_32x32@2x.png
-        sips -z 128 128 assets/icon.png --out icon.iconset/icon_128x128.png
-        sips -z 256 256 assets/icon.png --out icon.iconset/icon_128x128@2x.png
-        sips -z 256 256 assets/icon.png --out icon.iconset/icon_256x256.png
-        sips -z 512 512 assets/icon.png --out icon.iconset/icon_256x256@2x.png
-        sips -z 512 512 assets/icon.png --out icon.iconset/icon_512x512.png
-        cp assets/icon.png icon.iconset/icon_512x512@2x.png
-        
-        # Create ICNS file
-        iconutil -c icns icon.iconset
-        mv icon.icns assets/
-        rm -rf icon.iconset
-        
-        echo "✅ Created assets/icon.icns"
-    else
-        echo "⚠️  sips not available, using PNG icon"
-        cp assets/icon.png assets/icon.icns
-    fi
 fi
 
-# Build the application
-echo "🔨 Building application bundle..."
-python3 setup_macos.py py2app
+# Build the application with PyInstaller
+echo "🔨 Building application bundle with PyInstaller..."
+pyinstaller --name="$APP_NAME" \
+            --windowed \
+            --icon=assets/icon.png \
+            --add-data="assets:assets" \
+            --add-data="src:src" \
+            --add-data="ui:ui" \
+            --hidden-import=pystray \
+            --hidden-import=PIL \
+            --hidden-import=PIL._imaging \
+            --hidden-import=PIL.Image \
+            --hidden-import=PIL.ImageDraw \
+            --hidden-import=PIL.ImageFont \
+            --hidden-import=PIL.ImageTk \
+            --hidden-import=flask \
+            --hidden-import=flask_socketio \
+            --hidden-import=flask_cors \
+            --collect-all=PIL \
+            impetus_tray.py
 
 # Check if build was successful
 if [ -d "dist/$APP_NAME.app" ]; then
     echo "✅ Build successful!"
     echo "📁 Application bundle created: dist/$APP_NAME.app"
-    
-    # Make the app executable
-    chmod +x "dist/$APP_NAME.app/Contents/MacOS/$APP_NAME"
     
     # Create a DMG for distribution (optional)
     if command -v hdiutil >/dev/null 2>&1; then
@@ -185,4 +171,3 @@ fi
 deactivate
 
 echo "🏁 Build process completed!"
-

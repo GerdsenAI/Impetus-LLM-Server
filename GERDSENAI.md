@@ -80,7 +80,7 @@ IMPETUS supports multiple GerdsenAI revenue streams:
 
 IMPETUS demonstrates GerdsenAI's technical capabilities:
 
-- **Modern Architecture**: Electron + Python for cross-platform potential
+- **Modern Architecture**: Headless tray app + Python for lightweight, native performance
 - **Scalable Design**: From single user to enterprise deployment
 - **API Standards**: OpenAI compatibility ensures broad adoption
 - **Security First**: Ad-hoc signing, secure model handling

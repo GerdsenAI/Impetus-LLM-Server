@@ -35,18 +35,13 @@ def check_component_files():
             "gerdsen_ai_server/src/production_main.py",
             "gerdsen_ai_server/src/integrated_mlx_manager.py"
         ],
-        "Electron App": [
-            "impetus-electron/package.json",
-            "impetus-electron/src/main.js",
-            "impetus-electron/src/preload.js",
-            "impetus-electron/src/renderer/index.html",
-            "impetus-electron/src/renderer/script.js",
-            "impetus-electron/src/renderer/styles.css"
+        "Tray App": [
+            "impetus_tray.py",
+            "src/tray_app.py"
         ],
-        "Python Bundling": [
-            "impetus-electron/scripts/bundle-python.js",
-            "impetus-electron/scripts/test-bundle.js",
-            "impetus-electron/BUNDLING.md"
+        "Python Packaging": [
+            "requirements.txt",
+            "setup.py"
         ]
     }
     
@@ -66,33 +61,42 @@ def check_component_files():
     
     return all_good
 
-def check_electron_app():
-    """Check Electron app configuration"""
-    print("🖥️ Checking Electron App Configuration...")
+def check_tray_app():
+    """Check Tray app configuration"""
+    print("🖥️ Checking Tray App Configuration...")
     
-    package_json_path = Path("impetus-electron/package.json")
-    if not package_json_path.exists():
-        print("❌ Electron package.json missing")
+    tray_app_path = Path("impetus_tray.py")
+    tray_module_path = Path("src/tray_app.py")
+    
+    if not tray_app_path.exists():
+        print("❌ Tray app entry point missing")
+        return False
+        
+    if not tray_module_path.exists():
+        print("❌ Tray app module missing")
         return False
     
+    # Check if requirements.txt includes necessary tray app dependencies
     try:
-        with open(package_json_path, 'r') as f:
-            package_data = json.load(f)
+        with open("requirements.txt", 'r') as f:
+            requirements = f.read()
+            
+        required_packages = ['rumps', 'pystray', 'Pillow']
+        missing_packages = []
         
-        # Check required scripts
-        scripts = package_data.get('scripts', {})
-        required_scripts = ['bundle-python', 'test-bundle', 'build-with-python', 'dist-with-python']
-        
-        missing_scripts = [script for script in required_scripts if script not in scripts]
-        if missing_scripts:
-            print(f"❌ Missing Electron scripts: {missing_scripts}")
+        for package in required_packages:
+            if package.lower() not in requirements.lower():
+                missing_packages.append(package)
+                
+        if missing_packages:
+            print(f"❌ Missing tray app dependencies: {missing_packages}")
             return False
         
-        print("✅ Electron app properly configured")
+        print("✅ Tray app properly configured")
         return True
         
     except Exception as e:
-        print(f"❌ Failed to validate Electron config: {e}")
+        print(f"❌ Failed to validate tray app config: {e}")
         return False
 
 def check_api_design():
@@ -182,9 +186,7 @@ def validate_documentation():
     
     doc_files = [
         "README.md",
-        "TODO.md", 
-        "impetus-electron/README.md",
-        "impetus-electron/BUNDLING.md"
+        "TODO.md"
     ]
     
     missing_docs = []
@@ -208,7 +210,7 @@ def main():
     
     tests = [
         ("Component Files", check_component_files),
-        ("Electron App", check_electron_app),
+        ("Tray App", check_tray_app),
         ("API Design", check_api_design), 
         ("Apple Silicon Optimization", check_apple_silicon_optimization),
         ("Python Environment", test_python_environment),
@@ -238,14 +240,14 @@ def main():
         print("   • Model loader factory with automatic detection")
         print("   • Unified inference interface")
         print("   • Enhanced OpenAI-compatible API") 
-        print("   • Complete Electron app with native macOS integration")
-        print("   • Python environment bundling system")
+        print("   • Lightweight headless tray app with native macOS integration")
+        print("   • Simple Python packaging and installation")
         print("   • Comprehensive documentation")
         print("\n📝 NEXT STEPS:")
         print("   1. Test with actual Cline extension in VS Code")
         print("   2. Verify model loading and switching works")
         print("   3. Confirm chat completions work with Cline")
-        print("   4. Deploy Electron app for end users")
+        print("   4. Deploy tray app for end users")
         
         return True
     else:
