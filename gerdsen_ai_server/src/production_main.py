@@ -794,10 +794,7 @@ class ProductionFlaskServer:
         logger.info("Initializing system components...")
         
         try:
-            # Initialize Apple Silicon detector
-            self.apple_detector.initialize()
-            
-            # Initialize frameworks
+            # Initialize Apple frameworks integration
             self.frameworks.initialize()
             
             # MLX manager is already initialized in __init__, no need to call initialize
@@ -805,7 +802,6 @@ class ProductionFlaskServer:
             
             logger.info("All components initialized successfully")
             return True
-            
         except Exception as e:
             logger.error(f"Component initialization failed: {e}")
             return False
@@ -835,6 +831,57 @@ class ProductionFlaskServer:
                 debug=debug,
                 allow_unsafe_werkzeug=True
             )
+        except OSError as e:
+            if 'Address already in use' in str(e):
+                import socket
+                import os
+                
+                # Log the error
+                logger.error(f"Port {port} is already in use. Attempting to identify the process...")
+                
+                try:
+                    # Try to find the process using the port
+                    import psutil
+                    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                        try:
+                            for conns in proc.connections(kind='inet'):
+                                if conns.laddr.port == port:
+                                    process_info = f"Process {proc.info['name']} (PID: {proc.info['pid']}) is using port {port}"
+                                    logger.info(process_info)
+                                    print(f"\n{process_info}")
+                                    
+                                    # Check if it's our own server
+                                    if 'python' in proc.info['name'].lower() and any('production_main.py' in cmd for cmd in proc.info['cmdline'] if cmd):
+                                        print(f"\nDetected another instance of Impetus LLM Server using port {port}.")
+                                        print(f"To resolve this issue, you can terminate the process with: kill {proc.info['pid']}")
+                        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                            pass
+                except ImportError:
+                    logger.warning("psutil package not available for process detection")
+                
+                # Suggest alternative ports
+                try:
+                    # Find an available port
+                    alt_port = port + 1
+                    max_attempts = 10
+                    for _ in range(max_attempts):
+                        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                            try:
+                                s.bind((host, alt_port))
+                                logger.info(f"Found available alternative port: {alt_port}")
+                                print(f"\nPort {port} is in use. You can use an alternative port with:")
+                                print(f"python src/production_main.py --port {alt_port}")
+                                break
+                            except OSError:
+                                alt_port += 1
+                except Exception as socket_error:
+                    logger.error(f"Error finding alternative port: {socket_error}")
+                
+                print(f"\nServer startup failed due to port conflict. Please free port {port} and try again.")
+            else:
+                # For other OSErrors
+                logger.error(f"Server startup error: {e}")
+            return False
         except Exception as e:
             logger.error(f"Server startup error: {e}")
             return False
