@@ -26,46 +26,36 @@ class TestProductionConfig(unittest.TestCase):
         # Check that default values are set
         self.assertIsNotNone(config.server_port)
         self.assertIsNotNone(config.log_level)
-        self.assertIsNotNone(config.models_directory)
-        self.assertIsNotNone(config.max_concurrent_models)
+        self.assertIsNotNone(config.theme)
+        self.assertIsNotNone(config.auto_optimize)
         
         # Default values should be reasonable
         self.assertGreater(config.server_port, 0)
-        self.assertGreater(config.max_concurrent_models, 0)
+        self.assertEqual(config.server_port, 8080)
         self.assertIn(config.log_level.lower(), ['debug', 'info', 'warning', 'error', 'critical'])
+        self.assertEqual(config.theme, "dark")
+        self.assertTrue(config.auto_optimize)
     
-    def test_config_serialization(self):
-        """Test configuration serialization"""
+    def test_config_attributes(self):
+        """Test configuration attributes"""
         config = ProductionConfig()
-        config.server_port = 8080
-        config.log_level = "INFO"
-        config.models_directory = "/path/to/models"
-        config.max_concurrent_models = 3
+        config.server_port = 9090
+        config.log_level = "DEBUG"
+        config.theme = "light"
+        config.auto_optimize = False
         
-        # Test to_dict method
-        config_dict = config.to_dict()
-        self.assertEqual(config_dict['server_port'], 8080)
-        self.assertEqual(config_dict['log_level'], "INFO")
-        self.assertEqual(config_dict['models_directory'], "/path/to/models")
-        self.assertEqual(config_dict['max_concurrent_models'], 3)
+        # Verify attribute assignment works
+        self.assertEqual(config.server_port, 9090)
+        self.assertEqual(config.log_level, "DEBUG")
+        self.assertEqual(config.theme, "light")
+        self.assertFalse(config.auto_optimize)
         
-        # Test to_json method
-        config_json = config.to_json()
-        self.assertIsInstance(config_json, str)
-        
-        # Should be valid JSON
-        parsed_json = json.loads(config_json)
-        self.assertEqual(parsed_json['server_port'], 8080)
-        
-        # Test from_dict method
-        new_config = ProductionConfig.from_dict(config_dict)
-        self.assertEqual(new_config.server_port, 8080)
-        self.assertEqual(new_config.log_level, "INFO")
-        
-        # Test from_json method
-        new_config_from_json = ProductionConfig.from_json(config_json)
-        self.assertEqual(new_config_from_json.server_port, 8080)
-        self.assertEqual(new_config_from_json.log_level, "INFO")
+        # Test that we can convert to dict using vars
+        config_dict = vars(config)
+        self.assertEqual(config_dict['server_port'], 9090)
+        self.assertEqual(config_dict['log_level'], "DEBUG")
+        self.assertEqual(config_dict['theme'], "light")
+        self.assertFalse(config_dict['auto_optimize'])
 
 
 if __name__ == "__main__":

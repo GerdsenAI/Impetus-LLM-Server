@@ -4,6 +4,11 @@ uvicorn==0.20.0
 pydantic==1.10.5
 flask-sqlalchemy==3.1.1
 
+# Tray app dependencies
+pystray==0.19.5
+Pillow==10.2.0
+webbrowser==0.10.1
+
 # Additional dependencies for AI model management
 torch==2.6.0
 numpy==1.26.4

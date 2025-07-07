@@ -17,7 +17,14 @@ class TestRealTimeMetricsCollector(unittest.TestCase):
     """Test real-time metrics collection"""
     
     def setUp(self):
-        self.collector = RealTimeMetricsCollector()
+        self.apple_detector = Mock()
+        self.apple_detector.get_chip_info.return_value = {
+            'chip_name': 'Apple M3',
+            'performance_cores': 8,
+            'efficiency_cores': 4,
+            'process_node': '3nm'
+        }
+        self.collector = RealTimeMetricsCollector(self.apple_detector)
     
     def test_cpu_metrics(self):
         """Test CPU metrics collection"""

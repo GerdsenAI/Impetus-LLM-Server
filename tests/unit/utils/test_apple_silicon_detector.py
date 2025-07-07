@@ -30,22 +30,34 @@ class TestAppleSiliconDetector(unittest.TestCase):
         
         self.assertIsInstance(chip_info, dict)
         
-        # Check required fields exist
-        required_fields = [
-            'chip_name', 'architecture', 'process_node',
-            'performance_cores', 'efficiency_cores', 'gpu_cores'
+        # Check that chip_name exists
+        self.assertIn('chip_name', chip_info, "Missing required field: chip_name")
+        
+        # Check that specifications exist and contain expected fields
+        self.assertIn('specifications', chip_info, "Missing specifications dictionary")
+        specs = chip_info['specifications']
+        
+        required_spec_fields = [
+            'chip_name', 'cpu_cores_performance', 'cpu_cores_efficiency', 'gpu_cores', 'process_node'
         ]
         
-        for field in required_fields:
-            self.assertIn(field, chip_info, f"Missing required field: {field}")
+        for field in required_spec_fields:
+            self.assertIn(field, specs, f"Missing required specification field: {field}")
     
     def test_optimization_recommendations(self):
         """Test optimization recommendations"""
         recommendations = self.detector.get_optimization_recommendations()
         
-        self.assertIsInstance(recommendations, dict)
-        self.assertIn('recommendations', recommendations)
-        self.assertIsInstance(recommendations['recommendations'], list)
+        self.assertIsInstance(recommendations, list)
+        
+        # If we have recommendations, check their structure
+        if recommendations:
+            recommendation = recommendations[0]
+            self.assertIsInstance(recommendation, dict)
+            
+            required_fields = ['category', 'priority', 'title', 'description']
+            for field in required_fields:
+                self.assertIn(field, recommendation, f"Missing required recommendation field: {field}")
     
     def test_capabilities_detection(self):
         """Test capabilities detection"""

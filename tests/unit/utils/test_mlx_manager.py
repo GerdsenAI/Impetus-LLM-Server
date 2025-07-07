@@ -17,7 +17,19 @@ class TestIntegratedMLXManager(unittest.TestCase):
     """Test integrated MLX manager functionality"""
     
     def setUp(self):
-        self.manager = IntegratedMLXManager()
+        self.apple_detector = Mock()
+        self.apple_detector.start_monitoring = Mock()
+        self.apple_detector.register_optimization_callback = Mock()
+        self.apple_detector.register_thermal_callback = Mock()
+        self.apple_detector.register_power_callback = Mock()
+        
+        self.frameworks = Mock()
+        
+        self.manager = IntegratedMLXManager(
+            apple_detector=self.apple_detector,
+            frameworks=self.frameworks
+        )
+        self.test_model_path = "/tmp/dummy_mlx_model.mlx"
     
     def test_initialization(self):
         """Test MLX manager initialization"""

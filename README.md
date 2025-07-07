@@ -11,9 +11,9 @@ A comprehensive local LLM server optimized for Apple Silicon that supports ANY m
 - **Unified Interface**: Single API regardless of model format
 - **Hot Swapping**: Switch between models without server restart
 
-### Native macOS Integration
-- **Taskbar Application**: Native menubar app with status indicator
-- **Apple HIG Design**: Complies with Apple Human Interface Guidelines
+### Lightweight Tray/Menubar Integration
+- **Minimal Tray App**: Lightweight menubar/taskbar utility with status indicator
+- **Web-Based Configuration**: All settings and management via web browser
 - **Background Service**: Minimal resource usage when idle
 - **One-Click Installation**: Self-contained app bundle with bundled Python environment
 

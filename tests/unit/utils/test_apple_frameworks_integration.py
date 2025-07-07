@@ -20,8 +20,11 @@ class TestAppleFrameworksIntegration(unittest.TestCase):
         self.frameworks = AppleFrameworksIntegration()
     
     def test_initialization(self):
-        """Test frameworks initialization"""
-        self.assertIsNotNone(self.frameworks)
+        """Test initialization"""
+        # Initialize the frameworks
+        self.frameworks.initialize()
+        self.assertTrue(self.frameworks.is_initialized(), "Framework initialization failed")
+        self.assertIsNotNone(self.frameworks.detector, "Apple Silicon detector not initialized")
         
         # Test availability checks don't crash
         try:

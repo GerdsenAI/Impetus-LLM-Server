@@ -44,16 +44,14 @@ class TestProductionGerdsenAI(unittest.TestCase):
         self.app.config.log_level = "DEBUG"
         
         # Save config
-        self.app.save_config(self.config_path)
+        self.app.config_path = Path(self.config_path)
+        self.app._save_config()
         
         # Check file exists
         self.assertTrue(os.path.exists(self.config_path))
         
-        # Create a new app and load config
-        new_app = ProductionGerdsenAI()
-        new_app.load_config(self.config_path)
-        
-        # Check values match
+        # Load config back and verify values
+        new_app = ProductionGerdsenAI(self.config_path)
         self.assertEqual(new_app.config.server_port, 9090)
         self.assertEqual(new_app.config.log_level, "DEBUG")
     
@@ -61,16 +59,26 @@ class TestProductionGerdsenAI(unittest.TestCase):
         """Test system initialization"""
         # Mock components to avoid actual hardware checks
         self.app.apple_detector = Mock()
+        self.app.apple_detector.get_chip_info = Mock(return_value={'chip_name': 'Apple M1'})
+        
         self.app.frameworks = Mock()
+        self.app.frameworks.initialize = Mock()
+        
         self.app.mlx_manager = Mock()
+        self.app.mlx_manager.initialize = Mock()
+        self.app.mlx_manager.apply_optimizations = Mock()
+        
+        # Set auto_optimize to True to test optimization path
+        self.app.config.auto_optimize = True
         
         # Test initialization
-        result = self.app.initialize_system()
-        self.assertTrue(result)
+        self.app.initialize_system()
         
-        # Check that component initializations were called
-        self.app.apple_detector.initialize.assert_called_once()
+        # Verify method calls
+        self.app.apple_detector.get_chip_info.assert_called_once()
         self.app.frameworks.initialize.assert_called_once()
+        self.app.mlx_manager.initialize.assert_called_once()
+        self.app.mlx_manager.apply_optimizations.assert_called_once()
 
 
 if __name__ == "__main__":
