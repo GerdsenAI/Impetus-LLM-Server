@@ -301,7 +301,6 @@ class ImpetusServerMonitor:
             self.status = STATUS_ERROR
             self.error_message = f"Error stopping server: {str(e)}"
             return False
-    return True
 
 def check_server_status(self):
     """Check if the server is running."""
