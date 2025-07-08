@@ -65,6 +65,11 @@ Create the best local LLM server for developers using VS Code, with seamless Cli
   - MVP claim "100% complete" is overstated - should be "GGUF MVP Complete"
 - **NEW**: TODO.md reorganized with clear MVP section at top
 - **NEW**: MVP = Load any model + use with Cline (nothing more needed)
+- **UPDATE (July 8, 2025)**: TODO.md updated to prioritize complete frontend teardown and rebuild with Ant Design
+  - Focus on creating a modern, enterprise-grade interface for LLM management
+  - Backend capabilities assessed, revealing robust Flask server with OpenAI-compatible APIs
+  - Plan to expose all backend functionalities (model management, hardware metrics, optimization settings) in new UI
+  - Goal to create a "bleeding edge" backend with all options optimized and accessible
 
 ## Latest Updates (July 2025)
 - **NEW**: IMPETUS acronym defined - "Intelligent Model Platform Enabling Taskbar Unified Server"

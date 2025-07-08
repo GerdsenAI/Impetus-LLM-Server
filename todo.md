@@ -1,7 +1,131 @@
-# IMPETUS (Intelligent Model Platform Enabling Taskbar Unified Server)
-# Todo List for Impetus-LLM-Server
+# IMPETUS TODO List
 
-This document outlines actionable tasks for the development and maintenance of the Impetus-LLM-Server project, based on the provided README.md documentation. Tasks have been refined with priorities and estimated timelines to align with the project roadmap and guidelines from ai.md.
+**Intelligent Model Platform Enabling Taskbar Unified Server**
+
+This document outlines actionable tasks for the Impetus-LLM-Server project, prioritizing the headless tray app MVP. Tasks are organized by priority and estimated timeline to align with the current project roadmap.
+
+## 🎯 Headless Tray App MVP Path (July 2025)
+
+The following represents the critical path to delivering the Impetus headless tray app as a production-ready MVP:
+
+### Core Tray App Functionality - Priority: CRITICAL, Timeline: July 10, 2025
+
+- [x] Implement singleton instance management (prevent multiple tray icons)
+- [x] Add proper server spawning and monitoring
+- [x] Implement tray menu actions (start/stop/restart server)
+- [x] Add automatic server recovery on crashes
+- [ ] Validate tray app stability during long-running sessions
+
+### Build & Packaging System - Priority: CRITICAL, Timeline: July 12, 2025
+
+- [x] Implement PyInstaller build script with proper error handling
+- [x] Add dependency verification and universal binary support
+- [ ] Implement code signing and notarization support
+- [ ] Add validation testing for built application
+- [ ] Create reproducible build fingerprinting
+- [ ] Document build and release process
+
+### End-to-End Testing - Priority: HIGH, Timeline: July 15, 2025
+
+- [x] Manual verification of core server endpoints
+- [ ] Automated Puppeteer tests for web UI functionality
+- [ ] Automated API integration tests
+- [ ] Stress testing with multiple models and concurrent requests
+- [ ] Platform-specific tests (Apple Silicon vs Intel)
+
+### Error Handling & Resilience - Priority: HIGH, Timeline: July 18, 2025
+
+- [x] Implement port conflict detection and resolution
+- [x] Add proper exception handling in server startup
+- [ ] Implement graceful degradation for missing dependencies
+- [ ] Add comprehensive logging with rotation
+- [ ] Implement diagnostic tools for troubleshooting
+
+### Documentation & User Experience - Priority: MEDIUM, Timeline: July 20, 2025
+
+- [ ] Update all README documentation for headless tray app
+- [ ] Create quick-start guide for end users
+- [ ] Document troubleshooting procedures
+- [ ] Create uninstall instructions
+- [ ] Update developer documentation
+
+### Final Release Preparation - Priority: CRITICAL, Timeline: July 25, 2025
+
+- [ ] Complete final QA testing
+- [ ] Tag release in repository
+- [ ] Publish release artifacts
+- [ ] Update release notes
+- [ ] Create installer verification checklist
+
+## 🎨 Complete Frontend Rebuild with Ant Design - Priority: CRITICAL, Timeline: Immediate
+
+As per the latest directive, the existing frontend will be completely torn down and rebuilt as a web UI served by a taskbar/menu bar service on macOS. The new UI will utilize Ant Design for a modern, enterprise-grade interface focused on LLM management, VectorDB, and MCP service dashboards. The following phases outline the rebuild process, incorporating guidelines and examples from the provided Ant Design documentation.
+
+### Phase 1: Setup and Base Components - Priority: CRITICAL, Timeline: Immediate
+
+- [ ] Tear down the existing frontend codebase in gerdsen-ai-frontend to start fresh
+- [ ] Set up a new React project with Ant Design 5.x, Vite, and TypeScript, following the Getting Started Guide (https://ant.design/docs/react/getting-started/)
+- [ ] Create core layout components using Ant Design's Layout with collapsible sidebar and Tabs for navigation
+- [ ] Implement authentication and base API clients for secure communication with the backend
+- [ ] Set up WebSocket integration for real-time updates on model status and system metrics
+
+### Phase 2: Model Management Interface - Priority: CRITICAL, Timeline: Immediate
+
+- [ ] Implement model listing and management screens using Ant Design Table for advanced data display
+- [ ] Create model card and grid components with Descriptions for metadata and Statistic for key metrics
+- [ ] Develop model upload and download functionality with drag-and-drop support via Form and Progress indicators
+- [ ] Implement model search and filtering with Select/Input components for query interfaces
+
+### Phase 3: System Monitoring Dashboard - Priority: CRITICAL, Timeline: Immediate
+
+- [ ] Create a performance dashboard with real-time charts using Ant Design Charts for data visualization
+- [ ] Implement hardware monitoring components to display CPU, GPU, memory, and thermal metrics
+- [ ] Create optimization profile management UI with Slider for parameter tuning and Form for configurations
+- [ ] Develop system alerts and notifications using Alert/Notification components for system status updates
+
+### Phase 4: Advanced Features and Service Management - Priority: HIGH, Timeline: Next Sprint
+
+- [ ] Implement terminal UI and log viewer within a Drawer/Modal for detailed inspection
+- [ ] Create service management interface for controlling the taskbar/menu bar service
+- [ ] Develop MCP workspace management UI to handle multiple contexts and configurations
+- [ ] Implement Apple Silicon optimization UI to showcase dynamic hardware adaptations
+
+### Phase 5: Polish and User Experience - Priority: HIGH, Timeline: Next Sprint
+
+- [ ] Add animations and transitions for a smooth user experience as per Ant Design's visualization guidelines
+- [ ] Implement theme customization options to support multiple visual styles
+- [ ] Perform cross-browser testing to ensure compatibility across platforms
+- [ ] Optimize performance and bundle size for fast loading and responsiveness
+- [ ] Implement responsive design to support various screen sizes and devices
+
+### Phase 6: Testing and Production Deployment - Priority: HIGH, Timeline: Next Sprint
+
+- [ ] Write component and integration tests using Jest and Puppeteer for comprehensive coverage
+- [ ] Perform usability testing to refine the UI based on user feedback
+- [ ] Fix bugs and address edge cases to ensure stability
+- [ ] Prepare for production deployment, integrating with the taskbar/menu bar service for seamless access
+
+### Relevant Ant Design Resources and Examples
+
+- **Official Documentation**: 
+  - Main Site: https://ant.design/
+  - Component Overview: https://ant.design/components/overview/
+  - Getting Started: https://ant.design/docs/react/getting-started/
+  - Ant Design Pro: https://pro.ant.design/
+  - Visualization Guidelines: https://ant.design/docs/spec/visualization-page/
+
+- **Dashboard Examples & Templates**:
+  - Ant Design Pro Preview: Official enterprise dashboard demo
+  - Antd Multipurpose Dashboard (GitHub): Built with Vite, TypeScript, and Ant Design 5
+  - Muse Ant Design Dashboard (Creative Tim): Free React & Ant Design admin template
+  - Design Sparx Demo: Multi-dashboard with data visualization
+
+- **Key Components for VectorDB/MCP Dashboard**:
+  - **Data Display**: Table, Descriptions, Statistic
+  - **Data Visualization**: Progress, Charts (Ant Design Charts)
+  - **Forms & Controls**: Form, Select/Input, Slider
+  - **Layout**: Layout with sidebar, Tabs, Drawer/Modal
+  - **Feedback**: Alert/Notification, Result
 
 ## 🚨 Critical Security Issues (RESOLVED - July 5, 2025)
 
@@ -473,6 +597,19 @@ All tasks below are enhancements beyond the core MVP functionality.
 - [ ] Collections & Organization (custom groupings)
 - [ ] VS Code Integration companion extension
 
+### Phase 4: Leveraging Unused Potential for Web UI (Priority: HIGH, Timeline: Post-MVP)
+Based on industry trends and best practices for AI model management dashboards, the following features can significantly enhance the web UI exposed via the API:
+- [ ] **Interactive Model Visualization**: Implement 3D or 2D visualizations to represent model architectures and data flows, aiding in understanding complex models.
+- [ ] **Real-Time Collaboration Tools**: Add features for multiple users to collaborate on model selection and tuning in real-time, similar to shared dashboards in business intelligence tools.
+- [ ] **Customizable Dashboards**: Allow users to create personalized dashboards with widgets for model performance, system health, and usage statistics, enhancing user engagement.
+- [ ] **Advanced Query Builder**: Develop a visual query builder for constructing complex queries to interact with models, making it accessible to non-technical users.
+- [ ] **Integration with External Tools**: Provide seamless integration with popular data science tools like Jupyter Notebooks or TensorBoard for extended functionality.
+- [ ] **AI-Driven Insights**: Incorporate machine learning to suggest optimizations or highlight anomalies in model performance based on historical data.
+- [ ] **Accessibility Features**: Ensure the UI adheres to WCAG standards, supporting keyboard navigation and screen readers for broader accessibility.
+- [ ] **Multi-Language Support**: Implement internationalization to support multiple languages, catering to a global user base.
+- [ ] **Offline Mode**: Develop capabilities for limited functionality in offline mode, syncing changes once connectivity is restored.
+- [ ] **Security Dashboard**: Add a dedicated section for monitoring security events, API key usage, and access logs to enhance transparency and control.
+
 ## VS Code/Cline Integration Requirements (Post-MVP)
 
 These tasks enhance the integration with VS Code AI extensions beyond the MVP.
@@ -538,18 +675,25 @@ These tasks focus on implementing upcoming features as outlined in the project's
   - [ ] Design framework for fine-tuning models on local data using Core ML and MLX.
   - [ ] Create API endpoint or interface for initiating and monitoring training.
 - [ ] **Advanced Scheduling** - **Priority: Medium, Timeline: Next 3-4 Sprints**
+
   - [ ] Implement time-based optimization and task scheduling.
   - [ ] Integrate with macOS service for background operations, focusing on thermal and power efficiency.
+
 - [ ] **Cloud Integration** - **Priority: Low, Timeline: Later Sprints**
+
   - [ ] Develop optional cloud model synchronization with security and privacy features.
   - [ ] Add configuration options in `config/production.json` for cloud features.
-- [ ] **Plugin System** - **Priority: Low, Timeline: Later Sprints**
+
+## Plugin System - Post-MVP
+
+- [x] **Plugin Architecture** - **Priority: Low, Timeline: Later Sprints**
+
   - [ ] Design extensible architecture for third-party integrations.
   - [ ] Document plugin system for community contributions.
 
 ## Testing and Validation (Post-MVP)
 
-These tasks ensure the stability and functionality of the server after critical fixes and implementations beyond the MVP.
+{{ ... }}
 
 ## Documentation Tasks
 
@@ -563,6 +707,53 @@ These tasks aim to enhance the project's documentation for better user and devel
   - [ ] Detail new API endpoints in `docs/API_REFERENCE.md`.
 - [ ] **Update Troubleshooting Section** - **Priority: Medium, Timeline: Post-Feature Implementation**
   - [ ] Add solutions for common issues with new features in relevant documentation.
+
+## 🎯 Headless Tray App MVP Path (July 2025)
+
+The following represents the critical path to delivering the Impetus headless tray app as a production-ready MVP:
+
+- [ ] **Core Tray App Functionality** - **Priority: CRITICAL, Timeline: July 10, 2025**
+  - [x] Implement singleton instance management (prevent multiple tray icons)
+  - [x] Add proper server spawning and monitoring
+  - [x] Implement tray menu actions (start/stop/restart server)
+  - [x] Add automatic server recovery on crashes
+  - [ ] Validate tray app stability during long-running sessions
+
+- [ ] **Build & Packaging System** - **Priority: CRITICAL, Timeline: July 12, 2025**
+  - [x] Implement PyInstaller build script with proper error handling
+  - [x] Add dependency verification and universal binary support
+  - [ ] Implement code signing and notarization support
+  - [ ] Add validation testing for built application
+  - [ ] Create reproducible build fingerprinting
+  - [ ] Document build and release process
+
+- [ ] **End-to-End Testing** - **Priority: HIGH, Timeline: July 15, 2025**
+  - [x] Manual verification of core server endpoints
+  - [ ] Automated Puppeteer tests for web UI functionality
+  - [ ] Automated API integration tests
+  - [ ] Stress testing with multiple models and concurrent requests
+  - [ ] Platform-specific tests (Apple Silicon vs Intel)
+
+- [ ] **Error Handling & Resilience** - **Priority: HIGH, Timeline: July 18, 2025**
+  - [x] Implement port conflict detection and resolution
+  - [x] Add proper exception handling in server startup
+  - [ ] Implement graceful degradation for missing dependencies
+  - [ ] Add comprehensive logging with rotation
+  - [ ] Implement diagnostic tools for troubleshooting
+
+- [ ] **Documentation & User Experience** - **Priority: MEDIUM, Timeline: July 20, 2025**
+  - [ ] Update all README documentation for headless tray app
+  - [ ] Create quick-start guide for end users
+  - [ ] Document troubleshooting procedures
+  - [ ] Create uninstall instructions
+  - [ ] Update developer documentation
+
+- [ ] **Final Release Preparation** - **Priority: CRITICAL, Timeline: July 25, 2025**
+  - [ ] Complete final QA testing
+  - [ ] Tag release in repository
+  - [ ] Publish release artifacts
+  - [ ] Update release notes
+  - [ ] Create installer verification checklist
 
 ## Community and Contribution Tasks
 
@@ -677,6 +868,9 @@ A comprehensive audit of the Impetus LLM Server codebase was conducted to identi
 
 ---
 
-**Note**: This todo list is a living document and should be updated as tasks are completed or new priorities emerge. Timelines and priorities are based on the current project roadmap and may be adjusted based on feedback or changing requirements.
+## Notes
 
-**Additional Note**: The tasks have been reordered to prioritize critical bug fixes and the MVP section at the top, focusing on loading local models and enabling Cline integration in VS Code or VS Codium. Subsequent sections cover post-MVP enhancements, development workflow updates, further development tasks, testing, documentation, and community engagement, aligning with the project roadmap phases outlined in `ai.md`.
+- This document has been consolidated to focus on the Headless Tray App MVP as the primary objective
+- All tasks now follow a clear priority system with defined timelines
+- Previous tasks that are no longer relevant have been removed
+- Completed tasks remain marked for reference until the next document cleanup
