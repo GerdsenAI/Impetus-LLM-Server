@@ -1,0 +1,80 @@
+Cleanup started at Tue Jul  8 00:52:44 CDT 2025
+Backup directory created at /tmp/impetus_cleanup_backup_20250708_005244
+WARNING: This script will remove files and directories that may be unneeded.
+Please review the list of items to be removed in the script before proceeding.
+A backup will be created at /tmp/impetus_cleanup_backup_20250708_005244 before any deletion.
+Backing up config/models to /tmp/impetus_cleanup_backup_20250708_005244
+Removing config/models
+Backing up docs/API_REFERENCE.md to /tmp/impetus_cleanup_backup_20250708_005244
+Removing docs/API_REFERENCE.md
+Backing up docs/ENHANCEMENT_SUMMARY.md to /tmp/impetus_cleanup_backup_20250708_005244
+Removing docs/ENHANCEMENT_SUMMARY.md
+Backing up docs/INSTALLATION.md to /tmp/impetus_cleanup_backup_20250708_005244
+Removing docs/INSTALLATION.md
+Backing up docs/vscode_integration.md to /tmp/impetus_cleanup_backup_20250708_005244
+Removing docs/vscode_integration.md
+Backing up instance to /tmp/impetus_cleanup_backup_20250708_005244
+Removing instance
+Backing up scripts/build_macos.sh to /tmp/impetus_cleanup_backup_20250708_005244
+Removing scripts/build_macos.sh
+Backing up scripts/build_with_pyinstaller.sh to /tmp/impetus_cleanup_backup_20250708_005244
+Removing scripts/build_with_pyinstaller.sh
+Backing up scripts/download_example_model.py to /tmp/impetus_cleanup_backup_20250708_005244
+Removing scripts/download_example_model.py
+Backing up scripts/generate_ssl_certs.sh to /tmp/impetus_cleanup_backup_20250708_005244
+Removing scripts/generate_ssl_certs.sh
+Backing up scripts/install.sh to /tmp/impetus_cleanup_backup_20250708_005244
+Removing scripts/install.sh
+Backing up scripts/setup_user_models.py to /tmp/impetus_cleanup_backup_20250708_005244
+Removing scripts/setup_user_models.py
+Backing up scripts/start_production.sh to /tmp/impetus_cleanup_backup_20250708_005244
+Removing scripts/start_production.sh
+Backing up tests/conftest.py to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/conftest.py
+Backing up tests/test_gguf_inference.py to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/test_gguf_inference.py
+Backing up tests/test_gguf_integration.py to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/test_gguf_integration.py
+Backing up tests/test_model_loader_factory.py to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/test_model_loader_factory.py
+Backing up tests/test_production_functionality.py to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/test_production_functionality.py
+Backing up tests/model_loaders to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/model_loaders
+Backing up tests/puppeteer/e2e to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/puppeteer/e2e
+Backing up tests/puppeteer/integration to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/puppeteer/integration
+Backing up tests/puppeteer/performance to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/puppeteer/performance
+Backing up tests/puppeteer/setup to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/puppeteer/setup
+Backing up tests/puppeteer/utils to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/puppeteer/utils
+Backing up tests/puppeteer/package.json to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/puppeteer/package.json
+Backing up tests/puppeteer/README.md to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/puppeteer/README.md
+Backing up tests/puppeteer/run-tests.js to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/puppeteer/run-tests.js
+Backing up tests/puppeteer/SETUP_COMPLETE.md to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/puppeteer/SETUP_COMPLETE.md
+Backing up tests/puppeteer/test-report.html to /tmp/impetus_cleanup_backup_20250708_005244
+Removing tests/puppeteer/test-report.html
+Backing up research_findings.md to /tmp/impetus_cleanup_backup_20250708_005244
+Removing research_findings.md
+Backing up todo.md to /tmp/impetus_cleanup_backup_20250708_005244
+Removing todo.md
+Backing up .env.example to /tmp/impetus_cleanup_backup_20250708_005244
+Removing .env.example
+Backing up .gitignore to /tmp/impetus_cleanup_backup_20250708_005244
+Removing .gitignore
+Backing up cleanup_log_20250708_003924.txt to /tmp/impetus_cleanup_backup_20250708_005244
+Removing cleanup_log_20250708_003924.txt
+Backing up cleanup_log_20250708_004923.txt to /tmp/impetus_cleanup_backup_20250708_005244
+Removing cleanup_log_20250708_004923.txt
+Backing up INSTALLATION.md to /tmp/impetus_cleanup_backup_20250708_005244
+Removing INSTALLATION.md
+Backing up README.md to /tmp/impetus_cleanup_backup_20250708_005244
+Removing README.md
+Cleanup completed at Tue Jul  8 00:54:28 CDT 2025

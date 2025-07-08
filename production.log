@@ -1,0 +1,8 @@
+2025-07-05 18:01:18,492 - gerdsen_ai_server.src.utils.config - INFO - Loaded environment from: /Users/gerdsenai/Documents/GerdsenAI_Repositories/Impetus-LLM-Server/.env
+2025-07-05 18:01:18,492 - gerdsen_ai_server.src.utils.config - INFO - Loaded environment from: /Users/gerdsenai/Documents/GerdsenAI_Repositories/Impetus-LLM-Server/.env
+2025-07-05 18:01:18,492 - __main__ - INFO - Starting enhanced production server with ML components
+2025-07-05 18:01:18,563 - utils.config - INFO - Loaded environment from: /Users/gerdsenai/Documents/GerdsenAI_Repositories/Impetus-LLM-Server/.env
+2025-07-05 18:01:18,564 - utils.config - INFO - Loaded environment from: /Users/gerdsenai/Documents/GerdsenAI_Repositories/Impetus-LLM-Server/.env
+2025-07-05 18:01:18 - root - INFO - Logging initialized
+2025-07-05 18:01:18 - __main__ - ERROR - Import error: cannot import name 'app' from 'gerdsen_ai_server.src.production_main_enhanced' (/Users/gerdsenai/Documents/GerdsenAI_Repositories/Impetus-LLM-Server/gerdsen_ai_server/src/production_main_enhanced.py)
+2025-07-05 18:01:18 - __main__ - ERROR - Please install Waitress: pip install waitress

@@ -1,35 +1,7 @@
-# Core requirements
-flask==3.1.1
-flask-socketio==5.4.1
-flask-cors==5.0.0
-flask-sqlalchemy==3.1.1
-psutil==6.1.0
-requests==2.32.3
-numpy==2.2.1
-pandas==2.2.3
-
-# macOS-specific requirements
-rumps==0.4.0  # Menu bar applications
-pystray==0.19.5  # System tray support
-Pillow==11.0.0  # Image processing for icons
-
-# Apple ML frameworks (when available)
-coremltools>=8.3.0  # Core ML model tools
-
-# Enhanced server capabilities
-websockets==14.1
-aiohttp==3.11.11
-uvloop==0.21.0  # Better async performance on Unix
-
-# Development and testing
-pytest==8.3.4
-pytest-asyncio==0.25.0
-black==24.4.0
-
-# Optional: For advanced features
-py2app==0.28.8  # macOS app bundling
-pyobjc-framework-Cocoa>=10.3.1  # Native macOS integration
-pyobjc-framework-Quartz>=10.3.1  # Graphics and display
-pyobjc-framework-CoreML>=10.3.1  # Core ML integration
-pyobjc-framework-Metal>=10.3.1  # Metal framework
-pyobjc-framework-MetalPerformanceShaders>=10.3.1  # MPS integration
+# macOS-specific dependencies for Impetus-LLM-Server backend
+flask==2.3.2
+llama-cpp-python==0.2.75
+numpy==1.26.4
+pydantic==2.7.1
+requests==2.31.0
+websocket-client==1.8.0

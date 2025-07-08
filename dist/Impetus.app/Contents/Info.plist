@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>Impetus</string>
+	<key>CFBundleExecutable</key>
+	<string>Impetus</string>
+	<key>CFBundleIconFile</key>
+	<string>generated-2137e9e7262e2d07e9efb034a18e84092abb09a6d82d18ecab01187143c784c1.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>Impetus</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Impetus</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.0.0</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+</dict>
+</plist>

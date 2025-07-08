@@ -1,0 +1,60 @@
+2025-07-05 16:38:07 - root - INFO - Logging initialized
+2025-07-05 16:38:07 - __main__ - INFO - Configuring CORS with origins: ['http://localhost:3000', 'http://localhost:8080', 'http://127.0.0.1:3000', 'http://127.0.0.1:8080']
+2025-07-05 16:38:07 - __main__ - INFO - Routes configured successfully
+2025-07-05 16:38:07 - api.upload_handler - INFO - Upload handler initialized: max_size=5000MB, directory=/Users/gerdsenai/Models
+2025-07-05 16:38:07 - api.upload_handler - INFO - Upload routes initialized
+2025-07-05 16:38:07 - __main__ - INFO - Starting ML components initialization...
+2025-07-05 16:38:07 - __main__ - INFO - Enhanced production server initialized
+2025-07-05 16:38:07 - __main__ - INFO - Starting enhanced production server on 0.0.0.0:8080
+
+============================================================
+🚀 Impetus Enhanced Production Server
+============================================================
+📡 Server: http://0.0.0.0:8080
+✅ Health: http://0.0.0.0:8080/api/health
+🔧 ML Status: Loading...
+============================================================
+
+ * Serving Flask app 'production_main_enhanced'
+ * Debug mode: off
+2025-07-05 16:38:07 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://10.69.7.180:8080
+2025-07-05 16:38:07 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-05 16:38:07 - coremltools - WARNING - Torch version 2.7.1 has not been tested with coremltools. You may run into unexpected errors. Torch 2.5.0 is the most recent version that has been tested.
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLModelProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLCPUComputeDeviceProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLGPUComputeDeviceProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLNeuralEngineComputeDeviceProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLModelProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLComputePlanProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Fail to import BlobReader from libmilstoragepython. No module named 'coremltools.libmilstoragepython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLModelProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLModelAssetProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Fail to import BlobWriter from libmilstoragepython. No module named 'coremltools.libmilstoragepython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLComputePlanProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLCPUComputeDeviceProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLGPUComputeDeviceProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load _MLNeuralEngineComputeDeviceProxy: No module named 'coremltools.libcoremlpython'
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load '_MLCPUComputeDeviceRemoteProxy'. Remote device functionality for retrieving the compute plan is unavailable.
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load '_MLGPUComputeDeviceRemoteProxy'. Remote device functionality for retrieving the compute plan is unavailable.
+2025-07-05 16:38:08 - coremltools - WARNING - Failed to load '_MLNeuralEngineComputeDeviceRemoteProxy'. Remote device functionality for retrieving the compute plan is unavailable.
+2025-07-05 16:38:08 - coremltools - WARNING - 
+            Failed to load '_MLComputePlanRemoteProxy'.
+            Remote device functionality for retrieving the compute plan is unavailable.
+            
+2025-07-05 16:38:08 - enhanced_apple_frameworks_integration - INFO - Enhanced Apple Frameworks Integration initialized
+2025-07-05 16:38:08 - enhanced_apple_frameworks_integration - INFO - System: Apple M3 Ultra
+2025-07-05 16:38:08 - enhanced_apple_frameworks_integration - INFO - Core ML: Not Available
+2025-07-05 16:38:08 - enhanced_apple_frameworks_integration - INFO - MLX: Available
+2025-07-05 16:38:08 - enhanced_apple_frameworks_integration - INFO - Metal: Available
+2025-07-05 16:38:08 - __main__ - WARNING - ML components not available: No module named 'gerdsen_ai_server'
+2025-07-05 16:38:13 - werkzeug - INFO - 127.0.0.1 - - [05/Jul/2025 16:38:13] "GET /api/health HTTP/1.1" 200 -
+2025-07-05 16:38:17 - werkzeug - INFO - 127.0.0.1 - - [05/Jul/2025 16:38:17] "GET /v1/models HTTP/1.1" 200 -
+2025-07-05 16:38:24 - werkzeug - INFO - 127.0.0.1 - - [05/Jul/2025 16:38:24] "GET /v1/models HTTP/1.1" 200 -
+2025-07-05 16:38:28 - werkzeug - INFO - 127.0.0.1 - - [05/Jul/2025 16:38:28] "GET /v1/models HTTP/1.1" 200 -
+2025-07-05 16:38:38 - werkzeug - INFO - 127.0.0.1 - - [05/Jul/2025 16:38:38] "POST /api/models/upload/validate HTTP/1.1" 200 -
+2025-07-05 17:47:23 - werkzeug - INFO - 127.0.0.1 - - [05/Jul/2025 17:47:23] "POST /api/models/upload/validate HTTP/1.1" 200 -
+2025-07-05 17:47:34 - werkzeug - INFO - 127.0.0.1 - - [05/Jul/2025 17:47:34] "OPTIONS /api/health HTTP/1.1" 200 -
+2025-07-05 17:47:40 - werkzeug - INFO - 127.0.0.1 - - [05/Jul/2025 17:47:40] "OPTIONS /api/health HTTP/1.1" 200 -

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GerdsenAI MLX Model Manager</title>
+    <link rel="stylesheet" href="apple_hig_styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="theme-auto">
+    <!-- App Container with Liquid Glass Effect -->
+    <div class="app-container">
+        <!-- macOS Window Controls -->
+        <div class="window-controls">
+            <div class="traffic-lights">
+                <button class="traffic-light close" onclick="handleWindowClose()" aria-label="Close">
+                    <svg width="12" height="12" viewBox="0 0 12 12">
+                        <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="traffic-light minimize" onclick="handleWindowMinimize()" aria-label="Minimize">
+                    <svg width="12" height="12" viewBox="0 0 12 12">
+                        <path d="M2 6h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="traffic-light maximize" onclick="handleWindowMaximize()" aria-label="Maximize">
+                    <svg width="12" height="12" viewBox="0 0 12 12">
+                        <rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Header with Hierarchy -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" class="logo-svg">
+                            <defs>
+                                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#007AFF"/>
+                                    <stop offset="100%" style="stop-color:#5856D6"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="16" cy="16" r="14" fill="url(#logoGradient)"/>
+                            <path d="M12 10h8v2h-8zM10 14h12v2H10zM14 18h4v2h-4z" fill="white"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>GerdsenAI</h1>
+                        <span class="subtitle">MLX Model Manager</span>
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                    <div class="connection-status" id="connectionStatus">
+                        <div class="status-indicator connected"></div>
+                        <span class="status-text">Connected</span>
+                    </div>
+                    
+                    <div class="hardware-info" id="hardwareInfo">
+                        <i class="fas fa-microchip"></i>
+                        <span class="hardware-text">Detecting...</span>
+                    </div>
+                    
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" placeholder="Search models, logs, settings..." id="searchInput" class="search-input">
+                            <button class="search-clear" id="searchClear" aria-label="Clear search">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                        <i class="fas fa-sun light-icon"></i>
+                        <i class="fas fa-moon dark-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content with Harmony -->
+        <main class="main-content">
+            <!-- Navigation Sidebar -->
+            <nav class="sidebar">
+                <div class="nav-section">
+                    <div class="nav-item active" data-tab="dashboard">
+                        <i class="fas fa-chart-pie nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                        <div class="nav-indicator"></div>
+                    </div>
+                    <div class="nav-item" data-tab="models">
+                        <i class="fas fa-cube nav-icon"></i>
+                        <span class="nav-text">Models</span>
+                        <div class="nav-indicator"></div>
+                    </div>
+                    <div class="nav-item" data-tab="performance">
+                        <i class="fas fa-chart-line nav-icon"></i>
+                        <span class="nav-text">Performance</span>
+                        <div class="nav-indicator"></div>
+                    </div>
+                    <div class="nav-item" data-tab="hardware">
+                        <i class="fas fa-server nav-icon"></i>
+                        <span class="nav-text">Hardware</span>
+                        <div class="nav-indicator"></div>
+                    </div>
+                    <div class="nav-item" data-tab="terminal">
+                        <i class="fas fa-terminal nav-icon"></i>
+                        <span class="nav-text">Terminal</span>
+                        <div class="nav-indicator"></div>
+                    </div>
+                    <div class="nav-item" data-tab="gerdsen">
+                        <i class="fas fa-external-link-alt nav-icon"></i>
+                        <span class="nav-text">Gerdsen.ai</span>
+                        <div class="nav-indicator"></div>
+                    </div>
+                </div>
+                
+                <div class="nav-section secondary">
+                    <div class="nav-item" data-tab="settings">
+                        <i class="fas fa-cog nav-icon"></i>
+                        <span class="nav-text">Settings</span>
+                        <div class="nav-indicator"></div>
+                    </div>
+                    <div class="nav-item" data-tab="logs">
+                        <i class="fas fa-file-alt nav-icon"></i>
+                        <span class="nav-text">Logs</span>
+                        <div class="nav-indicator"></div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Content Area with Consistency -->
+            <div class="content-area">
+                <!-- Dashboard Tab -->
+                <div class="tab-content active" id="dashboard">
+                    <div class="content-header">
+                        <h2 class="content-title">Dashboard</h2>
+                        <p class="content-subtitle">System overview and real-time metrics</p>
+                    </div>
+                    
+                    <div class="dashboard-grid">
+                        <!-- System Status Cards -->
+                        <div class="card-grid">
+                            <div class="metric-card primary">
+                                <div class="card-header">
+                                    <div class="card-icon">
+                                        <i class="fas fa-microchip"></i>
+                                    </div>
+                                    <div class="card-title">
+                                        <h3>CPU Usage</h3>
+                                        <span class="card-subtitle">Real-time monitoring</span>
+                                    </div>
+                                </div>
+                                <div class="card-content">
+                                    <div class="metric-value" id="cpuUsage">--</div>
+                                    <div class="metric-trend positive" id="cpuTrend">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>+2.3%</span>
+                                    </div>
+                                </div>
+                                <div class="card-chart">
+                                    <canvas id="cpuChart" width="100" height="40"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="metric-card secondary">
+                                <div class="card-header">
+                                    <div class="card-icon">
+                                        <i class="fas fa-memory"></i>
+                                    </div>
+                                    <div class="card-title">
+                                        <h3>Memory Usage</h3>
+                                        <span class="card-subtitle">Unified memory</span>
+                                    </div>
+                                </div>
+                                <div class="card-content">
+                                    <div class="metric-value" id="memoryUsage">--</div>
+                                    <div class="metric-trend neutral" id="memoryTrend">
+                                        <i class="fas fa-minus"></i>
+                                        <span>0.1%</span>
+                                    </div>
+                                </div>
+                                <div class="card-chart">
+                                    <canvas id="memoryChart" width="100" height="40"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="metric-card accent">
+                                <div class="card-header">
+                                    <div class="card-icon">
+                                        <i class="fas fa-brain"></i>
+                                    </div>
+                                    <div class="card-title">
+                                        <h3>Neural Engine</h3>
+                                        <span class="card-subtitle">AI acceleration</span>
+                                    </div>
+                                </div>
+                                <div class="card-content">
+                                    <div class="metric-value" id="neuralEngineUsage">--</div>
+                                    <div class="metric-trend positive" id="neuralEngineTrend">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>+15.7%</span>
+                                    </div>
+                                </div>
+                                <div class="card-chart">
+                                    <canvas id="neuralEngineChart" width="100" height="40"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="metric-card success">
+                                <div class="card-header">
+                                    <div class="card-icon">
+                                        <i class="fas fa-tachometer-alt"></i>
+                                    </div>
+                                    <div class="card-title">
+                                        <h3>Performance</h3>
+                                        <span class="card-subtitle">Tokens/second</span>
+                                    </div>
+                                </div>
+                                <div class="card-content">
+                                    <div class="metric-value" id="performanceMetric">--</div>
+                                    <div class="metric-trend positive" id="performanceTrend">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>+8.2%</span>
+                                    </div>
+                                </div>
+                                <div class="card-chart">
+                                    <canvas id="performanceChart" width="100" height="40"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Information Panel -->
+                        <div class="info-panel">
+                            <div class="panel-header">
+                                <h3>System Information</h3>
+                                <button class="refresh-btn" onclick="refreshSystemInfo()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <div class="panel-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <span class="info-label">Chip</span>
+                                        <span class="info-value" id="chipInfo">Detecting...</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">CPU Cores</span>
+                                        <span class="info-value" id="cpuCores">--</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">GPU Cores</span>
+                                        <span class="info-value" id="gpuCores">--</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Neural Engine</span>
+                                        <span class="info-value" id="neuralEngineCores">--</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Memory</span>
+                                        <span class="info-value" id="totalMemory">--</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">MLX Status</span>
+                                        <span class="info-value status" id="mlxStatus">
+                                            <span class="status-dot"></span>
+                                            Checking...
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Models Tab -->
+                <div class="tab-content" id="models">
+                    <div class="content-header">
+                        <h2 class="content-title">Models</h2>
+                        <p class="content-subtitle">Manage and optimize your ML models</p>
+                        <div class="header-actions">
+                            <button class="btn-primary" onclick="loadModel()">
+                                <i class="fas fa-plus"></i>
+                                Load Model
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="models-container">
+                        <div class="models-grid" id="modelsGrid">
+                            <!-- Models will be populated dynamically -->
+                            <div class="model-card placeholder">
+                                <div class="model-icon">
+                                    <i class="fas fa-cube"></i>
+                                </div>
+                                <h3>No models loaded</h3>
+                                <p>Load your first model to get started</p>
+                                <button class="btn-secondary" onclick="loadModel()">
+                                    Load Model
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Tab -->
+                <div class="tab-content" id="performance">
+                    <div class="content-header">
+                        <h2 class="content-title">Performance</h2>
+                        <p class="content-subtitle">Real-time performance analytics</p>
+                    </div>
+                    
+                    <div class="performance-dashboard">
+                        <div class="chart-container">
+                            <canvas id="performanceChart" width="800" height="400"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hardware Tab -->
+                <div class="tab-content" id="hardware">
+                    <div class="content-header">
+                        <h2 class="content-title">Hardware</h2>
+                        <p class="content-subtitle">Apple Silicon optimization details</p>
+                    </div>
+                    
+                    <div class="hardware-details">
+                        <div class="hardware-grid" id="hardwareGrid">
+                            <!-- Hardware details will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terminal Tab -->
+                <div class="tab-content" id="terminal">
+                    <div class="content-header">
+                        <h2 class="content-title">Terminal</h2>
+                        <p class="content-subtitle">Command line interface</p>
+                    </div>
+                    
+                    <div class="terminal-container">
+                        <div class="terminal-window">
+                            <div class="terminal-header">
+                                <div class="terminal-controls">
+                                    <button class="terminal-btn" onclick="clearTerminal()">Clear</button>
+                                    <button class="terminal-btn" onclick="exportLogs()">Export</button>
+                                </div>
+                            </div>
+                            <div class="terminal-content" id="terminalContent">
+                                <div class="terminal-line">
+                                    <span class="terminal-prompt">gerdsen@ai:~$</span>
+                                    <span class="terminal-text">Welcome to GerdsenAI Terminal</span>
+                                </div>
+                            </div>
+                            <div class="terminal-input-line">
+                                <span class="terminal-prompt">gerdsen@ai:~$</span>
+                                <input type="text" class="terminal-input" id="terminalInput" placeholder="Enter command...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gerdsen.ai Tab -->
+                <div class="tab-content" id="gerdsen">
+                    <div class="content-header">
+                        <h2 class="content-title">Gerdsen.ai</h2>
+                        <p class="content-subtitle">Comprehensive AI solutions for the modern enterprise</p>
+                    </div>
+                    
+                    <div class="gerdsen-content">
+                        <!-- Hero Section -->
+                        <div class="gerdsen-hero">
+                            <div class="hero-content">
+                                <h3>Accelerate Your AI Journey</h3>
+                                <p>From model optimization to deployment, Gerdsen.ai provides the complete toolkit for AI development on Apple Silicon and beyond.</p>
+                                <div class="hero-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-number">10x</span>
+                                        <span class="stat-label">Faster Inference</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">50%</span>
+                                        <span class="stat-label">Memory Reduction</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">100+</span>
+                                        <span class="stat-label">Supported Models</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Categories -->
+                        <div class="product-categories">
+                            <h3>Our Product Suite</h3>
+                            
+                            <!-- Core AI Platform -->
+                            <div class="category-section">
+                                <div class="category-header">
+                                    <h4>Core AI Platform</h4>
+                                    <p>Foundation tools for AI development and deployment</p>
+                                </div>
+                                <div class="products-grid">
+                                    <div class="product-card featured">
+                                        <div class="product-icon">
+                                            <i class="fas fa-microchip"></i>
+                                        </div>
+                                        <h5>MLX Optimizer Pro</h5>
+                                        <p>Advanced model optimization specifically designed for Apple Silicon. Leverage the Neural Engine, GPU, and unified memory architecture for maximum performance.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Neural Engine</span>
+                                            <span class="feature-tag">Metal Performance</span>
+                                            <span class="feature-tag">Core ML</span>
+                                        </div>
+                                        <button class="btn-primary" onclick="openGerdsenAI('mlx-optimizer-pro')">
+                                            <i class="fas fa-rocket"></i>
+                                            Get Started
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="product-card">
+                                        <div class="product-icon">
+                                            <i class="fas fa-cloud"></i>
+                                        </div>
+                                        <h5>AI Cloud Platform</h5>
+                                        <p>Scalable cloud infrastructure for training and deploying AI models with automatic scaling and cost optimization.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Auto-scaling</span>
+                                            <span class="feature-tag">Multi-cloud</span>
+                                            <span class="feature-tag">Cost Optimization</span>
+                                        </div>
+                                        <button class="btn-outline" onclick="openGerdsenAI('cloud-platform')">
+                                            Learn More
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="product-card">
+                                        <div class="product-icon">
+                                            <i class="fas fa-database"></i>
+                                        </div>
+                                        <h5>Model Hub</h5>
+                                        <p>Centralized repository for AI models with version control, collaboration tools, and automated testing.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Version Control</span>
+                                            <span class="feature-tag">Collaboration</span>
+                                            <span class="feature-tag">Testing</span>
+                                        </div>
+                                        <button class="btn-outline" onclick="openGerdsenAI('model-hub')">
+                                            Explore
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Developer Tools -->
+                            <div class="category-section">
+                                <div class="category-header">
+                                    <h4>Developer Tools</h4>
+                                    <p>Productivity tools for AI developers and data scientists</p>
+                                </div>
+                                <div class="products-grid">
+                                    <div class="product-card">
+                                        <div class="product-icon">
+                                            <i class="fas fa-code"></i>
+                                        </div>
+                                        <h5>AI Code Assistant</h5>
+                                        <p>Intelligent coding companion that understands AI frameworks and provides context-aware suggestions for ML development.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">VS Code</span>
+                                            <span class="feature-tag">PyTorch</span>
+                                            <span class="feature-tag">TensorFlow</span>
+                                        </div>
+                                        <button class="btn-outline" onclick="openGerdsenAI('code-assistant')">
+                                            Try Now
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="product-card">
+                                        <div class="product-icon">
+                                            <i class="fas fa-bug"></i>
+                                        </div>
+                                        <h5>Model Debugger</h5>
+                                        <p>Advanced debugging tools for AI models with visualization, profiling, and performance analysis capabilities.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Visualization</span>
+                                            <span class="feature-tag">Profiling</span>
+                                            <span class="feature-tag">Analysis</span>
+                                        </div>
+                                        <button class="btn-outline" onclick="openGerdsenAI('model-debugger')">
+                                            Debug
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="product-card">
+                                        <div class="product-icon">
+                                            <i class="fas fa-flask"></i>
+                                        </div>
+                                        <h5>Experiment Tracker</h5>
+                                        <p>Track, compare, and reproduce ML experiments with comprehensive logging and visualization tools.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Tracking</span>
+                                            <span class="feature-tag">Comparison</span>
+                                            <span class="feature-tag">Reproducibility</span>
+                                        </div>
+                                        <button class="btn-outline" onclick="openGerdsenAI('experiment-tracker')">
+                                            Track
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Analytics & Monitoring -->
+                            <div class="category-section">
+                                <div class="category-header">
+                                    <h4>Analytics & Monitoring</h4>
+                                    <p>Comprehensive insights and monitoring for AI systems</p>
+                                </div>
+                                <div class="products-grid">
+                                    <div class="product-card">
+                                        <div class="product-icon">
+                                            <i class="fas fa-chart-line"></i>
+                                        </div>
+                                        <h5>Performance Analytics</h5>
+                                        <p>Deep insights into model performance, resource utilization, and optimization opportunities across your AI infrastructure.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Real-time</span>
+                                            <span class="feature-tag">Dashboards</span>
+                                            <span class="feature-tag">Alerts</span>
+                                        </div>
+                                        <button class="btn-outline" onclick="openGerdsenAI('analytics')">
+                                            Analyze
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="product-card">
+                                        <div class="product-icon">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <h5>AI Safety Monitor</h5>
+                                        <p>Continuous monitoring for AI safety, bias detection, and compliance with ethical AI guidelines.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Bias Detection</span>
+                                            <span class="feature-tag">Safety</span>
+                                            <span class="feature-tag">Compliance</span>
+                                        </div>
+                                        <button class="btn-outline" onclick="openGerdsenAI('safety-monitor')">
+                                            Monitor
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="product-card">
+                                        <div class="product-icon">
+                                            <i class="fas fa-eye"></i>
+                                        </div>
+                                        <h5>Model Observatory</h5>
+                                        <p>Comprehensive model lifecycle management with drift detection, performance monitoring, and automated retraining.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Drift Detection</span>
+                                            <span class="feature-tag">Lifecycle</span>
+                                            <span class="feature-tag">Automation</span>
+                                        </div>
+                                        <button class="btn-outline" onclick="openGerdsenAI('observatory')">
+                                            Observe
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enterprise Solutions -->
+                            <div class="category-section">
+                                <div class="category-header">
+                                    <h4>Enterprise Solutions</h4>
+                                    <p>Scalable AI solutions for enterprise deployment</p>
+                                </div>
+                                <div class="products-grid">
+                                    <div class="product-card enterprise">
+                                        <div class="product-icon">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <h5>Enterprise AI Platform</h5>
+                                        <p>Complete enterprise-grade AI platform with governance, security, and compliance features for large-scale deployments.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Governance</span>
+                                            <span class="feature-tag">Security</span>
+                                            <span class="feature-tag">Compliance</span>
+                                        </div>
+                                        <button class="btn-primary" onclick="openGerdsenAI('enterprise')">
+                                            <i class="fas fa-handshake"></i>
+                                            Contact Sales
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="product-card">
+                                        <div class="product-icon">
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </div>
+                                        <h5>AI Training Platform</h5>
+                                        <p>Comprehensive training and certification platform for AI practitioners with hands-on labs and expert guidance.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Certification</span>
+                                            <span class="feature-tag">Hands-on</span>
+                                            <span class="feature-tag">Expert Support</span>
+                                        </div>
+                                        <button class="btn-outline" onclick="openGerdsenAI('training')">
+                                            Learn
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="product-card">
+                                        <div class="product-icon">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <h5>Consulting Services</h5>
+                                        <p>Expert consulting services for AI strategy, implementation, and optimization with dedicated support teams.</p>
+                                        <div class="product-features">
+                                            <span class="feature-tag">Strategy</span>
+                                            <span class="feature-tag">Implementation</span>
+                                            <span class="feature-tag">Support</span>
+                                        </div>
+                                        <button class="btn-outline" onclick="openGerdsenAI('consulting')">
+                                            Consult
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Call to Action -->
+                        <div class="cta-section">
+                            <div class="cta-content">
+                                <h3>Ready to Transform Your AI Development?</h3>
+                                <p>Join thousands of developers and enterprises who trust Gerdsen.ai for their AI infrastructure needs. Start your free trial today.</p>
+                                <div class="cta-buttons">
+                                    <button class="btn-primary large" onclick="openGerdsenAI()">
+                                        <i class="fas fa-external-link-alt"></i>
+                                        Visit Gerdsen.ai
+                                    </button>
+                                    <button class="btn-outline large" onclick="openGerdsenAI('demo')">
+                                        <i class="fas fa-play"></i>
+                                        Watch Demo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Testimonials -->
+                        <div class="testimonials-section">
+                            <h3>What Our Customers Say</h3>
+                            <div class="testimonials-grid">
+                                <div class="testimonial-card">
+                                    <div class="testimonial-content">
+                                        <p>"Gerdsen.ai's MLX Optimizer reduced our inference time by 80% on Apple Silicon. The Neural Engine integration is seamless."</p>
+                                    </div>
+                                    <div class="testimonial-author">
+                                        <strong>Sarah Chen</strong>
+                                        <span>AI Engineer, TechCorp</span>
+                                    </div>
+                                </div>
+                                <div class="testimonial-card">
+                                    <div class="testimonial-content">
+                                        <p>"The enterprise platform gave us the governance and security we needed for our AI deployment at scale."</p>
+                                    </div>
+                                    <div class="testimonial-author">
+                                        <strong>Michael Rodriguez</strong>
+                                        <span>CTO, DataFlow Inc</span>
+                                    </div>
+                                </div>
+                                <div class="testimonial-card">
+                                    <div class="testimonial-content">
+                                        <p>"Best-in-class developer experience. The code assistant understands our ML workflows perfectly."</p>
+                                    </div>
+                                    <div class="testimonial-author">
+                                        <strong>Alex Kim</strong>
+                                        <span>Lead ML Engineer, InnovateLab</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div class="tab-content" id="settings">
+                    <div class="content-header">
+                        <h2 class="content-title">Settings</h2>
+                        <p class="content-subtitle">Configure your preferences</p>
+                    </div>
+                    
+                    <div class="settings-container">
+                        <div class="settings-sections">
+                            <div class="settings-section">
+                                <h3>Appearance</h3>
+                                <div class="setting-item">
+                                    <label for="themeSelect">Theme</label>
+                                    <select id="themeSelect" onchange="changeTheme(this.value)">
+                                        <option value="auto">Auto</option>
+                                        <option value="light">Light</option>
+                                        <option value="dark">Dark</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <h3>Performance</h3>
+                                <div class="setting-item">
+                                    <label for="neuralEngineToggle">Enable Neural Engine</label>
+                                    <input type="checkbox" id="neuralEngineToggle" checked>
+                                </div>
+                                <div class="setting-item">
+                                    <label for="metalToggle">Enable Metal Acceleration</label>
+                                    <input type="checkbox" id="metalToggle" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div class="tab-content" id="logs">
+                    <div class="content-header">
+                        <h2 class="content-title">Logs</h2>
+                        <p class="content-subtitle">System logs and debugging information</p>
+                        <div class="header-actions">
+                            <button class="btn-secondary" onclick="clearLogs()">
+                                <i class="fas fa-trash"></i>
+                                Clear Logs
+                            </button>
+                            <button class="btn-primary" onclick="exportLogs()">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="logs-container">
+                        <div class="logs-filters">
+                            <select id="logLevel" onchange="filterLogs()">
+                                <option value="all">All Levels</option>
+                                <option value="debug">Debug</option>
+                                <option value="info">Info</option>
+                                <option value="warning">Warning</option>
+                                <option value="error">Error</option>
+                            </select>
+                        </div>
+                        <div class="logs-content" id="logsContent">
+                            <!-- Logs will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="apple_hig_script.js"></script>
+</body>
+</html>
+

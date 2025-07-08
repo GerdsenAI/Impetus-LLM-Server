@@ -1,0 +1,38 @@
+{
+  "mcp_version": "1.0.0",
+  "global_settings": {
+    "debug_mode": false,
+    "workspace_isolation": true,
+    "cache_enabled": true,
+    "auto_cleanup": true
+  },
+  "default_paths": {
+    "databases": "~/.mcp/databases",
+    "screenshots": "~/.mcp/screenshots",
+    "file_storage": "~/.mcp/file_storage",
+    "research_cache": "~/.mcp/research_cache",
+    "logs": "~/.mcp/logs"
+  },
+  "shared_databases": {
+    "research_cache": "~/.mcp/databases/shared_research.db",
+    "global_context": "~/.mcp/databases/global_context.db"
+  },
+  "puppeteer": {
+    "screenshots_dir": "~/.mcp/screenshots",
+    "default_viewport": {
+      "width": 900,
+      "height": 600
+    },
+    "timeout": 30000
+  },
+  "brave_search": {
+    "cache_dir": "~/.mcp/research_cache",
+    "cache_expiry_hours": 24,
+    "max_cache_size_mb": 100
+  },
+  "workspace_manager": {
+    "auto_detect_project_type": true,
+    "memory_retention_days": 30,
+    "context_retention_days": 7
+  }
+}

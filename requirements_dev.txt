@@ -1,47 +1,5 @@
-# Development dependencies for Impetus-LLM-Server
-# Install with: pip install -r requirements_dev.txt
-
-# Include production requirements
--r requirements_production.txt
-
-# Development tools
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.1.0
-black>=23.0.0
-flake8>=6.0.0
-mypy>=1.5.0
-pre-commit>=3.5.0
-
-# GGUF support (for MVP)
-gguf>=0.6.0
-sentencepiece>=0.1.99  # For tokenization
-safetensors>=0.4.0  # For model conversion
-
-# Model management
-huggingface-hub>=0.19.0  # For downloading models
-tqdm>=4.66.0  # Progress bars
-filelock>=3.13.0  # Safe concurrent access
-
-# Testing tools
-httpx>=0.25.0  # For API testing
-pytest-mock>=3.12.0
-responses>=0.24.0
-
-# Documentation
-mkdocs>=1.5.0
-mkdocs-material>=9.4.0
-mkdocstrings>=0.24.0
-
-# Performance profiling
-line-profiler>=4.1.0
-memory-profiler>=0.61.0
-
-# Apple Silicon specific (optional, may need conda)
-# tensorflow-metal>=1.1.0  # If using TensorFlow
-# torch>=2.1.0  # If using PyTorch with MPS
-
-# Type stubs
-types-requests>=2.31.0
-types-PyYAML>=6.0.0
-types-toml>=0.10.0
+# Development dependencies for Impetus-LLM-Server backend
+pytest==8.2.0
+black==24.4.2
+flake8==7.0.0
+mypy==1.10.0

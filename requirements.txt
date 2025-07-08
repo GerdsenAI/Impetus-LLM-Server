@@ -1,25 +1,7 @@
-# Core dependencies for Impetus-LLM-Server
-fastapi==0.92.0
-uvicorn==0.20.0
-pydantic==1.10.5
-flask-sqlalchemy==3.1.1
-
-# Tray app dependencies
-pystray==0.19.5
-Pillow==10.2.0
-webbrowser==0.10.1
-
-# Additional dependencies for AI model management
-torch==2.6.0
+# Core dependencies for Impetus-LLM-Server backend
+flask==2.3.2
+llama-cpp-python==0.2.75
 numpy==1.26.4
-onnx==1.15.0
-onnxruntime==1.16.3
-
-# Dependencies for Apple Silicon optimization
-# Note: Ensure torch is built for Apple Silicon (M1/M2) compatibility
-# For Apple Silicon with CoreML support: pip install onnxruntime-silicon
-
-# Development and testing dependencies
-pytest==7.2.1
-black==23.1.0
-isort==5.12.0
+pydantic==2.7.1
+requests==2.31.0
+websocket-client==1.8.0
