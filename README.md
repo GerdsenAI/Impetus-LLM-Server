@@ -23,6 +23,13 @@ A comprehensive local LLM server optimized for Apple Silicon that supports ANY m
 - **Model Switching**: Dynamic model selection from taskbar or API
 - **Zero Configuration**: Works out of the box with VS Code extensions
 
+### Modern Ant Design Frontend
+- **Polished UI**: Beautiful and intuitive Ant Design-based interface
+- **Responsive Layout**: Adapts to any screen size or device
+- **Rich Components**: Full suite of Ant Design Pro components
+- **Theme Customization**: Light/dark modes and brand-aligned color schemes
+- **Interactive Visualizations**: Real-time charts and performance monitoring
+
 ### Apple Silicon Optimization
 - **Hardware Detection**: Automatic M1-M4 series optimization
 - **Metal GPU Acceleration**: Leverages Apple's Metal Performance Shaders
