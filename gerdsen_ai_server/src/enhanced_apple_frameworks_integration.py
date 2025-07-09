@@ -742,7 +742,7 @@ class EnhancedAppleFrameworksIntegration:
     def predict(self, model_id, input_data):
         return {'content': 'mock response'}
 
-    def benchmark_performance(self, model_id, num_iterations=10):
+    def benchmark_model_performance(self, model_id, num_iterations=10):
         return {
             'average_inference_time_ms': 100,
             'throughput_inferences_per_sec': 10,

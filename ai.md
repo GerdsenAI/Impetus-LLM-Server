@@ -1,3 +1,65 @@
+# Cline Agent Planning Initialization Protocol (Impetus-LLM-Server)
+
+---
+
+### 1. Load Essential Project Context
+
+- **Start with `ai.md`**: This file is the canonical source for project overview, current status, and planning workflow. It defines the mission, key features, and immediate post-MVP focus (frontend with Ant Design/Vite, code signing, distribution).
+- **Cross-reference `.clinerules/memory.md`**: This file provides critical technical context, known issues, current limitations (e.g., only GGUF is real, others are placeholders), and a prioritized list of post-release tasks. It also documents recent breakthroughs, MCP tool setup, and testing protocols.
+
+---
+
+### 2. Gather Supporting Resources
+
+- **Check `todo.md`**: For the latest prioritized tasks, especially those related to frontend development, code signing, and distribution.
+- **Review `docs/frontend_development_guidelines.md`**: For Ant Design best practices, dashboard component recommendations, and integration tips.
+- **Consult `.clinerules/mcp_configuration.md`**: For MCP tool usage, context sharing, and efficient context loading (80%+ token reduction).
+- **Leverage Ant Design resources**: Use the official docs and dashboard templates linked in ai.md for UI/UX planning.
+
+---
+
+### 3. Planning Workflow
+
+**Follow this structured workflow:**
+1. **Context Loading**: Use MCP tools to load summaries and critical context from ai.md, .clinerules/memory.md, and todo.md. Avoid reading large files directly—use smart search and memory recall tools.
+2. **Task Identification**: Focus on post-MVP priorities:
+   - Frontend rebuild with Ant Design and Vite (VectorDB/MCP dashboards)
+   - Code signing, notarization, auto-updates
+   - Distribution improvements (GitHub releases, download page, announcement)
+3. **Solution Architecture**:
+   - For frontend: Plan the component structure, dashboard layout, and API integration points using Ant Design guidelines.
+   - For backend: Ensure all endpoints needed for the new UI are exposed and documented.
+   - For distribution: Outline steps for code signing, notarization, and update mechanisms.
+4. **Automated Testing**: Prioritize browser-based automated testing (Puppeteer, Playwright, Browser Tools MCP) for all new features and UI changes.
+5. **Discussion & Clarification**: Use the planning phase to clarify any ambiguities, discuss resource needs, and identify potential blockers.
+6. **Implementation Readiness**: Once the plan is complete and agreed upon, request the user to "toggle to Act mode" to begin execution.
+
+---
+
+### 4. Critical Technical Reminders
+
+- **Always activate the Python virtual environment** before any backend work:  
+  `source .venv/bin/activate`
+- **Only GGUF inference is real**; all other model formats are placeholders.
+- **Model Management UI is already implemented** in the React frontend; focus is now on advanced dashboards and post-MVP enhancements.
+- **Use MCP tools for all context loading and testing** to maximize efficiency and minimize token usage.
+- **Automated browser testing is mandatory** for all UI and API changes.
+
+---
+
+### 5. Success Criteria
+
+- All planning is aligned with the mission: local, privacy-first, Apple Silicon-optimized LLM server with seamless VS Code/Cline integration.
+- The plan addresses post-MVP priorities, especially frontend dashboard enhancements and distribution improvements.
+- All context is loaded efficiently using MCP tools, and the workflow is documented for agent handoff and cross-agent collaboration.
+
+---
+
+**Summary:**  
+To initialize a planning session for Impetus-LLM-Server, agents must load context from ai.md and .clinerules/memory.md, gather supporting resources, follow the structured planning workflow, use MCP tools for efficiency, and focus on post-MVP enhancements—especially frontend dashboard development with Ant Design and Vite. All plans should be validated with automated browser testing and prepared for seamless handoff to Act mode for implementation.
+
+---
+
 # AI Agent Initialization for Impetus-LLM-Server
 
 ## Purpose
