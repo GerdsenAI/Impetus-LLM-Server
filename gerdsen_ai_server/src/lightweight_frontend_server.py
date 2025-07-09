@@ -10,6 +10,10 @@ from gerdsen_ai_server.src.routes.models import models_bp
 from gerdsen_ai_server.src.routes.hardware import hardware_bp
 from gerdsen_ai_server.src.routes.optimization import optimization_bp
 from gerdsen_ai_server.src.routes.openai_api import openai_bp
+from gerdsen_ai_server.src.utils.logging_config import setup_structured_logging
+
+# Setup logging
+# setup_structured_logging()
 
 app = Flask(__name__, static_folder='../../../gerdsen-ai-frontend/build', static_url_path='/')
 CORS(app, resources={r"/api/*": {"origins": "*"}, r"/v1/*": {"origins": "*"}})

@@ -33,7 +33,7 @@ try:
 except ImportError:
     APPLE_SILICON_AVAILABLE = False
 
-openai_api_bp = Blueprint('openai_api', __name__)
+openai_bp = Blueprint('openai_api', __name__)
 
 # Global instances
 mlx_manager = None
@@ -375,7 +375,7 @@ What would you like to know about?"""
 # Initialize the chat engine
 chat_engine = MLXChatEngine()
 
-@openai_api_bp.route('/v1/models', methods=['GET'])
+@openai_bp.route('/models', methods=['GET'], endpoint='list_models')
 @cross_origin()
 @optional_api_key
 @rate_limit('default')
@@ -429,10 +429,19 @@ def list_models():
     
     return jsonify({
         "object": "list",
-        "data": models
+        "data": [
+            {
+                "id": "gerdsen-mlx-default",
+                "object": "model",
+                "created": int(time.time()),
+                "owned_by": "gerdsen-ai",
+                "root": "gerdsen-mlx-default",
+                "permission": []
+            }
+        ]
     })
 
-@openai_api_bp.route('/v1/chat/completions', methods=['POST'])
+@openai_bp.route('/v1/chat/completions', methods=['POST'])
 @cross_origin()
 @optional_api_key
 @rate_limit('default')
@@ -595,7 +604,7 @@ def generate_streaming_response(messages: List[ChatMessage], max_tokens: int, te
         }
         yield f"data: {json.dumps(error_chunk)}\n\n"
 
-@openai_api_bp.route('/v1/completions', methods=['POST'])
+@openai_bp.route('/v1/completions', methods=['POST'])
 @cross_origin()
 @optional_api_key
 @rate_limit('default')
@@ -656,7 +665,7 @@ def completions():
             }
         }), 500
 
-@openai_api_bp.route('/v1/embeddings', methods=['POST'])
+@openai_bp.route('/v1/embeddings', methods=['POST'])
 @cross_origin()
 @optional_api_key
 @rate_limit('default')
@@ -708,4 +717,3 @@ def embeddings():
 
 # Initialize when blueprint is registered
 initialize_openai_api()
-

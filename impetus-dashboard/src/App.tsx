@@ -1,6 +1,5 @@
 import { Layout, Menu } from 'antd';
 import { ThunderboltOutlined, DatabaseOutlined } from '@ant-design/icons';
-import VectorDBVisualizer from './components/VectorDBVisualizer';
 
 const { Header, Content, Sider } = Layout;
 
@@ -29,7 +28,6 @@ export default function App() {
       <Layout>
         <Header style={{ padding: 0, background: '#fff' }} />
         <Content style={{ margin: '24px 16px' }}>
-          <VectorDBVisualizer />
         </Content>
       </Layout>
     </Layout>
