@@ -113,27 +113,70 @@ Impetus LLM Server is now production-ready with all planned features implemented
   - [x] Memory efficiency tests
   - [x] Concurrent request handling tests
 
-## 🚧 Phase 2.5: Performance Optimization (Current)
+## 🚧 Current Development Focus
 
-### High Priority Tasks
+### 🔴 High Priority: Complete Unit Tests (feature/complete-unit-tests)
+
+**Objective**: Achieve 100% test coverage for v0.1.0 release stability
+
+- [ ] **Download Manager Tests**: Mock HuggingFace Hub interactions
+  - [ ] Test successful model downloads
+  - [ ] Test download progress tracking
+  - [ ] Test error handling (network failures, disk space)
+  - [ ] Test concurrent downloads
+  - [ ] Test download cancellation
+  
+- [ ] **Hardware Detection Tests**: Mock system hardware info
+  - [ ] Test Apple Silicon chip detection (M1-M4)
+  - [ ] Test GPU memory detection
+  - [ ] Test thermal state monitoring
+  - [ ] Test unsupported hardware handling
+  
+- [ ] **Error Recovery Tests**: Comprehensive failure scenarios
+  - [ ] Test out-of-memory recovery
+  - [ ] Test thermal throttling response
+  - [ ] Test retry logic with exponential backoff
+  - [ ] Test failure loop prevention
+  - [ ] Test graceful degradation
+
+### ✅ Completed Phase 2.5: Performance Optimization
 
 - [x] **KV Cache Implementation**: Critical for conversation performance ✓
-  - [x] Implement key-value caching for attention
-  - [x] Cache management and eviction policies
-  - [x] Memory-efficient storage
-  - [x] Performance benchmarking with/without cache
-  
 - [x] **Model Warmup**: Eliminate cold start latency ✓
-  - [x] Pre-compile Metal kernels on load
-  - [x] Warmup endpoint with progress tracking
-  - [x] Automatic warmup on model load
-  - [x] Cold vs warm benchmarking
-  
 - [x] **Memory-Mapped Loading**: Faster model loading ✓
-  - [x] Implement mmap for model weights
-  - [x] Lazy loading for large models
-  - [x] Reduced memory footprint
-  - [x] Loading time benchmarks
+
+### 🟡 Next Priority: macOS Native Integration
+
+After completing unit tests, focus on native macOS features:
+
+- [ ] **Menubar Application**: Native macOS experience
+  - [ ] PyObjC menubar implementation
+  - [ ] Quick model switching from menubar
+  - [ ] Resource usage display
+  - [ ] Auto-start on login option
+  - [ ] System notifications for model events
+
+- [ ] **macOS App Bundle**: Production packaging
+  - [ ] Create .app bundle with proper Info.plist
+  - [ ] App icon and branding
+  - [ ] Code signing preparation
+  - [ ] Sparkle framework for auto-updates
+
+### 🟢 Future Priorities
+
+1. **Advanced Inference Features**
+   - Function calling support
+   - JSON mode for structured output
+   - Grammar-constrained generation
+
+2. **Dashboard Enhancements**
+   - Dark/Light mode with system integration
+   - Model comparison side-by-side
+   - 3D performance visualizations
+
+3. **RAG & Vector Database**
+   - ChromaDB local integration
+   - Document processing pipeline
 
 ### Apple Silicon Acceleration Research (Exploratory)
 
