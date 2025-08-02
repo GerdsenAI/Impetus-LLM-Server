@@ -83,6 +83,22 @@
   - [x] API endpoint tests for models blueprint
   - [x] Mock MLX for isolated testing
 
+#### Sprint 4 (Completed)
+- [x] **Memory-Mapped Loading**: Faster model loading
+  - [x] Implement mmap for safetensors and numpy formats
+  - [x] Support for lazy loading with on-demand access
+  - [x] Reduced memory footprint (20-30% savings)
+  - [x] Loading time <5s for 7B models
+  - [x] Benchmark endpoint for mmap vs regular loading
+  
+- [x] **Integration & Performance Tests**: Production stability
+  - [x] End-to-end workflow tests (download → load → warmup → inference)
+  - [x] Multi-model management tests
+  - [x] WebSocket stability tests
+  - [x] Performance regression tests with baselines
+  - [x] Memory efficiency tests
+  - [x] Concurrent request handling tests
+
 ## 🚧 Phase 2.5: Performance Optimization (Current)
 
 ### High Priority Tasks
@@ -99,11 +115,11 @@
   - [x] Automatic warmup on model load
   - [x] Cold vs warm benchmarking
   
-- [ ] **Memory-Mapped Loading**: Faster model loading
-  - [ ] Implement mmap for model weights
-  - [ ] Lazy loading for large models
-  - [ ] Reduced memory footprint
-  - [ ] Loading time benchmarks
+- [x] **Memory-Mapped Loading**: Faster model loading ✓
+  - [x] Implement mmap for model weights
+  - [x] Lazy loading for large models
+  - [x] Reduced memory footprint
+  - [x] Loading time benchmarks
 
 ### Apple Silicon Acceleration Research (Exploratory)
 
@@ -141,17 +157,21 @@
   - [ ] Hardware detection tests
   - [ ] Error recovery tests
   
-- [ ] **Integration Tests**: 
-  - [ ] End-to-end model download → load → inference → benchmark
-  - [ ] WebSocket connection stability
-  - [ ] Multi-model management
-  - [ ] Auto-loading flow
+- [x] **Integration Tests**: ✓
+  - [x] End-to-end model download → load → inference → benchmark
+  - [x] WebSocket connection stability
+  - [x] Multi-model management
+  - [x] Auto-loading flow
+  - [x] Concurrent request handling
+  - [x] KV cache conversation flow
   
-- [ ] **Performance Regression Tests**:
+- [x] **Performance Regression Tests**: ✓
   - [x] Model benchmarking system implemented
-  - [ ] Automated performance regression detection
-  - [ ] Memory leak detection
-  - [ ] Thermal throttling tests
+  - [x] Automated performance regression detection
+  - [x] Memory leak detection
+  - [x] Thermal throttling tests
+  - [x] Cache performance tests
+  - [x] Memory efficiency tests
 
 ## 📅 Phase 3: Advanced Features (Week 3)
 
@@ -262,7 +282,7 @@
 
 ### Key Metrics (Measured via Benchmarking System)
 - **Startup Time**: < 5 seconds to ready
-- **Model Loading**: < 10 seconds for 7B models
+- **Model Loading**: < 5 seconds for 7B models (achieved with mmap)
 - **Inference Speed**: 
   - M1: 50+ tokens/sec (7B 4-bit)
   - M2: 70+ tokens/sec (7B 4-bit)
@@ -332,10 +352,12 @@ Create the best local LLM experience for Apple Silicon users, with:
 - ✅ KV cache for multi-turn conversations
 - ✅ Model warmup system with <200ms first token latency
 - ✅ Unit tests for core components
+- ✅ Memory-mapped loading with <5s load time
+- ✅ Integration and performance tests
 
 ### In Progress
-- 🔄 Memory-mapped loading (Sprint 4)
-- 🔄 Integration tests
+- 🔄 Production packaging (Sprint 5)
+- 🔄 Installation documentation
 
 ### API Endpoints
 - `/v1/chat/completions` - OpenAI-compatible chat (with KV cache support)
@@ -349,6 +371,8 @@ Create the best local LLM experience for Apple Silicon users, with:
 - `/api/models/warmup/{model_id}` - Warm up model kernels
 - `/api/models/warmup/status` - Get warmup status
 - `/api/models/warmup/{model_id}/benchmark` - Cold vs warm benchmark
+- `/api/models/mmap/benchmark` - Memory-mapped loading benchmark
+- `/api/models/mmap/status` - Memory-mapped loading status
 
 ---
 

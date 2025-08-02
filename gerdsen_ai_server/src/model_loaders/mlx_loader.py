@@ -7,11 +7,13 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Generator
 import json
 from loguru import logger
+import time
 
 from .base import BaseModelLoader, BaseModel, ModelLoadError, ModelNotFoundError, InferenceError
 from ..config.settings import settings
 from ..inference.kv_cache_manager import kv_cache_manager, CacheEntry
 from ..services.model_warmup import model_warmup_service
+from ..utils.mmap_loader import mmap_loader
 
 # MLX imports with error handling
 try:
@@ -39,32 +41,63 @@ class MLXModel(BaseModel):
         self.model_config = None
         
     def load(self, **kwargs) -> None:
-        """Load MLX model into memory"""
+        """Load MLX model into memory with optional memory mapping"""
         if not MLX_AVAILABLE:
             raise ModelLoadError("MLX is not installed. Please install mlx and mlx-lm.")
         
         try:
             logger.info(f"Loading MLX model: {self.model_id}")
             
-            # Load model and tokenizer
-            if self.model_path.exists():
-                # Load from local path
-                self.model_instance, self.tokenizer_instance = load(
-                    str(self.model_path),
-                    tokenizer_config=kwargs.get('tokenizer_config', {}),
-                    model_config=kwargs.get('model_config', {}),
-                    adapter_path=kwargs.get('adapter_path'),
-                    lazy=kwargs.get('lazy', True)
-                )
-            else:
-                # Load from HuggingFace Hub
-                self.model_instance, self.tokenizer_instance = load(
-                    self.model_id,
-                    tokenizer_config=kwargs.get('tokenizer_config', {}),
-                    model_config=kwargs.get('model_config', {}),
-                    adapter_path=kwargs.get('adapter_path'),
-                    lazy=kwargs.get('lazy', True)
-                )
+            use_mmap = kwargs.get('use_mmap', settings.model.use_mmap if hasattr(settings.model, 'use_mmap') else True)
+            
+            # Try memory-mapped loading first if enabled and path exists
+            if use_mmap and self.model_path.exists() and self.model_path.is_dir():
+                try:
+                    logger.info("Attempting memory-mapped loading")
+                    start_time = time.time()
+                    
+                    # Load weights with mmap
+                    weights = mmap_loader.load_model_mmap(self.model_path)
+                    
+                    # Still need to load model structure and tokenizer normally
+                    self.model_instance, self.tokenizer_instance = load(
+                        str(self.model_path),
+                        tokenizer_config=kwargs.get('tokenizer_config', {}),
+                        model_config=kwargs.get('model_config', {}),
+                        adapter_path=kwargs.get('adapter_path'),
+                        lazy=True,
+                        # Pass weights if MLX supports it
+                        weights=weights if 'weights' in load.__code__.co_varnames else None
+                    )
+                    
+                    mmap_time = (time.time() - start_time) * 1000
+                    logger.info(f"Memory-mapped loading completed in {mmap_time:.1f}ms")
+                    
+                except Exception as e:
+                    logger.warning(f"Memory-mapped loading failed, falling back to regular loading: {e}")
+                    # Fall back to regular loading
+                    use_mmap = False
+            
+            if not use_mmap:
+                # Regular loading
+                if self.model_path.exists():
+                    # Load from local path
+                    self.model_instance, self.tokenizer_instance = load(
+                        str(self.model_path),
+                        tokenizer_config=kwargs.get('tokenizer_config', {}),
+                        model_config=kwargs.get('model_config', {}),
+                        adapter_path=kwargs.get('adapter_path'),
+                        lazy=kwargs.get('lazy', True)
+                    )
+                else:
+                    # Load from HuggingFace Hub
+                    self.model_instance, self.tokenizer_instance = load(
+                        self.model_id,
+                        tokenizer_config=kwargs.get('tokenizer_config', {}),
+                        model_config=kwargs.get('model_config', {}),
+                        adapter_path=kwargs.get('adapter_path'),
+                        lazy=kwargs.get('lazy', True)
+                    )
             
             # Load config if available
             config_path = self.model_path / "config.json" if self.model_path.exists() else None
@@ -92,6 +125,12 @@ class MLXModel(BaseModel):
             # Clear model and tokenizer
             self.model_instance = None
             self.tokenizer_instance = None
+            
+            # Close memory mappings if any
+            try:
+                mmap_loader.close_all()
+            except:
+                pass
             
             # Force garbage collection
             gc.collect()

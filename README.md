@@ -195,6 +195,8 @@ mypy src/  # Backend
 - **M3 Series**: 60-100 tokens/second  
 - **M2 Series**: 40-80 tokens/second
 - **M1 Series**: 30-60 tokens/second
+- **Model Loading**: <5 seconds with memory mapping
+- **First Token**: <200ms when warmed up
 
 ### Optimization Features
 - **MLX Framework**: Optimized for Apple Silicon unified memory

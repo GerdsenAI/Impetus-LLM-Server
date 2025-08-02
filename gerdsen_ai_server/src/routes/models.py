@@ -13,6 +13,7 @@ from ..services.benchmark_service import benchmark_service
 from ..utils.error_recovery import with_error_recovery, ErrorType
 from ..inference.kv_cache_manager import kv_cache_manager
 from ..services.model_warmup import model_warmup_service
+from ..utils.mmap_loader import mmap_loader
 
 bp = Blueprint('models', __name__)
 
@@ -178,10 +179,11 @@ def list_models():
 
 @bp.route('/load', methods=['POST'])
 def load_model():
-    """Load a model into memory with optional warmup"""
+    """Load a model into memory with optional warmup and memory mapping"""
     data = request.get_json()
     model_id = data.get('model_id')
     auto_warmup = data.get('auto_warmup', False)
+    use_mmap = data.get('use_mmap', True)
     
     if not model_id:
         return jsonify({'error': 'model_id is required'}), 400
@@ -195,8 +197,13 @@ def load_model():
         loader = MLXModelLoader()
         
         try:
-            # Load with auto warmup
-            model = loader.load_model(model_id, auto_warmup=True, warmup_async=True)
+            # Load with auto warmup and optional mmap
+            model = loader.load_model(
+                model_id, 
+                auto_warmup=True, 
+                warmup_async=True,
+                use_mmap=use_mmap
+            )
             app_state['loaded_models'][model_id] = model
             
             # Get warmup status
@@ -900,3 +907,67 @@ def benchmark_cold_vs_warm(model_id: str):
             'error': 'Benchmark failed',
             'message': str(e)
         }), 500
+
+
+@bp.route('/mmap/benchmark', methods=['POST'])
+def benchmark_mmap_loading():
+    """Benchmark memory-mapped loading vs regular loading"""
+    data = request.get_json() or {}
+    model_path = data.get('model_path')
+    
+    if not model_path:
+        # Try to find a loaded model to benchmark
+        app_state = current_app.config.get('app_state', {})
+        loaded_models = app_state.get('loaded_models', {})
+        
+        if not loaded_models:
+            return jsonify({
+                'error': 'No model specified',
+                'message': 'Provide model_path or load a model first'
+            }), 400
+        
+        # Use first loaded model
+        model_id = list(loaded_models.keys())[0]
+        model_path = settings.model.models_dir / model_id.replace('/', '_')
+    else:
+        model_path = Path(model_path)
+    
+    if not model_path.exists():
+        return jsonify({
+            'error': 'Model path not found',
+            'message': f'Path does not exist: {model_path}'
+        }), 404
+    
+    try:
+        # Run benchmark
+        results = mmap_loader.benchmark_load_time(model_path)
+        
+        # Add memory usage info
+        memory_stats = mmap_loader.get_memory_usage()
+        results.update(memory_stats)
+        
+        return jsonify({
+            'status': 'success',
+            'model_path': str(model_path),
+            'results': results,
+            'recommendation': 'Use mmap' if results.get('speedup', 0) > 1.2 else 'Regular loading is fine'
+        })
+        
+    except Exception as e:
+        logger.error(f"Memory map benchmark failed: {e}")
+        return jsonify({
+            'error': 'Benchmark failed',
+            'message': str(e)
+        }), 500
+
+
+@bp.route('/mmap/status', methods=['GET'])
+def get_mmap_status():
+    """Get memory-mapped loading status"""
+    stats = mmap_loader.get_memory_usage()
+    
+    return jsonify({
+        'enabled': True,
+        'stats': stats,
+        'supported_formats': ['safetensors', 'numpy', 'pytorch']
+    })
