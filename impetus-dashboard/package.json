@@ -1,0 +1,38 @@
+{
+  "name": "impetus-dashboard",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "socket.io-client": "^4.7.5",
+    "three": "^0.165.0",
+    "@react-three/fiber": "^8.16.8",
+    "@react-three/drei": "^9.108.3",
+    "recharts": "^2.12.7",
+    "lucide-react": "^0.400.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.3.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.165.0",
+    "@eslint/js": "^9.7.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^9.7.0",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-refresh": "^0.4.9",
+    "globals": "^15.8.0",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.0-alpha.54",
+    "vite": "^5.3.4"
+  }
+}

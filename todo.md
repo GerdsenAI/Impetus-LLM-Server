@@ -1,223 +1,150 @@
-# Impetus LLM Server - Premium Apple Silicon Implementation
+# Impetus LLM Server - Development Roadmap
 
-## Vision
-Create the absolute best local LLM server for Apple Silicon that:
-- Runs as a lightweight menubar service
-- Provides RAG capabilities with vector database
-- Offers a premium web interface for management
-- Maximizes Apple Silicon performance
-- Feels native and polished
+## ✅ Completed (Phase 0: Foundation)
 
-## Development Methodology
-Following CLAUDE.md principles:
-- **Socratic Method**: Question assumptions before implementing
-- **OODA Loop**: Observe → Orient → Decide → Act iteratively
-- **Evidence-Based**: Measure performance, don't guess
+### Backend Infrastructure
+- [x] Flask server with modular architecture
+- [x] Configuration management with Pydantic
+- [x] Apple Silicon hardware detection (M1-M4)
+- [x] MLX model loader implementation
+- [x] OpenAI-compatible API endpoints
+- [x] WebSocket real-time updates
+- [x] Structured logging with Loguru
 
-## Phase 1: Core Cleanup & Foundation (Week 1)
+### Frontend Dashboard  
+- [x] React + TypeScript setup with Vite
+- [x] Real-time hardware monitoring
+- [x] Performance metrics visualization
+- [x] Model management interface
+- [x] WebSocket integration
 
-### OBSERVE: Current State Analysis
-**Questions to answer first:**
-- What components are actually being used vs legacy code?
-- Which dependencies are critical vs optional?
-- What is the current memory footprint of each component?
-- How does the current architecture impact performance?
+## 🚧 Phase 1: Core Functionality (Current)
 
-### Remove Unnecessary Components
-- [ ] **OBSERVE**: Audit all directories and their purposes
-- [ ] **QUESTION**: Which components are referenced in active code?
-- [ ] **DECIDE**: Create deletion priority list based on evidence
-- [ ] **ACT**: Delete research directory (`src/research/`)
-- [ ] **ACT**: Remove debug tools (`src/debug/puppeteer_tools.py`)
-- [ ] **ACT**: Clean up bundled import helper legacy code
-- [ ] **MEASURE**: Verify no functionality broken after removal
+### Immediate Tasks (Week 1)
 
-### Restore Core Functionality
-**Key Questions:**
-- What vector database provides best performance/size ratio on Apple Silicon?
-- How many documents can we handle with unified memory architecture?
-- What chunk size optimizes retrieval speed vs accuracy?
+- [ ] **Model Inference**: Implement actual MLX inference (currently mocked)
+- [ ] **Model Downloading**: Add HuggingFace Hub integration
+- [ ] **Streaming Generation**: Implement true token streaming
+- [ ] **Error Handling**: Comprehensive error recovery
+- [ ] **Unit Tests**: Add pytest test suite
+- [ ] **Docker Support**: Create Dockerfile for easy deployment
 
-- [ ] **OBSERVE**: Benchmark ChromaDB vs Faiss on M-series chips
-- [ ] **ORIENT**: Analyze memory patterns during vector operations
-- [ ] **DECIDE**: Choose vector DB based on performance data
-- [ ] **ACT**: Implement lightweight vector database
-- [ ] **ACT**: Create document processing pipeline for RAG
-- [ ] **MEASURE**: Document indexing speed and retrieval latency
+### Performance Optimization
+- [ ] **Memory Mapping**: Implement mmap for large models
+- [ ] **Model Caching**: Persistent model cache between restarts
+- [ ] **Batch Processing**: Support for batch inference
+- [ ] **Quantization**: Auto-quantization for large models
 
-### Menubar Service Architecture
-**Critical Questions:**
-- PyObjC vs Swift: What are the maintenance implications?
-- How much memory should the menubar service consume at idle?
-- What's the optimal IPC mechanism for server communication?
+## 📅 Phase 2: macOS Integration (Week 2)
 
-- [ ] **OBSERVE**: Profile existing menubar apps for best practices
-- [ ] **DECIDE**: Technology choice based on maintainability and performance
-- [ ] **ACT**: Create native macOS menubar app
-- [ ] **ACT**: Implement service daemon with measured startup time
-- [ ] **MEASURE**: Memory usage, CPU at idle, startup latency
+### Menubar Application
+- [ ] **Design**: Native macOS menubar UI
+- [ ] **Implementation**: PyObjC-based menubar app
+- [ ] **Auto-start**: Launch on login support
+- [ ] **Status Display**: Model status, memory usage
+- [ ] **Quick Actions**: Load/unload models from menubar
 
-## Phase 2: Premium Web Interface (Week 2)
+### Dashboard Enhancements
+- [ ] **3D Visualizations**: Three.js performance graphs
+- [ ] **Dark/Light Mode**: System theme integration
+- [ ] **Drag & Drop**: Model file upload support
+- [ ] **Keyboard Shortcuts**: Power user features
+- [ ] **Export Metrics**: CSV/JSON export
 
-### Dashboard Enhancement
-**Design Questions:**
-- What UI patterns do premium macOS apps use?
-- How can we minimize reflow and maximize perceived performance?
-- What's the optimal update frequency for real-time metrics?
+## 🚀 Phase 3: Advanced Features (Week 3)
 
-### OODA Implementation:
-1. **OBSERVE**: Study Raycast, Linear, Arc browser UI patterns
-2. **ORIENT**: Map UI requirements to performance constraints
-3. **DECIDE**: Choose rendering strategy (virtual scrolling, lazy loading)
-4. **ACT**: Implement with continuous performance monitoring
+### Model Capabilities
+- [ ] **Multi-Modal**: Image input support
+- [ ] **Function Calling**: Tool use implementation
+- [ ] **Fine-Tuning**: LoRA adapter support
+- [ ] **Model Merging**: Combine models on-the-fly
 
-- [ ] **MEASURE**: Frame time must be < 16ms for 60fps
-- [ ] **TEST**: UI responsiveness under model inference load
-- [ ] Real-time performance metrics visualization
-- [ ] Model management interface with drag-and-drop
-- [ ] RAG document management interface
+### Performance Features
+- [ ] **Speculative Decoding**: Faster inference
+- [ ] **KV Cache Optimization**: Memory efficiency
+- [ ] **Dynamic Batching**: Automatic batch sizing
+- [ ] **Profile-Guided Optimization**: Per-model tuning
 
-## Phase 3: Apple Silicon Optimization (Week 3)
+## 🔍 Phase 4: RAG Implementation (Week 4)
 
-### Performance Targets & Evidence
-**Key Questions:**
-- What's the actual memory bandwidth on M1 vs M2 vs M3?
-- How does batch size affect tokens/sec on each chip?
-- What's the optimal memory allocation strategy for MLX?
+### Vector Database
+- [ ] **Integration**: ChromaDB or FAISS
+- [ ] **Document Processing**: PDF, Markdown, Code files
+- [ ] **Embeddings**: Local embedding models
+- [ ] **Hybrid Search**: Vector + keyword search
+- [ ] **Context Window**: Smart chunking strategies
 
-### Implementation with Measurement:
-- [ ] **BASELINE**: Current inference speed per model size
-- [ ] **EXPERIMENT**: Memory-mapped loading impact
-- [ ] **MEASURE**: Unified memory allocation patterns
-- [ ] **OPTIMIZE**: Based on profiling data, not assumptions
-- [ ] Implement model caching with persistence
-- [ ] Add memory-mapped model loading
-- [ ] **VERIFY**: Achieve > 50 tokens/sec on M1, > 100 on M3
-
-### Advanced Features
-**Evidence Required:**
-- Profile multi-model memory sharing opportunities
-- Measure quantization impact on quality vs speed
-- Test batching efficiency at different sizes
-
-## Phase 4: RAG Excellence (Week 4)
-
-### Vector Database Performance
-**Critical Metrics:**
-- Query latency vs document count (graph the relationship)
-- Memory usage scaling with index size
-- Accuracy vs retrieval speed trade-offs
-
-### OODA for RAG:
-1. **OBSERVE**: Current retrieval patterns and bottlenecks
-2. **ORIENT**: Understand user query patterns
-3. **DECIDE**: Optimal indexing strategy based on usage
-4. **ACT**: Implement with continuous monitoring
-
-- [ ] **BENCHMARK**: Hybrid search vs pure vector search
-- [ ] **MEASURE**: Metadata filtering performance impact
-- [ ] **TEST**: Incremental indexing overhead
-- [ ] Implement hybrid search (vector + keyword)
-- [ ] Add metadata filtering capabilities
-
-## Phase 5: Premium Features (Week 5)
-
-### User Experience Validation
-**Questions Before Implementation:**
-- What features do users actually use? (analytics data)
-- What's the cognitive load of each feature?
-- How do we measure feature success?
+## 💎 Phase 5: Premium Features (Week 5)
 
 ### Enterprise Features
-**Security Considerations:**
-- What attack vectors exist in our architecture?
-- How do we balance security with performance?
-- What's the performance cost of encryption?
+- [ ] **Multi-User Support**: API key management
+- [ ] **Usage Analytics**: Token usage tracking
+- [ ] **Model Marketplace**: Easy model discovery
+- [ ] **Backup/Restore**: Configuration management
+- [ ] **Plugin System**: Extensible architecture
 
-## Phase 6: Distribution & Polish (Week 6)
+## 📦 Phase 6: Distribution (Week 6)
 
-### Packaging Strategy
-**Key Decisions Based on Evidence:**
-- Code signing impact on startup time?
-- Auto-update mechanism failure rates?
-- Optimal DMG size vs compression?
+### Packaging
+- [ ] **macOS App Bundle**: Native .app package
+- [ ] **Homebrew Formula**: Easy installation
+- [ ] **Docker Images**: Cross-platform support
+- [ ] **Auto-Updates**: Sparkle framework
+- [ ] **Code Signing**: Apple Developer ID
 
-### Quality Assurance
-- [ ] **MEASURE**: Crash rate per 1000 hours of usage
-- [ ] **PROFILE**: Memory leaks over extended operation
-- [ ] **TEST**: Performance degradation over time
-- [ ] Create signed macOS app bundle
-- [ ] Implement auto-update mechanism
+## 🎯 Performance Targets
 
-## Performance Targets (Evidence-Based)
+### Key Metrics
+- **Startup Time**: < 5 seconds to ready
+- **Model Loading**: < 10 seconds for 7B models
+- **Inference Speed**: 50+ tokens/sec (7B on M1)
+- **Memory Usage**: < 500MB base + model size
+- **API Latency**: < 50ms overhead
+- **UI Frame Rate**: 60fps (16ms frame time)
 
-### Metrics with Measurement Methods
-- **Memory usage**: < 500MB idle (measured via Activity Monitor)
-- **Startup time**: < 3 seconds (timed from launch to ready)
-- **Model loading**: < 5 seconds for 7B (logged timestamps)
-- **Inference**: > 50 tokens/sec on M1 (measured over 1000 tokens)
-- **RAG retrieval**: < 100ms for 1M documents (95th percentile)
-- **UI responsiveness**: < 16ms frame time (Chrome DevTools)
+## 🧪 Testing Strategy
 
-### Continuous Monitoring
-- Set up performance regression tests
-- Create dashboards for key metrics
-- Alert on performance degradation
+### Unit Tests
+- [ ] Model loader tests
+- [ ] API endpoint tests
+- [ ] Hardware detection tests
+- [ ] Configuration tests
 
-## MVP Definition (2 Weeks)
+### Integration Tests
+- [ ] End-to-end API tests
+- [ ] WebSocket connection tests
+- [ ] Model inference tests
 
-### Success Criteria (Measurable)
-1. **Performance**: 50+ tokens/sec with Mistral 7B on M1
-2. **Memory**: < 4GB total with model loaded
-3. **Latency**: First token < 500ms
-4. **Reliability**: 0 crashes in 24-hour test
-5. **Installation**: < 2 minutes from download to running
+### Performance Tests
+- [ ] Load testing with locust
+- [ ] Memory leak detection
+- [ ] Thermal throttling tests
 
-### MVP OODA Loop
-1. **OBSERVE**: Current local LLM server landscape
-2. **ORIENT**: Identify minimum viable differentiators
-3. **DECIDE**: Feature set based on 80/20 principle
-4. **ACT**: Build with continuous user feedback
+## 🔧 Development Tools
 
-## Development Principles
+### Recommended
+- **IDE**: VS Code with Python/TypeScript extensions
+- **API Testing**: Bruno or Insomnia
+- **Performance**: Instruments.app (macOS)
+- **Debugging**: Chrome DevTools for frontend
 
-### Socratic Development Questions
-Before each feature:
-1. What problem does this solve?
-2. Who benefits from this feature?
-3. What's the evidence this is needed?
-4. What's the simplest solution?
-5. How do we measure success?
+## 📝 Contributing
 
-### OODA in Daily Development
-- **Morning**: OBSERVE yesterday's metrics and feedback
-- **Planning**: ORIENT based on new information
-- **Coding**: DECIDE on implementation approach
-- **Evening**: ACT and measure results
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Follow code style (Black for Python, Prettier for TypeScript)
+4. Add tests for new features
+5. Submit PR with clear description
 
-### Evidence-Based Decisions
-- No optimization without profiling
-- No feature without user request
-- No assumption without measurement
-- No guess without benchmark
+## 🎯 Vision
 
-## Technology Choices (Justified)
+Create the best local LLM experience for Apple Silicon users, with:
+- Native performance optimization
+- Beautiful, responsive UI
+- Zero-config setup
+- Production reliability
+- Privacy-first design
 
-### Based on Evidence:
-- **Vector DB**: ChromaDB (benchmarked fastest for our use case)
-- **Frontend**: React (team expertise, ecosystem)
-- **Backend**: FastAPI (async performance benefits measured)
-- **Menubar**: PyObjC (easier maintenance vs Swift)
-- **Inference**: MLX (designed for Apple Silicon)
+---
 
-### Re-evaluation Triggers
-- Performance regression > 10%
-- User complaints > 5% on specific feature
-- Better alternative with 2x improvement
-- Security vulnerability discovered
-
-## Next Steps
-1. Set up comprehensive benchmarking suite
-2. Create performance baseline measurements
-3. Implement continuous performance monitoring
-4. Begin Phase 1 with evidence gathering
+Last Updated: August 2024
