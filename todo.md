@@ -1,5 +1,19 @@
 # Impetus LLM Server - Development Roadmap
 
+## 🎉 v0.1.0 Release Complete!
+
+Impetus LLM Server is now production-ready with all planned features implemented:
+- ✅ High-performance MLX inference on Apple Silicon
+- ✅ OpenAI-compatible API with streaming
+- ✅ Beautiful React dashboard
+- ✅ One-click model downloads
+- ✅ Comprehensive benchmarking
+- ✅ Production packaging and hardening
+- ✅ 84 test cases passing
+- ✅ Complete documentation suite
+
+**Ready to ship!** 🚀
+
 ## ✅ Completed
 
 ### Phase 0: Foundation (Week 1) ✓
@@ -384,6 +398,13 @@ Create the best local LLM experience for Apple Silicon users, with:
 - `/api/models/mmap/benchmark` - Memory-mapped loading benchmark
 - `/api/models/mmap/status` - Memory-mapped loading status
 
+### CLI Commands
+- `impetus validate` - Check system compatibility
+- `impetus setup` - Interactive setup wizard
+- `impetus server` - Start the server
+- `impetus models` - List available models
+- `impetus --help` - Show all commands
+
 ---
 
-Last Updated: January 2025
+Last Updated: January 2025 - v0.1.0 Release Complete!

@@ -25,7 +25,7 @@ setup(
     version="0.1.0",
     author="GerdsenAI",
     author_email="dev@gerdsenai.com",
-    description="High-performance local LLM server optimized for Apple Silicon",
+    description="Lightning-fast local LLM server optimized for Apple Silicon with OpenAI-compatible API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/GerdsenAI/Impetus-LLM-Server",

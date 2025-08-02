@@ -1,6 +1,18 @@
 # Impetus LLM Server
 
-A high-performance local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints and real-time performance monitoring.
+Lightning-fast local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints and real-time performance monitoring.
+
+## 📑 Table of Contents
+- [Features](#-features)
+- [Requirements](#-requirements)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [API Endpoints](#api-endpoints)
+- [Configuration](#configuration)
+- [Development](#-development)
+- [Performance](#-performance)
+- [Troubleshooting](#-troubleshooting)
+- [Next Steps](#-next-steps)
 
 ## 🚀 Features
 
@@ -45,6 +57,9 @@ A high-performance local LLM server optimized for Apple Silicon, providing OpenA
 ```bash
 # One-line installer
 curl -sSL https://raw.githubusercontent.com/GerdsenAI/Impetus-LLM-Server/main/install.sh | bash
+
+# Validate installation
+impetus validate
 ```
 
 ### Install from Source
@@ -54,8 +69,8 @@ git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
 cd Impetus-LLM-Server
 pip install -e .
 
-# Download your first model
-impetus --setup
+# Run setup wizard
+impetus setup
 ```
 
 ### Manual Installation
@@ -99,7 +114,36 @@ Configure your AI extension with:
 
 ## 🚀 Usage
 
-### Starting the Server
+### Quick Start
+```bash
+# Start the server
+impetus server
+
+# Or start directly
+impetus-server
+```
+
+Access the dashboard at `http://localhost:5173`
+
+### CLI Commands
+```bash
+# System validation
+impetus validate
+
+# Interactive setup
+impetus setup
+
+# Start server
+impetus server
+
+# List models
+impetus models
+
+# Show help
+impetus --help
+```
+
+### Manual Start
 ```bash
 # Terminal 1: Start backend
 cd gerdsen_ai_server
@@ -110,8 +154,6 @@ python src/main.py
 cd impetus-dashboard
 pnpm dev
 ```
-
-Access the dashboard at `http://localhost:5173`
 
 ### API Endpoints
 

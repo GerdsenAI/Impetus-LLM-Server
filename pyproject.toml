@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "impetus-llm-server"
 version = "0.1.0"
-description = "High-performance local LLM server optimized for Apple Silicon"
+description = "Lightning-fast local LLM server optimized for Apple Silicon with OpenAI-compatible API"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
