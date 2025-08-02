@@ -112,6 +112,14 @@ def handle_shutdown(signum, frame):
         except Exception as e:
             logger.error(f"Error stopping Metal monitoring: {e}")
     
+    # Shutdown warmup service
+    try:
+        from src.services.model_warmup import model_warmup_service
+        model_warmup_service.shutdown()
+        logger.info("Shutdown warmup service")
+    except Exception as e:
+        logger.error(f"Error shutting down warmup service: {e}")
+    
     # Unload all models
     for model_id in list(app_state['loaded_models'].keys()):
         try:

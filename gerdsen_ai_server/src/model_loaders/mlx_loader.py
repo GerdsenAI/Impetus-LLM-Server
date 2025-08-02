@@ -11,6 +11,7 @@ from loguru import logger
 from .base import BaseModelLoader, BaseModel, ModelLoadError, ModelNotFoundError, InferenceError
 from ..config.settings import settings
 from ..inference.kv_cache_manager import kv_cache_manager, CacheEntry
+from ..services.model_warmup import model_warmup_service
 
 # MLX imports with error handling
 try:
@@ -284,7 +285,7 @@ class MLXModelLoader(BaseModelLoader):
             logger.warning("MLX is not available. MLX model loading will fail.")
     
     def load_model(self, model_id: str, **kwargs) -> MLXModel:
-        """Load an MLX model"""
+        """Load an MLX model with optional warmup"""
         # Check if already loaded
         if self.is_model_loaded(model_id):
             logger.info(f"Model {model_id} is already loaded")
@@ -307,6 +308,17 @@ class MLXModelLoader(BaseModelLoader):
         # Store in loaded models
         self.loaded_models[model_id] = model
         self.model_configs[model_id] = model.config
+        
+        # Auto-warmup if requested
+        if kwargs.get('auto_warmup', False):
+            logger.info(f"Auto-warming up model {model_id}")
+            warmup_async = kwargs.get('warmup_async', True)
+            model_warmup_service.warmup_model(
+                model,
+                model_id,
+                num_prompts=kwargs.get('warmup_prompts', 3),
+                async_warmup=warmup_async
+            )
         
         return model
     
@@ -368,10 +380,24 @@ class MLXModelLoader(BaseModelLoader):
         return models
     
     def get_model_info(self, model_id: str) -> Dict[str, Any]:
-        """Get model information"""
+        """Get model information including warmup status"""
         if self.is_model_loaded(model_id):
             model = self.loaded_models[model_id]
-            return model.get_info()
+            info = model.get_info()
+            
+            # Add warmup status
+            warmup_status = model_warmup_service.get_warmup_status(model_id)
+            if warmup_status:
+                info['warmup'] = {
+                    'is_warmed': warmup_status.is_warmed,
+                    'warmup_time_ms': warmup_status.warmup_time_ms,
+                    'last_warmup': warmup_status.last_warmup,
+                    'kernel_compilation_time_ms': warmup_status.kernel_compilation_time_ms
+                }
+            else:
+                info['warmup'] = {'is_warmed': False}
+            
+            return info
         
         # Check if model exists locally
         model_path = settings.model.models_dir / model_id

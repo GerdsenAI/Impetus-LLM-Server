@@ -12,6 +12,7 @@ from ..services.download_manager import download_manager
 from ..services.benchmark_service import benchmark_service
 from ..utils.error_recovery import with_error_recovery, ErrorType
 from ..inference.kv_cache_manager import kv_cache_manager
+from ..services.model_warmup import model_warmup_service
 
 bp = Blueprint('models', __name__)
 
@@ -154,6 +155,17 @@ def list_models():
                 }
             else:
                 model['benchmark'] = {'available': False}
+            
+            # Add warmup status
+            warmup_status = model_warmup_service.get_warmup_status(model_id)
+            if warmup_status:
+                model['warmup'] = {
+                    'is_warmed': warmup_status.is_warmed,
+                    'warmup_time_ms': warmup_status.warmup_time_ms,
+                    'kernel_compilation_time_ms': warmup_status.kernel_compilation_time_ms
+                }
+            else:
+                model['warmup'] = {'is_warmed': False}
         
         return jsonify({
             'models': models,
@@ -166,25 +178,59 @@ def list_models():
 
 @bp.route('/load', methods=['POST'])
 def load_model():
-    """Load a model into memory"""
+    """Load a model into memory with optional warmup"""
     data = request.get_json()
     model_id = data.get('model_id')
+    auto_warmup = data.get('auto_warmup', False)
     
     if not model_id:
         return jsonify({'error': 'model_id is required'}), 400
     
     app_state = current_app.config.get('app_state', {})
-    result = _load_model_internal(model_id, app_state)
     
-    # Return appropriate response based on result
-    if 'error' in result:
-        status_code = result.get('status_code', 500)
-        return jsonify({
-            'error': result['error'],
-            'message': result['message']
-        }), status_code
+    # Pass auto_warmup to the loader
+    if auto_warmup:
+        # Import model loader
+        from ..model_loaders.mlx_loader import MLXModelLoader
+        loader = MLXModelLoader()
+        
+        try:
+            # Load with auto warmup
+            model = loader.load_model(model_id, auto_warmup=True, warmup_async=True)
+            app_state['loaded_models'][model_id] = model
+            
+            # Get warmup status
+            warmup_status = model_warmup_service.get_warmup_status(model_id)
+            
+            return jsonify({
+                'status': 'success',
+                'model_id': model_id,
+                'message': 'Model loaded and warming up' if auto_warmup else 'Model loaded successfully',
+                'memory_used_gb': psutil.virtual_memory().used / (1024 ** 3),
+                'warmup': {
+                    'is_warmed': warmup_status.is_warmed if warmup_status else False,
+                    'status': 'warming' if auto_warmup and warmup_status and not warmup_status.is_warmed else 'not_started'
+                }
+            })
+        except Exception as e:
+            logger.error(f"Failed to load model {model_id}: {e}")
+            return jsonify({
+                'error': 'Failed to load model',
+                'message': str(e)
+            }), 500
     else:
-        return jsonify(result)
+        # Regular load without warmup
+        result = _load_model_internal(model_id, app_state)
+        
+        # Return appropriate response based on result
+        if 'error' in result:
+            status_code = result.get('status_code', 500)
+            return jsonify({
+                'error': result['error'],
+                'message': result['message']
+            }), status_code
+        else:
+            return jsonify(result)
 
 
 @bp.route('/unload', methods=['POST'])
@@ -749,3 +795,108 @@ def cache_settings():
             'max_memory_gb': kv_cache_manager.max_memory_mb / 1024,
             'max_conversations': kv_cache_manager.max_conversations
         })
+
+
+@bp.route('/warmup/<model_id>', methods=['POST'])
+def warmup_model(model_id: str):
+    """Warm up a model to eliminate cold start latency"""
+    app_state = current_app.config.get('app_state', {})
+    loaded_models = app_state.get('loaded_models', {})
+    
+    # Check if model is loaded
+    if model_id not in loaded_models:
+        return jsonify({
+            'error': 'Model not loaded',
+            'message': f'Model {model_id} must be loaded before warming up'
+        }), 404
+    
+    # Get parameters
+    data = request.get_json() or {}
+    num_prompts = data.get('num_prompts', 3)
+    async_warmup = data.get('async', True)
+    
+    try:
+        # Warm up the model
+        model = loaded_models[model_id]
+        status = model_warmup_service.warmup_model(
+            model,
+            model_id,
+            num_prompts=num_prompts,
+            async_warmup=async_warmup
+        )
+        
+        return jsonify({
+            'status': 'warming' if async_warmup and not status.is_warmed else 'warmed',
+            'model_id': model_id,
+            'is_warmed': status.is_warmed,
+            'warmup_time_ms': status.warmup_time_ms if status.warmup_time_ms > 0 else None,
+            'kernel_compilation_time_ms': status.kernel_compilation_time_ms if status.kernel_compilation_time_ms > 0 else None,
+            'error': status.error
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to warm up model {model_id}: {e}")
+        return jsonify({
+            'error': 'Warmup failed',
+            'message': str(e)
+        }), 500
+
+
+@bp.route('/warmup/status', methods=['GET'])
+def get_warmup_status():
+    """Get warmup status for all models"""
+    all_status = model_warmup_service.get_all_warmup_status()
+    
+    # Get loaded models
+    app_state = current_app.config.get('app_state', {})
+    loaded_models = set(app_state.get('loaded_models', {}).keys())
+    
+    # Include loaded models that haven't been warmed
+    for model_id in loaded_models:
+        if model_id not in all_status:
+            all_status[model_id] = {
+                'is_warmed': False,
+                'warmup_time_ms': 0,
+                'last_warmup': None,
+                'warmup_prompts_used': 0,
+                'kernel_compilation_time_ms': 0,
+                'error': None,
+                'age_seconds': None
+            }
+    
+    return jsonify({
+        'warmup_status': all_status,
+        'total_models': len(all_status),
+        'warmed_models': sum(1 for s in all_status.values() if s['is_warmed'])
+    })
+
+
+@bp.route('/warmup/<model_id>/benchmark', methods=['POST'])
+def benchmark_cold_vs_warm(model_id: str):
+    """Benchmark cold vs warm performance for a model"""
+    app_state = current_app.config.get('app_state', {})
+    loaded_models = app_state.get('loaded_models', {})
+    
+    # Check if model is loaded
+    if model_id not in loaded_models:
+        return jsonify({
+            'error': 'Model not loaded',
+            'message': f'Model {model_id} must be loaded before benchmarking'
+        }), 404
+    
+    try:
+        # Run cold vs warm benchmark
+        model = loaded_models[model_id]
+        results = model_warmup_service.benchmark_cold_vs_warm(model, model_id)
+        
+        if 'error' in results:
+            return jsonify(results), 500
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        logger.error(f"Benchmark failed for {model_id}: {e}")
+        return jsonify({
+            'error': 'Benchmark failed',
+            'message': str(e)
+        }), 500

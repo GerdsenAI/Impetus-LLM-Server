@@ -18,6 +18,7 @@ A high-performance local LLM server optimized for Apple Silicon, providing OpenA
 - **Smart Memory Management**: Automatic model unloading on memory pressure
 - **Error Recovery**: Comprehensive error handling with automatic recovery strategies
 - **KV Cache**: Optimized multi-turn conversation performance with key-value caching
+- **Model Warmup**: Eliminate cold start latency with pre-compiled Metal kernels
 
 ### Developer Experience
 - **Zero Configuration**: Works out of the box with sensible defaults
@@ -111,6 +112,9 @@ Access the dashboard at `http://localhost:5173`
 - `GET /api/models/cache/status` - Get KV cache statistics
 - `POST /api/models/cache/clear` - Clear KV cache
 - `GET/PUT /api/models/cache/settings` - Manage cache settings
+- `POST /api/models/warmup/{model_id}` - Warm up model to eliminate cold start
+- `GET /api/models/warmup/status` - Get warmup status for all models
+- `POST /api/models/warmup/{model_id}/benchmark` - Benchmark cold vs warm performance
 
 #### Hardware Monitoring Endpoints
 - `GET /api/hardware/info` - Get hardware information
@@ -199,6 +203,7 @@ mypy src/  # Backend
 - **Thermal Monitoring**: Automatic performance adjustment
 - **Per-Core Monitoring**: Real-time CPU usage tracking
 - **KV Cache**: LRU cache management for conversations
+- **Model Warmup**: Pre-compilation and performance optimization
 
 ## 🛡 Security
 
