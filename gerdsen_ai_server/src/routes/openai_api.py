@@ -11,6 +11,11 @@ from typing import Dict, List, Optional, Generator
 from loguru import logger
 from ..config.settings import settings
 from ..inference.kv_cache_manager import kv_cache_manager
+from ..schemas.openai_schemas import (
+    ChatCompletionRequest, CompletionRequest, ChatCompletionResponse,
+    CompletionResponse, ModelListResponse, ErrorResponse
+)
+from ..utils.validation import validate_json, create_response
 
 bp = Blueprint('openai_api', __name__)
 
@@ -74,25 +79,21 @@ def list_models():
 
 
 @bp.route('/chat/completions', methods=['POST'])
-def chat_completions():
+@validate_json(ChatCompletionRequest)
+def chat_completions(validated_data: ChatCompletionRequest):
     """OpenAI-compatible chat completions endpoint"""
-    data = request.get_json()
     
-    # Extract parameters
-    model = data.get('model', settings.model.default_model)
-    messages = data.get('messages', [])
-    temperature = data.get('temperature', settings.inference.temperature)
-    max_tokens = data.get('max_tokens', settings.inference.max_tokens)
-    stream = data.get('stream', settings.inference.stream_by_default)
-    top_p = data.get('top_p', settings.inference.top_p)
+    # Extract validated parameters
+    model = validated_data.model
+    messages = validated_data.messages
+    temperature = validated_data.temperature
+    max_tokens = validated_data.max_tokens
+    stream = validated_data.stream
+    top_p = validated_data.top_p
     
     # KV cache parameters
-    use_cache = data.get('use_cache', settings.inference.use_cache)
-    conversation_id = data.get('conversation_id', data.get('user', f'chat-{uuid.uuid4().hex[:8]}'))
-    
-    # Validate messages
-    if not messages:
-        return jsonify({'error': 'Messages are required'}), 400
+    use_cache = validated_data.use_cache
+    conversation_id = validated_data.conversation_id or validated_data.user or f'chat-{uuid.uuid4().hex[:8]}'
     
     # Get model from app state
     app_state = current_app.config.get('app_state', {})

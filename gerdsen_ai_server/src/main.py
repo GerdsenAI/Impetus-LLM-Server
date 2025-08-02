@@ -20,6 +20,7 @@ from src.utils.logger import app_logger
 from src.routes import health, hardware, models, openai_api, websocket
 from src.utils.hardware_detector import detect_hardware
 from src.utils.error_recovery import error_recovery_service
+from src.utils.openapi_generator import create_swagger_ui_route
 
 
 # Initialize Flask app
@@ -98,6 +99,16 @@ def initialize_hardware():
         }
 
 
+def setup_api_documentation():
+    """Setup OpenAPI documentation and Swagger UI"""
+    try:
+        # Create Swagger UI routes
+        create_swagger_ui_route(app)
+        logger.info("OpenAPI documentation initialized at /docs")
+    except Exception as e:
+        logger.warning(f"Failed to setup API documentation: {e}")
+
+
 def handle_shutdown(signum, frame):
     """Graceful shutdown handler"""
     logger.info("Received shutdown signal, cleaning up...")
@@ -160,6 +171,9 @@ def create_app():
     
     # Register blueprints
     register_blueprints()
+    
+    # Setup OpenAPI documentation
+    setup_api_documentation()
     
     # Register signal handlers
     signal.signal(signal.SIGINT, handle_shutdown)

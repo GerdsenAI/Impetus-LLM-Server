@@ -1,0 +1,159 @@
+version: '3.8'
+
+services:
+  # Main application
+  impetus-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: gerdsenai/impetus-llm-server:latest
+    container_name: impetus-server
+    restart: unless-stopped
+    
+    ports:
+      - "8080:8080"
+    
+    environment:
+      - IMPETUS_ENVIRONMENT=production
+      - IMPETUS_HOST=0.0.0.0
+      - IMPETUS_PORT=8080
+      - IMPETUS_API_KEY=${IMPETUS_API_KEY:-your-secret-key}
+      - IMPETUS_LOG_LEVEL=${IMPETUS_LOG_LEVEL:-info}
+      - IMPETUS_MAX_LOADED_MODELS=${IMPETUS_MAX_LOADED_MODELS:-2}
+      - IMPETUS_PERFORMANCE_MODE=${IMPETUS_PERFORMANCE_MODE:-balanced}
+    
+    volumes:
+      - models-data:/models
+      - logs-data:/logs
+      - ./config:/app/config:ro
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
+    
+    networks:
+      - impetus-network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: impetus-nginx
+    restart: unless-stopped
+    
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    
+    depends_on:
+      - impetus-server
+    
+    networks:
+      - impetus-network
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:alpine
+    container_name: impetus-redis
+    restart: unless-stopped
+    
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    
+    volumes:
+      - redis-data:/data
+    
+    networks:
+      - impetus-network
+    
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Prometheus monitoring (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: impetus-prometheus
+    restart: unless-stopped
+    
+    ports:
+      - "9090:9090"
+    
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    
+    networks:
+      - impetus-network
+
+  # Grafana dashboard (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: impetus-grafana
+    restart: unless-stopped
+    
+    ports:
+      - "3000:3000"
+    
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    
+    depends_on:
+      - prometheus
+    
+    networks:
+      - impetus-network
+
+volumes:
+  models-data:
+    driver: local
+  logs-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  nginx-logs:
+    driver: local
+
+networks:
+  impetus-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

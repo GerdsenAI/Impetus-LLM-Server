@@ -1,6 +1,6 @@
 # Impetus LLM Server
 
-Production-ready local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints with real-time performance monitoring.
+**v1.0.0** - Production-ready local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints with enterprise-grade security, monitoring, and deployment capabilities.
 
 ## 📑 Table of Contents
 - [Features](#-features)
@@ -32,12 +32,21 @@ Production-ready local LLM server optimized for Apple Silicon, providing OpenAI-
 - **KV Cache**: Optimized multi-turn conversation performance with key-value caching
 - **Model Warmup**: Eliminate cold start latency with pre-compiled Metal kernels
 
+### Production Features (v1.0.0)
+- **Gunicorn Production Server**: Enterprise-grade WSGI server with worker management
+- **API Documentation**: Interactive Swagger UI at `/docs` with auto-generated OpenAPI specs
+- **Health Monitoring**: Kubernetes-compatible liveness and readiness probes
+- **Input Validation**: Comprehensive Pydantic schema validation for all endpoints
+- **CI/CD Pipeline**: Complete GitHub Actions workflows for testing and deployment
+- **Container Support**: Docker and Kubernetes deployment configurations
+
 ### Developer Experience
 - **Zero Configuration**: Works out of the box with sensible defaults
 - **Environment Variables**: Full configuration through .env file
 - **Comprehensive Logging**: Structured logs with Loguru
-- **Health Endpoints**: Prometheus-compatible metrics
+- **Enhanced Metrics**: Prometheus-compatible metrics with detailed breakdowns
 - **CORS Support**: Configurable for web app integration
+- **Security**: Bearer token authentication and request sanitization
 
 ## 📋 Requirements
 
@@ -184,6 +193,17 @@ pnpm dev
 - `GET /api/hardware/optimization` - Get optimization recommendations
 - `POST /api/hardware/performance-mode` - Set performance mode
 
+#### Health Check Endpoints (v1.0.0)
+- `GET /api/health/live` - Kubernetes liveness probe
+- `GET /api/health/ready` - Kubernetes readiness probe
+- `GET /api/health/status` - Detailed component health status
+- `GET /api/health/metrics` - Prometheus-compatible metrics
+- `GET /api/health/metrics/json` - JSON format metrics
+
+#### Documentation Endpoints (v1.0.0)
+- `GET /docs` - Interactive Swagger UI documentation
+- `GET /api/docs/openapi.json` - OpenAPI 3.0 specification
+
 ### Configuration
 
 Configure via `.env` file in `gerdsen_ai_server/`:
@@ -209,42 +229,67 @@ IMPETUS_LOG_LEVEL=INFO
 
 ## 🚀 Production Deployment
 
-### Development vs Production
+**v1.0.0** includes comprehensive production deployment capabilities with multiple deployment options.
 
-The default installation runs a development server. For production deployments with high concurrency and reliability:
-
-#### 1. Install Production Dependencies
+### Quick Production Start
 ```bash
+# Install production dependencies
 cd gerdsen_ai_server
 pip install -r requirements_production.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with IMPETUS_API_KEY and other settings
+
+# Start production server
+./start_production.sh
 ```
 
-#### 2. Configure Gunicorn (Coming in v1.0)
+### Deployment Options
+
+#### 1. Docker Compose (Recommended)
 ```bash
-# Production server configuration
-gunicorn -c gunicorn_config.py gerdsen_ai_server.src.main:app
+# Clone and configure
+git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
+cd Impetus-LLM-Server
+cp .env.example .env
+
+# Start complete stack
+docker-compose up -d
+
+# Check status
+docker-compose ps
+docker-compose logs -f impetus-server
 ```
 
-#### 3. Reverse Proxy Setup
-Use nginx for SSL termination and load balancing:
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name your-domain.com;
-    
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-    
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
+#### 2. Kubernetes
+```bash
+# Apply Kubernetes manifests
+kubectl apply -f docs/kubernetes/
+
+# Check deployment
+kubectl get pods -n impetus-system
+kubectl logs -f deployment/impetus-server -n impetus-system
 ```
+
+#### 3. Native Installation with Gunicorn
+```bash
+# Install and configure
+pip install -r requirements_production.txt
+
+# Start with Gunicorn
+gunicorn --config gunicorn_config.py wsgi:application
+
+# Or use the startup script
+./start_production.sh
+```
+
+### Production Features
+- **Load Balancing**: nginx reverse proxy with SSL termination
+- **Health Monitoring**: Kubernetes liveness and readiness probes
+- **Auto-scaling**: Horizontal pod autoscaling based on CPU/memory
+- **Security**: Input validation, CORS, rate limiting, SSL/TLS
+- **Observability**: Prometheus metrics, structured logging, tracing
 
 #### 4. Service Management
 ```bash

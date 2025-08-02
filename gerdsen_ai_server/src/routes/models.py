@@ -15,6 +15,11 @@ from ..utils.error_responses import ErrorResponse, handle_error
 from ..inference.kv_cache_manager import kv_cache_manager
 from ..services.model_warmup import model_warmup_service
 from ..utils.mmap_loader import mmap_loader
+from ..schemas.model_schemas import (
+    ModelDownloadRequest, ModelLoadRequest, ModelUnloadRequest, 
+    BenchmarkRequest, WarmupRequest, CacheSettingsRequest
+)
+from ..utils.validation import validate_json, validate_path_params, validate_model_id, create_response
 
 bp = Blueprint('models', __name__)
 

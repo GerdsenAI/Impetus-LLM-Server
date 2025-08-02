@@ -1,6 +1,6 @@
 # Impetus LLM Server - Quick Start Guide
 
-Get up and running with Impetus in 5 minutes!
+**v1.0.0** - Get up and running with production-ready Impetus in 5 minutes!
 
 ## Prerequisites
 
@@ -29,7 +29,19 @@ pip install -e .
 impetus --setup
 ```
 
-### Option 2: Quick install script
+### Option 2: Docker (Production Ready)
+
+```bash
+# Clone and start with Docker Compose
+git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
+cd Impetus-LLM-Server
+docker-compose up -d
+
+# Check status
+docker-compose logs -f impetus-server
+```
+
+### Option 3: Quick install script
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/GerdsenAI/Impetus-LLM-Server/main/install.sh | bash
@@ -39,7 +51,12 @@ curl -sSL https://raw.githubusercontent.com/GerdsenAI/Impetus-LLM-Server/main/in
 
 1. **Start the server**:
    ```bash
+   # Development mode
    impetus-server
+   
+   # Production mode (v1.0.0)
+   cd gerdsen_ai_server
+   ./start_production.sh
    ```
 
 2. **Open the dashboard** in your browser:
@@ -50,6 +67,11 @@ curl -sSL https://raw.githubusercontent.com/GerdsenAI/Impetus-LLM-Server/main/in
 3. **Test the API**:
    ```bash
    curl http://localhost:8080/v1/models
+   ```
+
+4. **View API Documentation** (v1.0.0):
+   ```
+   http://localhost:8080/docs
    ```
 
 ## Download Your First Model
