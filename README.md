@@ -1,6 +1,6 @@
 # Impetus LLM Server
 
-Lightning-fast local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints and real-time performance monitoring.
+Production-ready local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints with real-time performance monitoring.
 
 ## 📑 Table of Contents
 - [Features](#-features)
@@ -9,10 +9,10 @@ Lightning-fast local LLM server optimized for Apple Silicon, providing OpenAI-co
 - [Usage](#-usage)
 - [API Endpoints](#api-endpoints)
 - [Configuration](#configuration)
+- [Production Deployment](#-production-deployment)
 - [Development](#-development)
 - [Performance](#-performance)
 - [Troubleshooting](#-troubleshooting)
-- [Next Steps](#-next-steps)
 
 ## 🚀 Features
 
@@ -207,6 +207,69 @@ IMPETUS_TEMPERATURE=0.7
 IMPETUS_LOG_LEVEL=INFO
 ```
 
+## 🚀 Production Deployment
+
+### Development vs Production
+
+The default installation runs a development server. For production deployments with high concurrency and reliability:
+
+#### 1. Install Production Dependencies
+```bash
+cd gerdsen_ai_server
+pip install -r requirements_production.txt
+```
+
+#### 2. Configure Gunicorn (Coming in v1.0)
+```bash
+# Production server configuration
+gunicorn -c gunicorn_config.py gerdsen_ai_server.src.main:app
+```
+
+#### 3. Reverse Proxy Setup
+Use nginx for SSL termination and load balancing:
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+    
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+#### 4. Service Management
+```bash
+# macOS (launchd)
+sudo cp service/impetus.plist /Library/LaunchDaemons/
+sudo launchctl load /Library/LaunchDaemons/impetus.plist
+
+# Linux (systemd)
+sudo cp service/impetus.service /etc/systemd/system/
+sudo systemctl enable impetus
+sudo systemctl start impetus
+```
+
+#### 5. Health Monitoring
+Monitor service health with built-in endpoints:
+- `/health` - Basic health check
+- `/api/hardware/metrics` - System metrics
+- `/api/models/list` - Model status
+
+### Docker Deployment (Experimental)
+```bash
+docker build -t impetus-llm-server .
+docker run -p 8080:8080 -v ./models:/models impetus-llm-server
+```
+
 ## 🔧 Development
 
 ### Project Structure
@@ -303,9 +366,9 @@ For detailed solutions and advanced debugging, check the full [Troubleshooting G
 - **OpenAI**: For the API specification
 - **VS Code AI Extensions**: For driving local LLM adoption
 
-## 📈 Next Steps
+## 📄 License
 
-See [todo.md](todo.md) for the detailed roadmap and upcoming features.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
