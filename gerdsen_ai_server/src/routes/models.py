@@ -9,8 +9,70 @@ from typing import Dict, List
 from ..config.settings import settings
 from ..services.model_discovery import ModelDiscoveryService, ModelCategory
 from ..services.download_manager import download_manager
+from ..services.benchmark_service import benchmark_service
+from ..utils.error_recovery import with_error_recovery, ErrorType
 
 bp = Blueprint('models', __name__)
+
+
+@with_error_recovery(ErrorType.MODEL_LOAD_FAILURE, max_retries=2)
+def _load_model_internal(model_id: str, app_state: Dict) -> Dict:
+    """Internal function to load a model. Returns result dict with status/error."""
+    loaded_models = app_state.get('loaded_models', {})
+    
+    # Check if already loaded
+    if model_id in loaded_models:
+        return {
+            'status': 'already_loaded',
+            'model_id': model_id,
+            'message': 'Model is already loaded'
+        }
+    
+    # Check memory before loading
+    import psutil
+    memory = psutil.virtual_memory()
+    if memory.percent > settings.hardware.max_memory_percent:
+        return {
+            'error': 'Insufficient memory',
+            'message': f'Memory usage ({memory.percent}%) exceeds limit ({settings.hardware.max_memory_percent}%)',
+            'status_code': 507
+        }
+    
+    # Check if we need to unload models
+    if len(loaded_models) >= settings.model.max_loaded_models:
+        return {
+            'error': 'Model limit reached',
+            'message': f'Maximum {settings.model.max_loaded_models} models can be loaded simultaneously',
+            'status_code': 507
+        }
+    
+    try:
+        # Import model loader
+        from ..model_loaders.mlx_loader import MLXModelLoader
+        
+        # Create loader and load model
+        loader = MLXModelLoader()
+        model = loader.load_model(model_id)
+        
+        # Store in app state
+        loaded_models[model_id] = model
+        
+        logger.info(f"Successfully loaded model: {model_id}")
+        
+        return {
+            'status': 'success',
+            'model_id': model_id,
+            'message': 'Model loaded successfully',
+            'memory_used_gb': psutil.virtual_memory().used / (1024 ** 3)
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to load model {model_id}: {e}")
+        return {
+            'error': 'Failed to load model',
+            'message': str(e),
+            'status_code': 500
+        }
 
 
 def get_available_models() -> List[Dict]:
@@ -76,6 +138,22 @@ def list_models():
     """List all available models"""
     try:
         models = get_available_models()
+        
+        # Add benchmark info if available
+        app_state = current_app.config.get('app_state', {})
+        model_benchmarks = app_state.get('model_benchmarks', {})
+        
+        for model in models:
+            model_id = model['id']
+            if model_id in model_benchmarks:
+                model['benchmark'] = {
+                    'available': True,
+                    'latest': model_benchmarks[model_id]['latest'],
+                    'tokens_per_second': model_benchmarks[model_id]['average_tokens_per_second']
+                }
+            else:
+                model['benchmark'] = {'available': False}
+        
         return jsonify({
             'models': models,
             'models_directory': str(settings.model.models_dir)
@@ -95,60 +173,17 @@ def load_model():
         return jsonify({'error': 'model_id is required'}), 400
     
     app_state = current_app.config.get('app_state', {})
-    loaded_models = app_state.get('loaded_models', {})
+    result = _load_model_internal(model_id, app_state)
     
-    # Check if already loaded
-    if model_id in loaded_models:
+    # Return appropriate response based on result
+    if 'error' in result:
+        status_code = result.get('status_code', 500)
         return jsonify({
-            'status': 'already_loaded',
-            'model_id': model_id,
-            'message': 'Model is already loaded'
-        })
-    
-    # Check memory before loading
-    import psutil
-    memory = psutil.virtual_memory()
-    if memory.percent > settings.hardware.max_memory_percent:
-        return jsonify({
-            'error': 'Insufficient memory',
-            'message': f'Memory usage ({memory.percent}%) exceeds limit ({settings.hardware.max_memory_percent}%)'
-        }), 507
-    
-    # Check if we need to unload models
-    if len(loaded_models) >= settings.model.max_loaded_models:
-        # Unload least recently used model
-        # For now, just return error
-        return jsonify({
-            'error': 'Model limit reached',
-            'message': f'Maximum {settings.model.max_loaded_models} models can be loaded simultaneously'
-        }), 507
-    
-    try:
-        # Import model loader
-        from ..model_loaders.mlx_loader import MLXModelLoader
-        
-        # Create loader and load model
-        loader = MLXModelLoader()
-        model = loader.load_model(model_id)
-        
-        # Store in app state
-        loaded_models[model_id] = model
-        
-        logger.info(f"Successfully loaded model: {model_id}")
-        
-        return jsonify({
-            'status': 'success',
-            'model_id': model_id,
-            'message': 'Model loaded successfully',
-            'memory_used_gb': psutil.virtual_memory().used / (1024 ** 3)
-        })
-        
-    except Exception as e:
-        logger.error(f"Failed to load model {model_id}: {e}")
-        return jsonify({
-            'error': 'Failed to load model',
-            'message': str(e)
-        }), 500
+            'error': result['error'],
+            'message': result['message']
+        }), status_code
+    else:
+        return jsonify(result)
 
 
 @bp.route('/unload', methods=['POST'])
@@ -241,19 +276,23 @@ def download_model():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
+        # Store the app for context
+        app = current_app._get_current_object()
+        
         # Create progress callback for WebSocket updates
         def progress_callback(progress):
-            app_state = current_app.config.get('app_state', {})
-            socketio = app_state.get('socketio')
-            if socketio:
-                socketio.emit('download_progress', {
-                    'task_id': progress.task_id,
-                    'downloaded_gb': progress.downloaded_bytes / (1024 ** 3),
-                    'total_gb': progress.total_bytes / (1024 ** 3),
-                    'speed_mbps': progress.speed_mbps,
-                    'eta_seconds': progress.eta_seconds,
-                    'progress': progress.downloaded_bytes / progress.total_bytes if progress.total_bytes > 0 else 0
-                }, room=f'download_{task_id}')
+            with app.app_context():
+                app_state = app.config.get('app_state', {})
+                socketio = app_state.get('socketio')
+                if socketio:
+                    socketio.emit('download_progress', {
+                        'task_id': progress.task_id,
+                        'downloaded_gb': progress.downloaded_bytes / (1024 ** 3),
+                        'total_gb': progress.total_bytes / (1024 ** 3),
+                        'speed_mbps': progress.speed_mbps,
+                        'eta_seconds': progress.eta_seconds,
+                        'progress': progress.downloaded_bytes / progress.total_bytes if progress.total_bytes > 0 else 0
+                    }, room=f'download_{task_id}')
         
         # Register callback
         download_manager.register_progress_callback(task_id, progress_callback)
@@ -262,20 +301,56 @@ def download_model():
             success = await download_manager.download_model(task_id)
             
             # Send completion event
-            app_state = current_app.config.get('app_state', {})
-            socketio = app_state.get('socketio')
-            if socketio:
-                task = download_manager.get_task_status(task_id)
-                socketio.emit('download_complete', {
-                    'task_id': task_id,
-                    'model_id': model_id,
-                    'success': success,
-                    'status': task.status.value if task else 'unknown'
-                }, room=f'download_{task_id}')
+            with app.app_context():
+                app_state = app.config.get('app_state', {})
+                socketio = app_state.get('socketio')
+                if socketio:
+                    task = download_manager.get_task_status(task_id)
+                    socketio.emit('download_complete', {
+                        'task_id': task_id,
+                        'model_id': model_id,
+                        'success': success,
+                        'status': task.status.value if task else 'unknown'
+                    }, room=f'download_{task_id}')
             
-            if success and auto_load:
-                # TODO: Auto-load the model after download
-                logger.info(f"Model {model_id} downloaded, auto-load requested")
+                if success and auto_load:
+                    logger.info(f"Model {model_id} downloaded, starting auto-load")
+                    
+                    # Emit auto-load started event
+                    if socketio:
+                        socketio.emit('auto_load_started', {
+                            'model_id': model_id,
+                            'message': 'Starting automatic model loading'
+                        }, room=f'download_{task_id}')
+                    
+                    # Attempt to load the model
+                    load_result = _load_model_internal(model_id, app_state)
+                    
+                    if 'error' in load_result:
+                        # Auto-load failed
+                        logger.error(f"Auto-load failed for {model_id}: {load_result['message']}")
+                        if socketio:
+                            socketio.emit('auto_load_failed', {
+                                'model_id': model_id,
+                                'error': load_result['error'],
+                                'message': load_result['message']
+                            }, room=f'download_{task_id}')
+                    else:
+                        # Auto-load succeeded
+                        logger.info(f"Auto-load successful for {model_id}")
+                        if socketio:
+                            socketio.emit('auto_load_complete', {
+                                'model_id': model_id,
+                                'status': load_result['status'],
+                                'message': load_result['message'],
+                                'memory_used_gb': load_result.get('memory_used_gb', 0)
+                            }, room=f'download_{task_id}')
+                            
+                            # Also emit models update to all clients
+                            loaded_models = list(app_state.get('loaded_models', {}).keys())
+                            socketio.emit('models_update', {
+                                'loaded_models': loaded_models
+                            }, room='models')
         
         loop.run_until_complete(do_download())
     
@@ -468,3 +543,139 @@ def list_downloads():
         'downloads': results,
         'total': len(results)
     })
+
+
+@bp.route('/benchmark/<model_id>', methods=['POST'])
+def benchmark_model(model_id: str):
+    """Run performance benchmark on a loaded model"""
+    app_state = current_app.config.get('app_state', {})
+    loaded_models = app_state.get('loaded_models', {})
+    
+    # Check if model is loaded
+    if model_id not in loaded_models:
+        return jsonify({
+            'error': 'Model not loaded',
+            'message': f'Model {model_id} must be loaded before benchmarking'
+        }), 404
+    
+    # Get hardware info
+    hardware_info = app_state.get('hardware_info', {})
+    chip_type = hardware_info.get('chip_type', 'Unknown')
+    
+    # Get custom prompts if provided
+    data = request.get_json() or {}
+    custom_prompts = data.get('prompts')
+    
+    try:
+        # Run benchmark
+        model = loaded_models[model_id]
+        suite = benchmark_service.benchmark_model(
+            model=model,
+            model_id=model_id,
+            chip_type=chip_type,
+            custom_prompts=custom_prompts
+        )
+        
+        # Update model info with benchmark results
+        if 'model_benchmarks' not in app_state:
+            app_state['model_benchmarks'] = {}
+        
+        app_state['model_benchmarks'][model_id] = {
+            'latest': suite.timestamp,
+            'average_tokens_per_second': suite.average_tokens_per_second,
+            'average_first_token_latency_ms': suite.average_first_token_latency_ms,
+            'peak_tokens_per_second': suite.peak_tokens_per_second
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'model_id': model_id,
+            'chip_type': chip_type,
+            'timestamp': suite.timestamp,
+            'summary': {
+                'average_tokens_per_second': round(suite.average_tokens_per_second, 1),
+                'average_first_token_latency_ms': round(suite.average_first_token_latency_ms, 1),
+                'peak_tokens_per_second': round(suite.peak_tokens_per_second, 1),
+                'average_memory_gb': round(suite.average_memory_gb, 2)
+            },
+            'results': [
+                {
+                    'prompt_length': r.prompt_length,
+                    'output_tokens': r.output_tokens,
+                    'tokens_per_second': round(r.tokens_per_second, 1),
+                    'time_to_first_token_ms': round(r.time_to_first_token_ms, 1),
+                    'total_time_ms': round(r.total_time_ms, 1),
+                    'gpu_utilization': round(r.gpu_utilization_avg, 1)
+                }
+                for r in suite.results
+            ]
+        })
+        
+    except Exception as e:
+        logger.error(f"Benchmark failed for {model_id}: {e}")
+        return jsonify({
+            'error': 'Benchmark failed',
+            'message': str(e)
+        }), 500
+
+
+@bp.route('/benchmark/<model_id>/history', methods=['GET'])
+def get_benchmark_history(model_id: str):
+    """Get benchmark history for a model"""
+    limit = request.args.get('limit', 10, type=int)
+    
+    try:
+        history = benchmark_service.get_model_history(model_id, limit=limit)
+        
+        return jsonify({
+            'model_id': model_id,
+            'history': [
+                {
+                    'timestamp': suite.timestamp,
+                    'chip_type': suite.chip_type,
+                    'average_tokens_per_second': round(suite.average_tokens_per_second, 1),
+                    'average_first_token_latency_ms': round(suite.average_first_token_latency_ms, 1),
+                    'peak_tokens_per_second': round(suite.peak_tokens_per_second, 1),
+                    'run_count': len(suite.results)
+                }
+                for suite in history
+            ]
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get benchmark history: {e}")
+        return jsonify({'error': 'Failed to retrieve history'}), 500
+
+
+@bp.route('/benchmarks/comparison', methods=['GET'])
+def get_benchmark_comparison():
+    """Get benchmark comparison across all models and chips"""
+    try:
+        summary = benchmark_service.get_all_models_summary()
+        
+        # Group by model
+        models = {}
+        for row in summary:
+            model_id = row['model_id']
+            if model_id not in models:
+                models[model_id] = {
+                    'model_id': model_id,
+                    'chips': {}
+                }
+            
+            models[model_id]['chips'][row['chip_type']] = {
+                'average_tokens_per_second': round(row['avg_tps'], 1),
+                'average_first_token_latency_ms': round(row['avg_ttft'], 1),
+                'average_memory_gb': round(row['avg_memory'], 2),
+                'latest_run': row['latest_run'],
+                'total_runs': row['total_runs']
+            }
+        
+        return jsonify({
+            'models': list(models.values()),
+            'total_models': len(models)
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get benchmark comparison: {e}")
+        return jsonify({'error': 'Failed to retrieve comparison'}), 500

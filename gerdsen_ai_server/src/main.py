@@ -19,6 +19,7 @@ from src.config.settings import settings
 from src.utils.logger import app_logger
 from src.routes import health, hardware, models, openai_api, websocket
 from src.utils.hardware_detector import detect_hardware
+from src.utils.error_recovery import error_recovery_service
 
 
 # Initialize Flask app
@@ -137,6 +138,9 @@ def create_app():
     """Application factory"""
     # Store app_state in Flask config
     app.config['app_state'] = app_state
+    
+    # Initialize error recovery service
+    error_recovery_service.set_app_state(app_state)
     
     # Initialize hardware detection
     initialize_hardware()

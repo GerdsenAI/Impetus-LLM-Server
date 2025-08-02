@@ -10,6 +10,7 @@ import threading
 import psutil
 from ..utils.hardware_detector import get_thermal_state
 from ..utils.metal_monitor import metal_monitor
+from ..utils.error_recovery import error_recovery_service, ErrorType
 
 
 def register_handlers(socketio, app_state):
@@ -161,6 +162,14 @@ def register_handlers(socketio, app_state):
                         'state': thermal_state,
                         'message': f'System thermal state: {thermal_state}'
                     })
+                    
+                    # Trigger thermal recovery
+                    if thermal_state == 'critical':
+                        error_recovery_service.handle_error(
+                            ErrorType.THERMAL_THROTTLE,
+                            Exception(f"Critical thermal state: {thermal_state}"),
+                            {'thermal_state': thermal_state}
+                        )
                 
                 last_thermal_state = thermal_state
                 time.sleep(5)  # Update every 5 seconds
