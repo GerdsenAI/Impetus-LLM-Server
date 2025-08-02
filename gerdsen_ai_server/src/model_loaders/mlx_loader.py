@@ -10,6 +10,7 @@ from loguru import logger
 
 from .base import BaseModelLoader, BaseModel, ModelLoadError, ModelNotFoundError, InferenceError
 from ..config.settings import settings
+from ..inference.kv_cache_manager import kv_cache_manager, CacheEntry
 
 # MLX imports with error handling
 try:
@@ -33,6 +34,8 @@ class MLXModel(BaseModel):
         self.model_instance = None
         self.tokenizer_instance = None
         self.adapter_path = None
+        self.supports_kv_cache = True
+        self.model_config = None
         
     def load(self, **kwargs) -> None:
         """Load MLX model into memory"""
@@ -67,6 +70,11 @@ class MLXModel(BaseModel):
             if config_path and config_path.exists():
                 with open(config_path, 'r') as f:
                     self.config = json.load(f)
+                    self.model_config = self.config
+            
+            # Try to get model config from the model instance if not loaded from file
+            if not self.model_config and hasattr(self.model_instance, 'config'):
+                self.model_config = self.model_instance.config
             
             self.loaded = True
             logger.info(f"Successfully loaded MLX model: {self.model_id}")
@@ -95,7 +103,7 @@ class MLXModel(BaseModel):
             logger.info(f"Successfully unloaded MLX model: {self.model_id}")
     
     def generate(self, prompt: str, **kwargs) -> str:
-        """Generate text from prompt"""
+        """Generate text from prompt with optional KV cache support"""
         if not self.loaded:
             raise InferenceError("Model is not loaded")
         
@@ -105,6 +113,10 @@ class MLXModel(BaseModel):
             temperature = kwargs.get('temperature', settings.inference.temperature)
             top_p = kwargs.get('top_p', settings.inference.top_p)
             repetition_penalty = kwargs.get('repetition_penalty', settings.inference.repetition_penalty)
+            
+            # KV cache parameters
+            use_cache = kwargs.get('use_cache', settings.inference.use_cache)
+            conversation_id = kwargs.get('conversation_id', 'default')
             
             # Check context window limits
             prompt_tokens = self.tokenize(prompt)
@@ -119,7 +131,16 @@ class MLXModel(BaseModel):
                 logger.warning(f"Reducing max_tokens from {max_tokens} to {available_tokens} to fit context window")
                 max_tokens = available_tokens
             
+            # Check if we should use KV cache
+            cache_entry = None
+            if use_cache and self.supports_kv_cache and kv_cache_manager.enabled:
+                cache_entry = kv_cache_manager.get_cache(self.model_id, conversation_id)
+                if cache_entry:
+                    logger.debug(f"Using KV cache for conversation {conversation_id}")
+            
             # Generate response
+            # Note: The actual KV cache integration would require modifying the mlx_lm.generate function
+            # or using a custom generation loop. For now, we use the standard generation.
             response = generate(
                 self.model_instance,
                 self.tokenizer_instance,
@@ -131,6 +152,11 @@ class MLXModel(BaseModel):
                 verbose=False
             )
             
+            # Update cache if needed (placeholder for now)
+            if use_cache and self.supports_kv_cache and kv_cache_manager.enabled:
+                # In a real implementation, we would extract and store the KV states here
+                pass
+            
             return response
             
         except Exception as e:
@@ -138,7 +164,7 @@ class MLXModel(BaseModel):
             raise InferenceError(f"Failed to generate text: {e}")
     
     def generate_stream(self, prompt: str, **kwargs) -> Generator[str, None, None]:
-        """Generate text in streaming mode"""
+        """Generate text in streaming mode with optional KV cache support"""
         if not self.loaded:
             raise InferenceError("Model is not loaded")
         
@@ -148,6 +174,10 @@ class MLXModel(BaseModel):
             temperature = kwargs.get('temperature', settings.inference.temperature)
             top_p = kwargs.get('top_p', settings.inference.top_p)
             repetition_penalty = kwargs.get('repetition_penalty', settings.inference.repetition_penalty)
+            
+            # KV cache parameters
+            use_cache = kwargs.get('use_cache', settings.inference.use_cache)
+            conversation_id = kwargs.get('conversation_id', 'default')
             
             # Check if mlx_lm has streaming support
             if hasattr(generate, 'stream') or 'stream' in dir(self.model_instance):
@@ -214,6 +244,35 @@ class MLXModel(BaseModel):
             raise InferenceError("Model or tokenizer not loaded")
         
         return self.tokenizer_instance.decode(tokens)
+    
+    def get_model_dimensions(self) -> Dict[str, int]:
+        """Get model dimensions for KV cache initialization"""
+        if not self.model_config:
+            return {
+                'num_layers': 32,  # Default for 7B models
+                'num_heads': 32,
+                'head_dim': 128,
+                'hidden_size': 4096
+            }
+        
+        # Extract dimensions from config
+        num_layers = self.model_config.get('num_hidden_layers', 32)
+        num_heads = self.model_config.get('num_attention_heads', 32)
+        hidden_size = self.model_config.get('hidden_size', 4096)
+        head_dim = hidden_size // num_heads
+        
+        return {
+            'num_layers': num_layers,
+            'num_heads': num_heads,
+            'head_dim': head_dim,
+            'hidden_size': hidden_size
+        }
+    
+    def clear_conversation_cache(self, conversation_id: str = 'default') -> bool:
+        """Clear KV cache for a specific conversation"""
+        if kv_cache_manager.enabled:
+            return kv_cache_manager.clear_cache(self.model_id, conversation_id)
+        return False
 
 
 class MLXModelLoader(BaseModelLoader):

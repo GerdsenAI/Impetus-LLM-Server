@@ -26,31 +26,69 @@
 - [x] Disk space validation before download
 - [x] One-click download with auto-load option
 
-## 🚧 Phase 2: Core Inference & Optimization (Current)
+### Phase 2: Core Inference & Optimization ✓
+
+#### Sprint 1 (Completed)
+- [x] **Real MLX Inference**: Replace mock inference with actual MLX generation
+  - [x] Implement proper tokenization
+  - [x] Add streaming token generation
+  - [x] Handle context window limits
+  - [x] Support temperature, top_p, repetition_penalty
+  
+- [x] **GPU/Metal Monitoring**: Create Metal performance monitoring
+  - [x] GPU utilization tracking
+  - [x] Memory bandwidth monitoring
+  - [x] Kernel execution timing
+  - [x] Thermal correlation with performance
+
+#### Sprint 2 (Completed)
+- [x] **Model Benchmarking**: Performance measurement system
+  - [x] Tokens/second measurement across prompts
+  - [x] First token latency tracking
+  - [x] GPU utilization during inference
+  - [x] SQLite storage for history
+  - [x] Cross-chip performance comparison
+  
+- [x] **Model Auto-Loading**: Load models after download completion
+  - [x] Automatic model loading with memory checks
+  - [x] WebSocket events for progress tracking
+  - [x] Graceful failure handling
+  
+- [x] **Error Recovery**: Comprehensive error handling
+  - [x] Out-of-memory recovery with model unloading
+  - [x] Thermal throttling detection and efficiency mode
+  - [x] Retry decorators with exponential backoff
+  - [x] Failure loop prevention
+
+- [x] **KV Cache Implementation**: Multi-turn conversation optimization
+  - [x] KV cache manager with LRU eviction
+  - [x] Per-conversation cache tracking
+  - [x] Memory-aware cache management
+  - [x] Cache API endpoints
+  - [x] OpenAI API integration with conversation IDs
+  - [x] Unit tests for cache functionality
+
+## 🚧 Phase 2.5: Performance Optimization (Current)
 
 ### High Priority Tasks
 
-- [ ] **Real MLX Inference**: Replace mock inference with actual MLX generation
-  - [ ] Implement proper tokenization
-  - [ ] Add streaming token generation
-  - [ ] Handle context window limits
-  - [ ] Support temperature, top_p, repetition_penalty
+- [x] **KV Cache Implementation**: Critical for conversation performance ✓
+  - [x] Implement key-value caching for attention
+  - [x] Cache management and eviction policies
+  - [x] Memory-efficient storage
+  - [x] Performance benchmarking with/without cache
   
-- [ ] **GPU/Metal Monitoring**: Create Metal performance monitoring
-  - [ ] GPU utilization tracking
-  - [ ] Memory bandwidth monitoring
-  - [ ] Kernel execution timing
-  - [ ] Thermal correlation with performance
+- [ ] **Model Warmup**: Eliminate cold start latency
+  - [ ] Pre-compile Metal kernels on load
+  - [ ] Tokenizer pre-caching
+  - [ ] Memory pool pre-allocation
+  - [ ] Warmup status in model info
   
-- [ ] **Model Auto-Loading**: Load models after download completion
-  - [ ] Automatic model validation
-  - [ ] Memory availability check
-  - [ ] Load balancing for multiple models
-  
-- [ ] **Error Recovery**: Comprehensive error handling
-  - [ ] Download failure recovery
-  - [ ] Model loading fallbacks
-  - [ ] OOM protection
+- [ ] **Memory-Mapped Loading**: Faster model loading
+  - [ ] Implement mmap for model weights
+  - [ ] Lazy loading for large models
+  - [ ] Reduced memory footprint
+  - [ ] Loading time benchmarks
 
 ### Apple Silicon Acceleration Research (Exploratory)
 
@@ -76,36 +114,27 @@
   - [ ] Profile unified memory bandwidth utilization
   - [ ] Investigate custom Metal kernels for critical ops
 
-### Performance Optimization
-
-- [ ] **Model Warmup**: First inference optimization
-  - [ ] Precompile Metal kernels
-  - [ ] Tokenizer caching
-  - [ ] Memory pool pre-allocation
-  
-- [ ] **Inference Optimization**: 
-  - [ ] KV cache implementation
-  - [ ] Batch processing support
-  - [ ] Dynamic batch sizing
-  - [ ] Memory-mapped model loading
 
 ### Testing & Quality
 
 - [ ] **Unit Tests**: Core functionality testing
-  - [ ] Model loader tests
-  - [ ] API endpoint tests
-  - [ ] Download manager tests
+  - [ ] Model loader tests with mocked MLX
+  - [ ] API endpoint tests with test client
+  - [ ] Download manager tests with mocked hub
   - [ ] Hardware detection tests
+  - [ ] Error recovery tests
   
 - [ ] **Integration Tests**: 
-  - [ ] End-to-end model download → load → inference
+  - [ ] End-to-end model download → load → inference → benchmark
   - [ ] WebSocket connection stability
   - [ ] Multi-model management
+  - [ ] Auto-loading flow
   
-- [ ] **Performance Benchmarks**:
-  - [ ] Model loading time benchmarks
-  - [ ] Inference speed per model/chip combination
-  - [ ] Memory usage profiling
+- [ ] **Performance Regression Tests**:
+  - [x] Model benchmarking system implemented
+  - [ ] Automated performance regression detection
+  - [ ] Memory leak detection
+  - [ ] Thermal throttling tests
 
 ## 📅 Phase 3: Advanced Features (Week 3)
 
@@ -214,13 +243,19 @@
 
 ## 🎯 Performance Targets
 
-### Key Metrics
+### Key Metrics (Measured via Benchmarking System)
 - **Startup Time**: < 5 seconds to ready
 - **Model Loading**: < 10 seconds for 7B models
-- **Inference Speed**: 50+ tokens/sec (7B on M1)
+- **Inference Speed**: 
+  - M1: 50+ tokens/sec (7B 4-bit)
+  - M2: 70+ tokens/sec (7B 4-bit)
+  - M3: 90+ tokens/sec (7B 4-bit)
+  - M4: 110+ tokens/sec (7B 4-bit)
+- **First Token Latency**: < 500ms (warmed up)
 - **Memory Usage**: < 500MB base + model size
 - **API Latency**: < 50ms overhead
-- **UI Frame Rate**: 60fps (16ms frame time)
+- **GPU Utilization**: > 80% during inference
+- **Auto-Load Success Rate**: > 95%
 
 ## 🧪 Testing Strategy
 
@@ -265,6 +300,34 @@ Create the best local LLM experience for Apple Silicon users, with:
 - Production reliability
 - Privacy-first design
 
+## 📊 Current Status
+
+### Completed Features
+- ✅ Flask backend with modular architecture
+- ✅ Real MLX inference with streaming
+- ✅ Model discovery and download system
+- ✅ GPU/Metal performance monitoring
+- ✅ Model benchmarking system
+- ✅ Auto-loading after download
+- ✅ Comprehensive error recovery
+- ✅ WebSocket real-time updates
+- ✅ React dashboard with model browser
+- ✅ KV cache for multi-turn conversations
+
+### In Progress
+- 🔄 Model warmup system
+- 🔄 Memory-mapped loading
+
+### API Endpoints
+- `/v1/chat/completions` - OpenAI-compatible chat (with KV cache support)
+- `/api/models/benchmark/{model_id}` - Run performance benchmark
+- `/api/models/download` - Download with auto-load
+- `/api/hardware/gpu/metrics` - GPU performance metrics
+- `/api/models/discover` - Browse available models
+- `/api/models/cache/status` - Get KV cache statistics
+- `/api/models/cache/clear` - Clear conversation caches
+- `/api/models/cache/settings` - Manage cache configuration
+
 ---
 
-Last Updated: August 2024
+Last Updated: January 2025

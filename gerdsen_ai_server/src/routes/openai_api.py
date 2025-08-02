@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Generator
 from loguru import logger
 from ..config.settings import settings
+from ..inference.kv_cache_manager import kv_cache_manager
 
 bp = Blueprint('openai_api', __name__)
 
@@ -85,6 +86,10 @@ def chat_completions():
     stream = data.get('stream', settings.inference.stream_by_default)
     top_p = data.get('top_p', settings.inference.top_p)
     
+    # KV cache parameters
+    use_cache = data.get('use_cache', settings.inference.use_cache)
+    conversation_id = data.get('conversation_id', data.get('user', f'chat-{uuid.uuid4().hex[:8]}'))
+    
     # Validate messages
     if not messages:
         return jsonify({'error': 'Messages are required'}), 400
@@ -123,7 +128,9 @@ def chat_completions():
                     temperature,
                     max_tokens,
                     top_p,
-                    app_state
+                    app_state,
+                    use_cache,
+                    conversation_id
                 )
             ),
             mimetype='text/event-stream'
@@ -136,13 +143,16 @@ def chat_completions():
             temperature,
             max_tokens,
             top_p,
-            app_state
+            app_state,
+            use_cache,
+            conversation_id
         )
         return jsonify(response)
 
 
 def generate_chat_stream(model, messages: List[Dict], temperature: float, 
-                        max_tokens: int, top_p: float, app_state: Dict) -> Generator:
+                        max_tokens: int, top_p: float, app_state: Dict,
+                        use_cache: bool = True, conversation_id: str = 'default') -> Generator:
     """Generate streaming chat completion response"""
     chat_id = f"chatcmpl-{uuid.uuid4().hex[:8]}"
     created = int(time.time())
@@ -176,7 +186,9 @@ def generate_chat_stream(model, messages: List[Dict], temperature: float,
                 prompt,
                 max_tokens=max_tokens,
                 temperature=temperature,
-                top_p=top_p
+                top_p=top_p,
+                use_cache=use_cache,
+                conversation_id=conversation_id
             ):
                 chunk = {
                     'id': chat_id,
@@ -197,7 +209,9 @@ def generate_chat_stream(model, messages: List[Dict], temperature: float,
                 prompt,
                 max_tokens=max_tokens,
                 temperature=temperature,
-                top_p=top_p
+                top_p=top_p,
+                use_cache=use_cache,
+                conversation_id=conversation_id
             )
             # Remove the prompt from the response if it's included
             if response.startswith(prompt):
@@ -262,7 +276,8 @@ def generate_chat_stream(model, messages: List[Dict], temperature: float,
 
 
 def generate_chat_completion(model, messages: List[Dict], temperature: float,
-                           max_tokens: int, top_p: float, app_state: Dict) -> Dict:
+                           max_tokens: int, top_p: float, app_state: Dict,
+                           use_cache: bool = True, conversation_id: str = 'default') -> Dict:
     """Generate non-streaming chat completion response"""
     chat_id = f"chatcmpl-{uuid.uuid4().hex[:8]}"
     created = int(time.time())
@@ -279,7 +294,9 @@ def generate_chat_completion(model, messages: List[Dict], temperature: float,
             prompt,
             max_tokens=max_tokens,
             temperature=temperature,
-            top_p=top_p
+            top_p=top_p,
+            use_cache=use_cache,
+            conversation_id=conversation_id
         )
         
         # Remove the prompt from the response if it's included

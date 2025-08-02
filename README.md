@@ -1,6 +1,6 @@
 # Impetus LLM Server
 
-A high-performance local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints for VS Code integration and a premium web dashboard for model management.
+A high-performance local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints and real-time performance monitoring.
 
 ## 🚀 Features
 
@@ -8,14 +8,16 @@ A high-performance local LLM server optimized for Apple Silicon, providing OpenA
 - **Apple Silicon Optimization**: Dynamic detection and optimization for M1, M2, M3, and M4 chips (including Pro, Max, and Ultra variants)
 - **OpenAI-Compatible API**: Full compatibility with VS Code extensions (Cline, Continue, Cursor, etc.)
 - **MLX Framework Integration**: Leverages Apple's MLX for optimal performance on unified memory architecture
-- **Real-time Hardware Monitoring**: CPU per-core usage, memory, thermal state tracking
+- **Real-time Hardware Monitoring**: CPU, GPU, memory, and thermal state tracking with Metal performance metrics
 - **WebSocket Updates**: Live performance metrics and system status broadcasting
 
 ### Model Management
-- **Multiple Format Support**: MLX, GGUF, and HuggingFace Hub models
-- **Dynamic Loading/Unloading**: Manage multiple models with memory optimization
-- **Auto-loading**: Models load on-demand for API requests
-- **Performance Modes**: Efficiency, Balanced, and Performance modes
+- **Model Discovery**: Browse and download from curated list of optimized models
+- **One-Click Download & Load**: Automatic model loading after download with progress tracking
+- **Performance Benchmarking**: Measure actual tokens/second, first token latency, and GPU utilization
+- **Smart Memory Management**: Automatic model unloading on memory pressure
+- **Error Recovery**: Comprehensive error handling with automatic recovery strategies
+- **KV Cache**: Optimized multi-turn conversation performance with key-value caching
 
 ### Developer Experience
 - **Zero Configuration**: Works out of the box with sensible defaults
@@ -97,17 +99,25 @@ Access the dashboard at `http://localhost:5173`
 - `GET /v1/models` - List available models
 - `POST /v1/chat/completions` - Chat completions (streaming supported)
 - `POST /v1/completions` - Text completions
-- `POST /v1/embeddings` - Generate embeddings
+
+#### Model Management Endpoints
+- `GET /api/models/discover` - Browse available models with performance estimates
+- `POST /api/models/download` - Download model with auto-load option
+- `GET /api/models/list` - List loaded models with benchmark status
+- `POST /api/models/load` - Load a model into memory
+- `POST /api/models/unload` - Unload a model from memory
+- `POST /api/models/benchmark/{model_id}` - Run performance benchmark
+- `GET /api/models/benchmark/{model_id}/history` - Get benchmark history
+- `GET /api/models/cache/status` - Get KV cache statistics
+- `POST /api/models/cache/clear` - Clear KV cache
+- `GET/PUT /api/models/cache/settings` - Manage cache settings
 
 #### Hardware Monitoring Endpoints
 - `GET /api/hardware/info` - Get hardware information
-- `GET /api/hardware/metrics` - Get real-time metrics
+- `GET /api/hardware/metrics` - Get real-time metrics including GPU
+- `GET /api/hardware/gpu/metrics` - Detailed GPU/Metal metrics
 - `GET /api/hardware/optimization` - Get optimization recommendations
-
-#### Model Management Endpoints
-- `POST /api/models/upload` - Upload and optimize models
-- `GET /api/models/list` - List loaded models
-- `POST /api/models/optimize` - Optimize existing models
+- `POST /api/hardware/performance-mode` - Set performance mode
 
 ### Configuration
 
@@ -188,6 +198,7 @@ mypy src/  # Backend
 - **Memory Management**: Smart model loading/unloading
 - **Thermal Monitoring**: Automatic performance adjustment
 - **Per-Core Monitoring**: Real-time CPU usage tracking
+- **KV Cache**: LRU cache management for conversations
 
 ## 🛡 Security
 

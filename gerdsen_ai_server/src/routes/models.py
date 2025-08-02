@@ -11,6 +11,7 @@ from ..services.model_discovery import ModelDiscoveryService, ModelCategory
 from ..services.download_manager import download_manager
 from ..services.benchmark_service import benchmark_service
 from ..utils.error_recovery import with_error_recovery, ErrorType
+from ..inference.kv_cache_manager import kv_cache_manager
 
 bp = Blueprint('models', __name__)
 
@@ -679,3 +680,72 @@ def get_benchmark_comparison():
     except Exception as e:
         logger.error(f"Failed to get benchmark comparison: {e}")
         return jsonify({'error': 'Failed to retrieve comparison'}), 500
+
+
+@bp.route('/cache/status', methods=['GET'])
+def get_cache_status():
+    """Get KV cache status and statistics"""
+    stats = kv_cache_manager.get_stats()
+    return jsonify(stats)
+
+
+@bp.route('/cache/clear', methods=['POST'])
+def clear_cache():
+    """Clear KV cache for specific conversation or all"""
+    data = request.get_json() or {}
+    model_id = data.get('model_id')
+    conversation_id = data.get('conversation_id')
+    
+    if model_id and conversation_id:
+        # Clear specific conversation cache
+        success = kv_cache_manager.clear_cache(model_id, conversation_id)
+        return jsonify({
+            'status': 'success' if success else 'not_found',
+            'model_id': model_id,
+            'conversation_id': conversation_id,
+            'message': f'Cache {"cleared" if success else "not found"}'
+        })
+    elif model_id:
+        # Clear all caches for model
+        cleared = kv_cache_manager.clear_model_caches(model_id)
+        return jsonify({
+            'status': 'success',
+            'model_id': model_id,
+            'caches_cleared': cleared,
+            'message': f'Cleared {cleared} caches for model'
+        })
+    else:
+        # Clear all caches
+        kv_cache_manager.clear_all_caches()
+        return jsonify({
+            'status': 'success',
+            'message': 'All caches cleared'
+        })
+
+
+@bp.route('/cache/settings', methods=['GET', 'PUT'])
+def cache_settings():
+    """Get or update KV cache settings"""
+    if request.method == 'GET':
+        return jsonify({
+            'enabled': kv_cache_manager.enabled,
+            'max_memory_gb': kv_cache_manager.max_memory_mb / 1024,
+            'max_conversations': kv_cache_manager.max_conversations,
+            'current_memory_mb': kv_cache_manager.total_memory_mb,
+            'num_active_caches': len(kv_cache_manager.caches)
+        })
+    else:
+        # Update settings
+        data = request.get_json()
+        
+        if 'max_memory_gb' in data:
+            kv_cache_manager.max_memory_mb = data['max_memory_gb'] * 1024
+            
+        if 'max_conversations' in data:
+            kv_cache_manager.max_conversations = data['max_conversations']
+        
+        return jsonify({
+            'status': 'updated',
+            'max_memory_gb': kv_cache_manager.max_memory_mb / 1024,
+            'max_conversations': kv_cache_manager.max_conversations
+        })
