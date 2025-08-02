@@ -86,7 +86,7 @@ class HardwareSettings(BaseSettings):
 class Settings(BaseSettings):
     """Main application settings"""
     app_name: str = "Impetus LLM Server"
-    version: str = "2.0.0"
+    version: str = "0.1.0"
     
     # Sub-settings
     server: ServerSettings = Field(default_factory=ServerSettings)

@@ -355,9 +355,14 @@ Create the best local LLM experience for Apple Silicon users, with:
 - ✅ Memory-mapped loading with <5s load time
 - ✅ Integration and performance tests
 
-### In Progress
-- 🔄 Production packaging (Sprint 5)
-- 🔄 Installation documentation
+### Production Release (v0.1.0)
+- ✅ Production packaging (Sprint 5)
+- ✅ Python package structure (setup.py, pyproject.toml)
+- ✅ Installation documentation (QUICKSTART.md)
+- ✅ One-line install script
+- ✅ Service files (systemd/launchd)
+- ✅ Production hardening (rate limiting, logging)
+- ✅ Release materials (CHANGELOG, LICENSE)
 
 ### API Endpoints
 - `/v1/chat/completions` - OpenAI-compatible chat (with KV cache support)

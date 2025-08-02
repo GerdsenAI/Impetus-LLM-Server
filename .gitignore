@@ -62,6 +62,6 @@ gerdsen_ai_server/.clinerules/
 .claude/
 
 # Temporary files
-~
+*~
 *.tmp
 *.temp

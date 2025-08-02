@@ -41,13 +41,32 @@ A high-performance local LLM server optimized for Apple Silicon, providing OpenA
 
 ## 🛠 Installation
 
-### 1. Clone the Repository
+### Quick Install (Recommended)
 ```bash
-git clone <repository-url>
+# One-line installer
+curl -sSL https://raw.githubusercontent.com/GerdsenAI/Impetus-LLM-Server/main/install.sh | bash
+```
+
+### Install from Source
+```bash
+# Clone and install
+git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
+cd Impetus-LLM-Server
+pip install -e .
+
+# Download your first model
+impetus --setup
+```
+
+### Manual Installation
+
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
 cd Impetus-LLM-Server
 ```
 
-### 2. Backend Setup
+#### 2. Backend Setup
 ```bash
 # Navigate to backend
 cd gerdsen_ai_server
@@ -63,7 +82,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-### 3. Frontend Setup
+#### 3. Frontend Setup
 ```bash
 # Navigate to frontend (in new terminal)
 cd impetus-dashboard
@@ -72,7 +91,7 @@ cd impetus-dashboard
 pnpm install
 ```
 
-### 4. VS Code Integration
+#### 4. VS Code Integration
 Configure your AI extension with:
 - **Base URL**: `http://localhost:8080`
 - **API Key**: Your configured key from .env
