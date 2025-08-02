@@ -13,6 +13,10 @@ python-multipart==0.0.9
 mlx==0.16.1
 mlx-lm==0.17.0
 
+# Model Management
+huggingface-hub==0.24.5
+hf-transfer==0.1.8  # For faster downloads
+
 # System Monitoring
 psutil==6.0.0
 py-cpuinfo==9.0.0

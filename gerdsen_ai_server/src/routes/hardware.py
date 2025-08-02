@@ -6,6 +6,7 @@ from flask import Blueprint, jsonify, current_app
 import psutil
 from loguru import logger
 from ..utils.hardware_detector import detect_hardware, get_thermal_state
+from ..utils.metal_monitor import metal_monitor, MetalMetrics
 from ..config.settings import settings
 
 bp = Blueprint('hardware', __name__)
@@ -55,6 +56,22 @@ def hardware_metrics():
             'open_files': len(process.open_files())
         }
         
+        # Get Metal GPU metrics if available
+        gpu_metrics = None
+        if metal_monitor._is_macos():
+            try:
+                metal_metrics = metal_monitor.get_current_metrics()
+                gpu_metrics = {
+                    'utilization_percent': metal_metrics.gpu_utilization,
+                    'frequency_mhz': metal_metrics.gpu_frequency_mhz,
+                    'memory_used_gb': metal_metrics.memory_used_gb,
+                    'memory_total_gb': metal_metrics.memory_total_gb,
+                    'memory_bandwidth_percent': metal_metrics.memory_bandwidth_utilization,
+                    'temperature_celsius': metal_metrics.temperature_celsius
+                }
+            except Exception as e:
+                logger.debug(f"Failed to get Metal metrics: {e}")
+        
         metrics = {
             'timestamp': psutil.boot_time(),
             'cpu': {
@@ -72,6 +89,7 @@ def hardware_metrics():
                 'swap_used_gb': swap.used / (1024 ** 3),
                 'swap_percent': swap.percent
             },
+            'gpu': gpu_metrics,
             'disk': {
                 'total_gb': disk.total / (1024 ** 3),
                 'used_gb': disk.used / (1024 ** 3),
@@ -204,3 +222,84 @@ def set_performance_mode():
             'max_memory_percent': settings.hardware.max_memory_percent
         }
     })
+
+
+@bp.route('/gpu/metrics', methods=['GET'])
+def gpu_metrics():
+    """Get detailed GPU/Metal metrics"""
+    if not metal_monitor._is_macos():
+        return jsonify({'error': 'GPU metrics only available on macOS'}), 404
+    
+    try:
+        # Get current metrics
+        current = metal_monitor.get_current_metrics()
+        
+        # Get average metrics over last minute
+        avg_1min = metal_monitor.get_average_metrics(window_seconds=60)
+        
+        # Get peak metrics
+        peak = metal_monitor.get_peak_metrics()
+        
+        metrics = {
+            'current': {
+                'timestamp': current.timestamp,
+                'gpu_utilization_percent': current.gpu_utilization,
+                'gpu_frequency_mhz': current.gpu_frequency_mhz,
+                'memory_used_gb': current.memory_used_gb,
+                'memory_total_gb': current.memory_total_gb,
+                'memory_bandwidth_percent': current.memory_bandwidth_utilization,
+                'temperature_celsius': current.temperature_celsius,
+                'power_watts': current.power_watts
+            },
+            'average_1min': {
+                'gpu_utilization_percent': avg_1min.gpu_utilization if avg_1min else 0,
+                'gpu_frequency_mhz': avg_1min.gpu_frequency_mhz if avg_1min else 0,
+                'memory_bandwidth_percent': avg_1min.memory_bandwidth_utilization if avg_1min else 0
+            } if avg_1min else None,
+            'peak': {
+                'gpu_utilization_percent': peak.gpu_utilization if peak else 0,
+                'gpu_frequency_mhz': peak.gpu_frequency_mhz if peak else 0,
+                'timestamp': peak.timestamp if peak else 0
+            } if peak else None,
+            'history_size': len(metal_monitor.metrics_history)
+        }
+        
+        return jsonify(metrics)
+        
+    except Exception as e:
+        logger.error(f"Error getting GPU metrics: {e}")
+        return jsonify({'error': 'Failed to get GPU metrics'}), 500
+
+
+@bp.route('/gpu/start-monitoring', methods=['POST'])
+def start_gpu_monitoring():
+    """Start continuous GPU monitoring"""
+    try:
+        if not metal_monitor._is_macos():
+            return jsonify({'error': 'GPU monitoring only available on macOS'}), 404
+        
+        metal_monitor.start_monitoring(interval_seconds=1.0)
+        
+        return jsonify({
+            'status': 'started',
+            'message': 'GPU monitoring started',
+            'interval_seconds': 1.0
+        })
+    except Exception as e:
+        logger.error(f"Error starting GPU monitoring: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/gpu/stop-monitoring', methods=['POST'])
+def stop_gpu_monitoring():
+    """Stop continuous GPU monitoring"""
+    try:
+        metal_monitor.stop_monitoring()
+        
+        return jsonify({
+            'status': 'stopped',
+            'message': 'GPU monitoring stopped'
+        })
+    except Exception as e:
+        logger.error(f"Error stopping GPU monitoring: {e}")
+        return jsonify({'error': str(e)}), 500

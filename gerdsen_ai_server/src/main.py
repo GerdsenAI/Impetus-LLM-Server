@@ -78,6 +78,13 @@ def initialize_hardware():
         if hardware_info['performance_cores'] >= 8:
             logger.info("High-performance hardware detected, enabling performance mode")
             settings.hardware.performance_mode = "performance"
+        
+        # Start Metal GPU monitoring if on macOS
+        import platform
+        if platform.system() == 'Darwin':
+            from src.utils.metal_monitor import metal_monitor
+            metal_monitor.start_monitoring(interval_seconds=2.0)
+            logger.info("Started Metal GPU monitoring")
             
     except Exception as e:
         logger.error(f"Failed to detect hardware: {e}")
@@ -93,6 +100,16 @@ def initialize_hardware():
 def handle_shutdown(signum, frame):
     """Graceful shutdown handler"""
     logger.info("Received shutdown signal, cleaning up...")
+    
+    # Stop Metal monitoring
+    import platform
+    if platform.system() == 'Darwin':
+        try:
+            from src.utils.metal_monitor import metal_monitor
+            metal_monitor.stop_monitoring()
+            logger.info("Stopped Metal GPU monitoring")
+        except Exception as e:
+            logger.error(f"Error stopping Metal monitoring: {e}")
     
     # Unload all models
     for model_id in list(app_state['loaded_models'].keys()):
@@ -118,6 +135,9 @@ def internal_error(error):
 
 def create_app():
     """Application factory"""
+    # Store app_state in Flask config
+    app.config['app_state'] = app_state
+    
     # Initialize hardware detection
     initialize_hardware()
     

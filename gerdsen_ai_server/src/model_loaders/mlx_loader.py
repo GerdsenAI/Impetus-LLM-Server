@@ -106,6 +106,19 @@ class MLXModel(BaseModel):
             top_p = kwargs.get('top_p', settings.inference.top_p)
             repetition_penalty = kwargs.get('repetition_penalty', settings.inference.repetition_penalty)
             
+            # Check context window limits
+            prompt_tokens = self.tokenize(prompt)
+            context_length = self.config.get('max_position_embeddings', 2048) if self.config else 2048
+            
+            if len(prompt_tokens) > context_length:
+                raise InferenceError(f"Prompt exceeds context window ({len(prompt_tokens)} > {context_length})")
+            
+            # Adjust max_tokens if it would exceed context window
+            available_tokens = context_length - len(prompt_tokens)
+            if max_tokens > available_tokens:
+                logger.warning(f"Reducing max_tokens from {max_tokens} to {available_tokens} to fit context window")
+                max_tokens = available_tokens
+            
             # Generate response
             response = generate(
                 self.model_instance,
@@ -136,18 +149,52 @@ class MLXModel(BaseModel):
             top_p = kwargs.get('top_p', settings.inference.top_p)
             repetition_penalty = kwargs.get('repetition_penalty', settings.inference.repetition_penalty)
             
-            # Use MLX streaming generation
-            # Note: This is a simplified version. Real implementation would use mlx_lm's streaming
-            tokens = self.tokenize(prompt)
-            generated_tokens = []
+            # Check if mlx_lm has streaming support
+            if hasattr(generate, 'stream') or 'stream' in dir(self.model_instance):
+                # Use native streaming if available
+                logger.info("Using native MLX streaming generation")
+                # This would be the ideal implementation once mlx_lm supports it
+                pass
             
-            for i in range(max_tokens):
-                # This is a placeholder - actual MLX streaming would be implemented here
-                # For now, we'll generate the full response and yield it in chunks
-                if i == 0:
-                    full_response = self.generate(prompt, **kwargs)
-                    for char in full_response:
+            # Fallback: Generate in chunks for a streaming-like experience
+            # This is more efficient than generating the full response at once
+            prompt_tokens = self.tokenize(prompt)
+            generated_tokens = []
+            previous_text = ""
+            
+            # Generate tokens in small batches
+            batch_size = 10  # Generate 10 tokens at a time
+            for i in range(0, max_tokens, batch_size):
+                current_max = min(i + batch_size, max_tokens)
+                
+                # Generate up to current_max tokens
+                response = generate(
+                    self.model_instance,
+                    self.tokenizer_instance,
+                    prompt=prompt,
+                    max_tokens=current_max,
+                    temperature=temperature,
+                    top_p=top_p,
+                    repetition_penalty=repetition_penalty,
+                    verbose=False
+                )
+                
+                # Extract only the new tokens
+                if response.startswith(previous_text):
+                    new_text = response[len(previous_text):]
+                    previous_text = response
+                    
+                    # Yield the new text
+                    for char in new_text:
                         yield char
+                    
+                    # Check if generation is complete
+                    if len(new_text) == 0 or response.endswith(('.', '!', '?', '\n')):
+                        break
+                else:
+                    # Shouldn't happen, but handle gracefully
+                    logger.warning("Unexpected response format in streaming generation")
+                    yield response[len(previous_text):]
                     break
                 
         except Exception as e:

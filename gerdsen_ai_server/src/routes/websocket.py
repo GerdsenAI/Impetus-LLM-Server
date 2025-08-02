@@ -9,10 +9,14 @@ import time
 import threading
 import psutil
 from ..utils.hardware_detector import get_thermal_state
+from ..utils.metal_monitor import metal_monitor
 
 
 def register_handlers(socketio, app_state):
     """Register WebSocket event handlers"""
+    
+    # Store socketio instance for use by other modules
+    app_state['socketio'] = socketio
     
     @socketio.on('connect')
     def handle_connect():
@@ -87,6 +91,45 @@ def register_handlers(socketio, app_state):
         emit('hardware_status', hardware_status)
     
     
+    @socketio.on('subscribe_download')
+    def handle_subscribe_download(data):
+        """Subscribe to download progress updates"""
+        task_id = data.get('task_id')
+        if not task_id:
+            emit('error', {'message': 'task_id required'})
+            return
+        
+        # Join download-specific room
+        room = f'download_{task_id}'
+        join_room(room)
+        logger.info(f"Client {request.sid} subscribed to download {task_id}")
+        
+        # Send current status
+        from ..services.download_manager import download_manager
+        task = download_manager.get_task_status(task_id)
+        if task:
+            emit('download_progress', {
+                'task_id': task.task_id,
+                'model_id': task.model_id,
+                'status': task.status.value,
+                'progress': task.progress,
+                'downloaded_gb': task.downloaded_bytes / (1024 ** 3) if task.downloaded_bytes else 0,
+                'total_gb': task.total_bytes / (1024 ** 3) if task.total_bytes else 0,
+                'speed_mbps': task.speed_mbps,
+                'eta_seconds': task.eta_seconds
+            })
+    
+    
+    @socketio.on('unsubscribe_download')
+    def handle_unsubscribe_download(data):
+        """Unsubscribe from download progress updates"""
+        task_id = data.get('task_id')
+        if task_id:
+            room = f'download_{task_id}'
+            leave_room(room)
+            logger.info(f"Client {request.sid} unsubscribed from download {task_id}")
+    
+    
     # Start background tasks for periodic updates
     def metrics_broadcaster():
         """Broadcast metrics to subscribed clients"""
@@ -145,6 +188,19 @@ def gather_metrics(app_state):
     process = psutil.Process()
     process_memory = process.memory_info().rss / (1024 ** 3)  # GB
     
+    # Get GPU metrics if available
+    gpu_data = None
+    if metal_monitor._is_macos():
+        try:
+            metal_metrics = metal_monitor.get_current_metrics()
+            gpu_data = {
+                'utilization_percent': metal_metrics.gpu_utilization,
+                'memory_used_gb': metal_metrics.memory_used_gb,
+                'memory_bandwidth_percent': metal_metrics.memory_bandwidth_utilization
+            }
+        except:
+            pass
+    
     metrics = {
         'timestamp': time.time(),
         'system': {
@@ -152,6 +208,7 @@ def gather_metrics(app_state):
             'memory_percent': memory.percent,
             'memory_available_gb': memory.available / (1024 ** 3)
         },
+        'gpu': gpu_data,
         'process': {
             'memory_gb': process_memory,
             'threads': process.num_threads()
