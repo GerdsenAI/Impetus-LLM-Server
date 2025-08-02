@@ -13,6 +13,30 @@ This project emphasizes systematic problem-solving through:
 
 Impetus-LLM-Server is a high-performance machine learning model management system optimized for Apple Silicon hardware. The project consists of a Python backend server and a React frontend dashboard, focusing on MLX model management and inference.
 
+## Development Environment Setup
+
+### Virtual Environment (Required)
+Always use a virtual environment to ensure consistent dependencies. The project uses Python 3.11+.
+
+```bash
+# Create virtual environment (already created at .venv)
+python3 -m venv .venv
+
+# Activate virtual environment
+source .venv/bin/activate  # macOS/Linux
+
+# Verify Python version
+python --version  # Should show Python 3.11+
+
+# Install backend dependencies
+pip install -r gerdsen_ai_server/requirements.txt
+
+# For production dependencies
+pip install -r gerdsen_ai_server/requirements_production.txt
+```
+
+**Important**: Always activate the virtual environment before running any Python commands!
+
 ## Key Commands
 
 ### Frontend Development (Root directory)
@@ -36,6 +60,9 @@ pnpm preview        # Preview production build
 
 ### Backend Development
 ```bash
+# ALWAYS activate virtual environment first!
+source .venv/bin/activate
+
 cd gerdsen_ai_server
 python src/main.py  # Run the Flask server on port 5000
 ```

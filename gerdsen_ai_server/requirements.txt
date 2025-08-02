@@ -11,7 +11,7 @@ pydantic-settings==2.4.0
 python-multipart==0.0.9
 
 # Apple Silicon ML Frameworks
-mlx==0.16.1
+mlx==0.16.3
 mlx-lm==0.17.0
 
 # Model Management
