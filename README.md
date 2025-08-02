@@ -236,25 +236,24 @@ mypy src/  # Backend
 
 ## 🐛 Troubleshooting
 
-### Server Won't Start
-- Verify Python 3.11+: `python3 --version`
-- Check port 8080: `lsof -i :8080`
-- Activate venv: `source venv/bin/activate`
+See our comprehensive [Troubleshooting Guide](TROUBLESHOOTING.md) for detailed solutions.
 
-### Models Won't Load
-- Check available memory in Activity Monitor
-- Verify MLX installation: `pip show mlx`
-- Try smaller models first (4-bit quantized)
+### Quick Diagnostics
+```bash
+# Run system validation
+impetus validate
 
-### Frontend Connection Issues
-- Ensure backend is running on port 8080
-- Check browser console for WebSocket errors
-- Verify CORS settings in .env
+# Check server status
+impetus server --check
+```
 
-### Performance Issues
-- Monitor thermal state in dashboard
-- Switch to efficiency mode if overheating
-- Close other memory-intensive applications
+### Common Issues
+- **Installation problems**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-installation-issues)
+- **Connection errors**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-connection-issues)
+- **Model loading**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-model-loading-issues)
+- **Performance**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-performance-issues)
+
+For detailed solutions and advanced debugging, check the full [Troubleshooting Guide](TROUBLESHOOTING.md).
 
 ## 🙏 Acknowledgments
 

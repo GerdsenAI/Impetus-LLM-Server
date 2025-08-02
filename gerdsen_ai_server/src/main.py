@@ -169,11 +169,37 @@ def create_app():
     logger.info(f"Environment: {settings.environment}")
     logger.info(f"Server will run on {settings.server.host}:{settings.server.port}")
     
+    # Print welcome message
+    console_msg = f"""
+    ╔══════════════════════════════════════════════════════════════╗
+    ║                  Impetus LLM Server v{settings.version}                  ║
+    ║          High-Performance LLM for Apple Silicon              ║
+    ╚══════════════════════════════════════════════════════════════╝
+    
+    🚀 Starting server on http://{settings.server.host}:{settings.server.port}
+    📊 Dashboard: http://localhost:5173
+    📖 API Docs: http://localhost:{settings.server.port}/docs
+    
+    💡 Quick Commands:
+       • List models: GET /api/models/list
+       • Check health: GET /api/health/status
+       • Run validation: impetus validate
+    """
+    print(console_msg)
+    
     return app, socketio
 
 
 def main():
     """Main entry point"""
+    # Check for CLI usage
+    if len(sys.argv) > 1 and not sys.argv[0].endswith('main.py'):
+        # Called via CLI
+        from src.cli import main as cli_main
+        cli_main()
+        return
+    
+    # Normal server startup
     app, socketio = create_app()
     
     try:

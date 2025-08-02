@@ -56,6 +56,38 @@ check_requirements() {
     REQUIRED_VERSION="3.11"
     if [[ $(echo "$PYTHON_VERSION < $REQUIRED_VERSION" | bc) -eq 1 ]]; then
         echo -e "${RED}Error: Python $REQUIRED_VERSION+ is required (found $PYTHON_VERSION)${NC}"
+        echo "Install with: brew install python@3.11"
+        exit 1
+    fi
+    
+    # Check memory
+    MEMORY_GB=$(sysctl -n hw.memsize | awk '{print int($1/1024/1024/1024)}')
+    if [[ $MEMORY_GB -lt 8 ]]; then
+        echo -e "${YELLOW}Warning: System has ${MEMORY_GB}GB RAM. 8GB+ recommended for larger models${NC}"
+        sleep 2
+    fi
+    
+    # Check disk space
+    DISK_FREE_GB=$(df -H / | awk 'NR==2 {print int($4)}')
+    if [[ $DISK_FREE_GB -lt 10 ]]; then
+        echo -e "${YELLOW}Warning: Only ${DISK_FREE_GB}GB free disk space. 10GB+ recommended${NC}"
+        echo "Continue anyway? (y/n)"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    fi
+    
+    # Check for conflicting processes on port 8080
+    if lsof -i :8080 &> /dev/null; then
+        echo -e "${YELLOW}Warning: Port 8080 is already in use${NC}"
+        echo "Impetus can be configured to use a different port in .env"
+    fi
+    
+    # Check for git
+    if ! command -v git &> /dev/null; then
+        echo -e "${RED}Error: Git is required${NC}"
+        echo "Install with: xcode-select --install"
         exit 1
     fi
     
@@ -147,6 +179,17 @@ EOL
     echo -e "${GREEN}✓ Launch script created${NC}"
 }
 
+create_directories() {
+    echo -e "${YELLOW}Creating Impetus directories...${NC}"
+    
+    # Create required directories
+    mkdir -p "$HOME/.impetus/models"
+    mkdir -p "$HOME/.impetus/cache"
+    mkdir -p "$HOME/.impetus/logs"
+    
+    echo -e "${GREEN}✓ Created ~/.impetus directories${NC}"
+}
+
 download_model() {
     echo -e "${YELLOW}Would you like to download a model now? (y/n)${NC}"
     read -r response
@@ -211,6 +254,7 @@ main() {
     print_header
     check_requirements
     install_impetus
+    create_directories
     create_config
     create_launch_script
     download_model

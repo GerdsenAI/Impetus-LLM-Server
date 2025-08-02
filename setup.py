@@ -49,7 +49,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "impetus=src.main:main",
+            "impetus=src.cli:main",
             "impetus-server=src.main:main",
         ],
     },

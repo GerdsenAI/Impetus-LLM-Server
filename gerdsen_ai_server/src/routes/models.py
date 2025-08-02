@@ -11,6 +11,7 @@ from ..services.model_discovery import ModelDiscoveryService, ModelCategory
 from ..services.download_manager import download_manager
 from ..services.benchmark_service import benchmark_service
 from ..utils.error_recovery import with_error_recovery, ErrorType
+from ..utils.error_responses import ErrorResponse, handle_error
 from ..inference.kv_cache_manager import kv_cache_manager
 from ..services.model_warmup import model_warmup_service
 from ..utils.mmap_loader import mmap_loader
@@ -35,11 +36,10 @@ def _load_model_internal(model_id: str, app_state: Dict) -> Dict:
     import psutil
     memory = psutil.virtual_memory()
     if memory.percent > settings.hardware.max_memory_percent:
-        return {
-            'error': 'Insufficient memory',
-            'message': f'Memory usage ({memory.percent}%) exceeds limit ({settings.hardware.max_memory_percent}%)',
-            'status_code': 507
-        }
+        available_gb = memory.available / (1024 ** 3)
+        # Estimate required memory (rough estimate)
+        required_gb = 8.0  # Default estimate for 7B model
+        return ErrorResponse.insufficient_memory(required_gb, available_gb)[1]
     
     # Check if we need to unload models
     if len(loaded_models) >= settings.model.max_loaded_models:
@@ -71,10 +71,11 @@ def _load_model_internal(model_id: str, app_state: Dict) -> Dict:
         
     except Exception as e:
         logger.error(f"Failed to load model {model_id}: {e}")
+        error_resp = ErrorResponse.model_load_failed(model_id, str(e))
         return {
-            'error': 'Failed to load model',
-            'message': str(e),
-            'status_code': 500
+            'error': error_resp[0].json['error'],
+            'message': error_resp[0].json['message'],
+            'status_code': error_resp[1]
         }
 
 
@@ -174,7 +175,7 @@ def list_models():
         })
     except Exception as e:
         logger.error(f"Error listing models: {e}")
-        return jsonify({'error': 'Failed to list models'}), 500
+        return handle_error(e, "listing models")
 
 
 @bp.route('/load', methods=['POST'])

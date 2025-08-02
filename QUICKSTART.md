@@ -141,20 +141,15 @@ sudo systemctl stop impetus
 
 ## Troubleshooting
 
-### Server won't start
-- Check Python version: `python3 --version` (needs 3.11+)
-- Check port 8080: `lsof -i :8080`
-- Activate venv: `source venv/bin/activate`
+For common issues and solutions, see our comprehensive [Troubleshooting Guide](TROUBLESHOOTING.md).
 
-### Model won't load
-- Check memory: Activity Monitor should show 8GB+ free
-- Try smaller model: 4-bit quantized versions use less memory
-- Check MLX: `pip show mlx`
+Quick fixes:
+- **Server won't start**: Check port 8080 with `lsof -i :8080`
+- **Model won't load**: Try smaller 4-bit model, check memory
+- **Performance issues**: Use `IMPETUS_PERFORMANCE_MODE=performance`
+- **Connection errors**: Run `impetus validate` to check system
 
-### Performance issues
-- Set performance mode: `IMPETUS_PERFORMANCE_MODE=performance`
-- Close other apps to free memory
-- Monitor thermals in dashboard
+Need more help? Check the full [Troubleshooting Guide](TROUBLESHOOTING.md).
 
 ## Next Steps
 

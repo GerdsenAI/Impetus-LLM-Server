@@ -1,11 +1,13 @@
 import React from 'react'
 import { Activity } from 'lucide-react'
+import ConnectionStatus from './ConnectionStatus'
 
 interface HeaderProps {
   connected: boolean
+  wsEndpoint?: string
 }
 
-export const Header: React.FC<HeaderProps> = ({ connected }) => {
+export const Header: React.FC<HeaderProps> = ({ connected, wsEndpoint = 'ws://localhost:8080' }) => {
   return (
     <header className="header">
       <div className="header-content">
@@ -18,10 +20,10 @@ export const Header: React.FC<HeaderProps> = ({ connected }) => {
         </div>
         
         <div className="header-right">
-          <div className={`status-indicator ${connected ? 'connected' : 'disconnected'}`}>
-            <span className="status-dot"></span>
-            {connected ? 'Connected' : 'Disconnected'}
-          </div>
+          <ConnectionStatus 
+            wsEndpoint={wsEndpoint}
+            onReconnect={() => window.location.reload()}
+          />
         </div>
       </div>
     </header>
