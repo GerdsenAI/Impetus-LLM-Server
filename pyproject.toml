@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "impetus-llm-server"
+version = "0.1.0"
+description = "Lightning-fast local LLM server optimized for Apple Silicon with OpenAI-compatible API"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "GerdsenAI", email = "dev@gerdsenai.com"},
+]
+keywords = ["llm", "mlx", "apple-silicon", "ml", "ai", "inference", "server", "openai-compatible"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: MacOS :: MacOS X",
+    "Environment :: GPU",
+]
+
+[project.urls]
+Homepage = "https://github.com/GerdsenAI/Impetus-LLM-Server"
+Documentation = "https://github.com/GerdsenAI/Impetus-LLM-Server#readme"
+Repository = "https://github.com/GerdsenAI/Impetus-LLM-Server"
+Issues = "https://github.com/GerdsenAI/Impetus-LLM-Server/issues"
+
+[project.scripts]
+impetus = "src.main:main"
+impetus-server = "src.main:main"
+
+[tool.setuptools]
+package-dir = {"" = "gerdsen_ai_server"}
+packages = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.yaml", "*.yml", "*.html", "*.css", "*.js"]
+
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "PT", "SIM", "RUF"]
+ignore = ["E501", "B008", "RUF012"]
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+include = '\.pyi?$'

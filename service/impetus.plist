@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.gerdsenai.impetus</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/USERNAME/impetus-llm-server/venv/bin/python</string>
+        <string>/Users/USERNAME/impetus-llm-server/gerdsen_ai_server/src/main.py</string>
+    </array>
+    
+    <key>WorkingDirectory</key>
+    <string>/Users/USERNAME/impetus-llm-server/gerdsen_ai_server</string>
+    
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/USERNAME/impetus-llm-server/venv/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>IMPETUS_ENVIRONMENT</key>
+        <string>production</string>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+    </dict>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>Crashed</key>
+        <true/>
+    </dict>
+    
+    <key>StandardOutPath</key>
+    <string>/Users/USERNAME/Library/Logs/impetus/server.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/USERNAME/Library/Logs/impetus/error.log</string>
+    
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+    
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>1024</integer>
+    </dict>
+    
+    <key>HardResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>2048</integer>
+    </dict>
+</dict>
+</plist>

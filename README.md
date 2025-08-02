@@ -1,97 +1,158 @@
-# GerdsenAI Impetus LLM Server
+# Impetus LLM Server
 
-A production-ready macOS application for managing Apple Silicon hardware optimization, machine learning models, and AI workloads with OpenAI-compatible API endpoints for VS Code integration.
+Lightning-fast local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints and real-time performance monitoring.
+
+## 📑 Table of Contents
+- [Features](#-features)
+- [Requirements](#-requirements)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [API Endpoints](#api-endpoints)
+- [Configuration](#configuration)
+- [Development](#-development)
+- [Performance](#-performance)
+- [Troubleshooting](#-troubleshooting)
+- [Next Steps](#-next-steps)
 
 ## 🚀 Features
 
 ### Core Functionality
 - **Apple Silicon Optimization**: Dynamic detection and optimization for M1, M2, M3, and M4 chips (including Pro, Max, and Ultra variants)
-- **Real-time Hardware Monitoring**: CPU, GPU, Neural Engine, memory, thermal, and power monitoring
-- **macOS Service Integration**: Runs as a background service with taskbar/menu bar integration
-- **OpenAI-Compatible API**: Full compatibility with VS Code extensions like Cline and other AI coding assistants
-- **Apple Frameworks Integration**: Core ML, MLX, Metal Performance Shaders, and Neural Engine optimization
+- **OpenAI-Compatible API**: Full compatibility with VS Code extensions (Cline, Continue, Cursor, etc.)
+- **MLX Framework Integration**: Leverages Apple's MLX for optimal performance on unified memory architecture
+- **Real-time Hardware Monitoring**: CPU, GPU, memory, and thermal state tracking with Metal performance metrics
+- **WebSocket Updates**: Live performance metrics and system status broadcasting
 
-### Advanced Features
-- **Dynamic Resource Allocation**: Automatically optimizes based on available hardware resources
-- **Thermal Management**: Intelligent throttling and performance adjustment based on thermal state
-- **Model Management**: Load, optimize, and manage ML models with drag-and-drop interface
-- **Real-time Metrics**: WebSocket-based real-time system metrics broadcasting
-- **Performance Benchmarking**: Comprehensive performance testing and optimization recommendations
+### Model Management
+- **Model Discovery**: Browse and download from curated list of optimized models
+- **One-Click Download & Load**: Automatic model loading after download with progress tracking
+- **Performance Benchmarking**: Measure actual tokens/second, first token latency, and GPU utilization
+- **Smart Memory Management**: Automatic model unloading on memory pressure
+- **Error Recovery**: Comprehensive error handling with automatic recovery strategies
+- **KV Cache**: Optimized multi-turn conversation performance with key-value caching
+- **Model Warmup**: Eliminate cold start latency with pre-compiled Metal kernels
 
-### UI/UX
-- **Apple HIG Compliance**: Follows Apple Human Interface Guidelines for macOS 15+
-- **SF Pro Display Fonts**: Native macOS typography and styling
-- **Minimize to Taskbar**: Proper macOS service behavior with taskbar integration
-- **Dynamic Data Display**: Real-time hardware information and performance metrics
-- **Responsive Design**: Optimized for various screen sizes and resolutions
+### Developer Experience
+- **Zero Configuration**: Works out of the box with sensible defaults
+- **Environment Variables**: Full configuration through .env file
+- **Comprehensive Logging**: Structured logs with Loguru
+- **Health Endpoints**: Prometheus-compatible metrics
+- **CORS Support**: Configurable for web app integration
 
 ## 📋 Requirements
 
 ### System Requirements
-- **macOS**: 15.0+ (Sequoia or later)
-- **Hardware**: Apple Silicon Mac (M1, M2, M3, or M4 series)
-- **Memory**: 8GB RAM minimum, 16GB+ recommended
-- **Storage**: 2GB free space for application and models
+- **macOS**: 13.0+ on Apple Silicon (M1/M2/M3/M4 series)
+- **Memory**: 8GB RAM minimum, 16GB+ recommended for larger models
+- **Storage**: 10GB+ free space for models
 
-### Software Dependencies
-- **Python**: 3.11+ (included with macOS)
-- **Xcode Command Line Tools**: For compilation of native extensions
-- **Optional**: MLX framework for advanced AI acceleration
-- **Optional**: Core ML Tools for model optimization
+### Software Requirements
+- **Python**: 3.11+
+- **Node.js**: 18+ with pnpm
+- **MLX**: Installed automatically with pip
 
 ## 🛠 Installation
 
 ### Quick Install (Recommended)
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd gerdsen-ai-enhanced
+# One-line installer
+curl -sSL https://raw.githubusercontent.com/GerdsenAI/Impetus-LLM-Server/main/install.sh | bash
 
-# Run the automated installer
-chmod +x scripts/build_macos.sh
-./scripts/build_macos.sh
+# Validate installation
+impetus validate
+```
 
-# Launch the application
-./gerdsen_ai_launcher.py
+### Install from Source
+```bash
+# Clone and install
+git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
+cd Impetus-LLM-Server
+pip install -e .
+
+# Run setup wizard
+impetus setup
 ```
 
 ### Manual Installation
+
+#### 1. Clone the Repository
 ```bash
-# Install Python dependencies
-pip3 install -r requirements_production.txt
-
-# Install optional Apple frameworks
-pip3 install mlx coremltools
-
-# Install macOS-specific dependencies
-pip3 install pyobjc-framework-Metal pyobjc-framework-CoreML
-
-# Set up the application
-python3 setup_macos.py
-
-# Create application bundle
-python3 -m py2app -A gerdsen_ai_launcher.py
+git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
+cd Impetus-LLM-Server
 ```
 
-### VS Code Integration Setup
-1. Install a compatible VS Code extension (Cline, Continue, etc.)
-2. Configure the extension to use local API endpoint:
-   - **Base URL**: `http://localhost:8080`
-   - **API Key**: `gerdsen-ai-local-key` (or custom key from settings)
-   - **Model**: `gerdsen-ai-optimized`
+#### 2. Backend Setup
+```bash
+# Navigate to backend
+cd gerdsen_ai_server
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On macOS/Linux
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy environment configuration
+cp .env.example .env
+```
+
+#### 3. Frontend Setup
+```bash
+# Navigate to frontend (in new terminal)
+cd impetus-dashboard
+
+# Install dependencies
+pnpm install
+```
+
+#### 4. VS Code Integration
+Configure your AI extension with:
+- **Base URL**: `http://localhost:8080`
+- **API Key**: Your configured key from .env
+- **Model**: Any loaded model ID (e.g., `mlx-community/Mistral-7B-Instruct-v0.3-4bit`)
 
 ## 🚀 Usage
 
-### Starting the Application
+### Quick Start
 ```bash
-# Start as a service (recommended)
-python3 gerdsen_ai_launcher.py --service
+# Start the server
+impetus server
 
-# Start with GUI
-python3 gerdsen_ai_launcher.py --gui
+# Or start directly
+impetus-server
+```
 
-# Start server only
-cd gerdsen_ai_server && python3 src/production_main.py
+Access the dashboard at `http://localhost:5173`
+
+### CLI Commands
+```bash
+# System validation
+impetus validate
+
+# Interactive setup
+impetus setup
+
+# Start server
+impetus server
+
+# List models
+impetus models
+
+# Show help
+impetus --help
+```
+
+### Manual Start
+```bash
+# Terminal 1: Start backend
+cd gerdsen_ai_server
+source venv/bin/activate
+python src/main.py
+
+# Terminal 2: Start frontend
+cd impetus-dashboard
+pnpm dev
 ```
 
 ### API Endpoints
@@ -100,202 +161,153 @@ cd gerdsen_ai_server && python3 src/production_main.py
 - `GET /v1/models` - List available models
 - `POST /v1/chat/completions` - Chat completions (streaming supported)
 - `POST /v1/completions` - Text completions
-- `POST /v1/embeddings` - Generate embeddings
+
+#### Model Management Endpoints
+- `GET /api/models/discover` - Browse available models with performance estimates
+- `POST /api/models/download` - Download model with auto-load option
+- `GET /api/models/list` - List loaded models with benchmark status
+- `POST /api/models/load` - Load a model into memory
+- `POST /api/models/unload` - Unload a model from memory
+- `POST /api/models/benchmark/{model_id}` - Run performance benchmark
+- `GET /api/models/benchmark/{model_id}/history` - Get benchmark history
+- `GET /api/models/cache/status` - Get KV cache statistics
+- `POST /api/models/cache/clear` - Clear KV cache
+- `GET/PUT /api/models/cache/settings` - Manage cache settings
+- `POST /api/models/warmup/{model_id}` - Warm up model to eliminate cold start
+- `GET /api/models/warmup/status` - Get warmup status for all models
+- `POST /api/models/warmup/{model_id}/benchmark` - Benchmark cold vs warm performance
 
 #### Hardware Monitoring Endpoints
 - `GET /api/hardware/info` - Get hardware information
-- `GET /api/hardware/metrics` - Get real-time metrics
+- `GET /api/hardware/metrics` - Get real-time metrics including GPU
+- `GET /api/hardware/gpu/metrics` - Detailed GPU/Metal metrics
 - `GET /api/hardware/optimization` - Get optimization recommendations
-
-#### Model Management Endpoints
-- `POST /api/models/upload` - Upload and optimize models
-- `GET /api/models/list` - List loaded models
-- `POST /api/models/optimize` - Optimize existing models
+- `POST /api/hardware/performance-mode` - Set performance mode
 
 ### Configuration
 
-#### Environment Variables
-```bash
-export GERDSEN_AI_PORT=8080
-export GERDSEN_AI_HOST=0.0.0.0
-export GERDSEN_AI_API_KEY=your-custom-key
-export GERDSEN_AI_LOG_LEVEL=INFO
-export GERDSEN_AI_ENABLE_CORS=true
-```
+Configure via `.env` file in `gerdsen_ai_server/`:
 
-#### Configuration File
-Create `config/production.json`:
-```json
-{
-  "server": {
-    "host": "0.0.0.0",
-    "port": 8080,
-    "debug": false
-  },
-  "optimization": {
-    "auto_optimize": true,
-    "thermal_management": true,
-    "performance_mode": "balanced"
-  },
-  "api": {
-    "enable_openai_compat": true,
-    "rate_limiting": true,
-    "cors_enabled": true
-  }
-}
+```bash
+# Server
+IMPETUS_HOST=0.0.0.0
+IMPETUS_PORT=8080
+IMPETUS_API_KEY=your-secret-key
+
+# Models
+IMPETUS_DEFAULT_MODEL=mlx-community/Mistral-7B-Instruct-v0.3-4bit
+IMPETUS_MAX_LOADED_MODELS=3
+
+# Performance
+IMPETUS_PERFORMANCE_MODE=balanced  # efficiency, balanced, performance
+IMPETUS_MAX_TOKENS=2048
+IMPETUS_TEMPERATURE=0.7
+
+# Logging
+IMPETUS_LOG_LEVEL=INFO
 ```
 
 ## 🔧 Development
 
 ### Project Structure
 ```
-gerdsen-ai-enhanced/
-├── src/                          # Core application code
-│   ├── production_gerdsen_ai.py  # Main production application
-│   ├── enhanced_apple_silicon_detector.py  # Hardware detection
-│   ├── apple_frameworks_integration.py     # Apple frameworks
-│   ├── integrated_mlx_manager.py          # MLX integration
-│   └── macos_service.py                   # macOS service wrapper
-├── gerdsen_ai_server/            # Flask server
+Impetus-LLM-Server/
+├── gerdsen_ai_server/           # Backend (Flask + MLX)
 │   ├── src/
-│   │   ├── production_main.py    # Production server
-│   │   ├── routes/               # API routes
-│   │   └── auth/                 # Authentication
-├── ui/                           # Web interface
-│   ├── enhanced_index.html       # Main UI
-│   ├── enhanced_styles.css       # Styling
-│   └── enhanced_script.js        # JavaScript
-├── scripts/                      # Build and deployment scripts
-├── tests/                        # Test suites
-└── docs/                         # Documentation
+│   │   ├── main.py             # Application entry point
+│   │   ├── config/             # Configuration management
+│   │   ├── routes/             # API endpoints
+│   │   ├── model_loaders/      # Model loading infrastructure
+│   │   ├── utils/              # Utilities and helpers
+│   │   └── inference/          # Inference engines
+│   ├── requirements.txt        # Python dependencies
+│   └── .env.example           # Environment configuration
+├── impetus-dashboard/          # Frontend (React + TypeScript)
+│   ├── src/
+│   │   ├── components/        # React components
+│   │   ├── App.tsx           # Main application
+│   │   └── main.tsx          # Entry point
+│   ├── package.json          # Node dependencies
+│   └── vite.config.ts        # Vite configuration
+├── CLAUDE.md                  # Development philosophy
+├── README.md                  # This file
+└── todo.md                    # Project roadmap
 ```
 
-### Building from Source
+### Development Workflow
 ```bash
-# Install development dependencies
-pip3 install -r requirements_production.txt
-
 # Run tests
-python3 -m pytest tests/
+cd gerdsen_ai_server
+pytest tests/
 
-# Build application bundle
-python3 setup_macos.py py2app
+# Lint code
+pnpm lint  # Frontend
+ruff check src/  # Backend
 
-# Create installer package
-./scripts/create_installer.sh
+# Type checking
+pnpm tsc  # Frontend
+mypy src/  # Backend
 ```
-
-### Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
 
 ## 📊 Performance
 
-### Benchmarks
-- **M4 Ultra**: 15,000+ tokens/second with MLX optimization
-- **M4 Pro**: 8,000+ tokens/second with Neural Engine acceleration
-- **M3 Max**: 6,000+ tokens/second with unified memory optimization
-- **M2 Pro**: 4,000+ tokens/second with thermal management
-- **M1 Max**: 3,500+ tokens/second with efficiency core utilization
+### Expected Performance (7B Models)
+- **M4 Series**: 80-120 tokens/second
+- **M3 Series**: 60-100 tokens/second  
+- **M2 Series**: 40-80 tokens/second
+- **M1 Series**: 30-60 tokens/second
+- **Model Loading**: <5 seconds with memory mapping
+- **First Token**: <200ms when warmed up
 
 ### Optimization Features
-- **Automatic Model Quantization**: Reduces memory usage by 50-75%
-- **Dynamic Batch Sizing**: Optimizes throughput based on available memory
-- **Thermal Throttling**: Prevents overheating while maintaining performance
-- **Power Management**: Extends battery life on portable devices
-- **Memory Pressure Handling**: Graceful degradation under memory constraints
+- **MLX Framework**: Optimized for Apple Silicon unified memory
+- **Dynamic Batching**: Automatic batch size optimization
+- **Memory Management**: Smart model loading/unloading
+- **Thermal Monitoring**: Automatic performance adjustment
+- **Per-Core Monitoring**: Real-time CPU usage tracking
+- **KV Cache**: LRU cache management for conversations
+- **Model Warmup**: Pre-compilation and performance optimization
 
 ## 🛡 Security
 
-### API Security
-- **Rate Limiting**: Configurable per-endpoint rate limits
-- **API Key Authentication**: Secure access control
-- **CORS Protection**: Configurable cross-origin request handling
+- **API Key Authentication**: Bearer token authentication
+- **CORS Configuration**: Controlled cross-origin access
+- **Local Processing**: All data stays on your machine
+- **No Telemetry**: Zero external data collection
 - **Input Validation**: Comprehensive request validation
-- **Logging**: Detailed security event logging
-
-### Privacy
-- **Local Processing**: All AI processing happens locally
-- **No Data Collection**: No telemetry or usage data sent externally
-- **Secure Storage**: Encrypted model and configuration storage
-- **Network Isolation**: Optional offline mode available
 
 ## 🐛 Troubleshooting
 
+See our comprehensive [Troubleshooting Guide](TROUBLESHOOTING.md) for detailed solutions.
+
+### Quick Diagnostics
+```bash
+# Run system validation
+impetus validate
+
+# Check server status
+impetus server --check
+```
+
 ### Common Issues
+- **Installation problems**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-installation-issues)
+- **Connection errors**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-connection-issues)
+- **Model loading**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-model-loading-issues)
+- **Performance**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-performance-issues)
 
-#### Application Won't Start
-```bash
-# Check Python version
-python3 --version  # Should be 3.11+
-
-# Check dependencies
-pip3 list | grep -E "(flask|psutil|websockets)"
-
-# Check permissions
-chmod +x gerdsen_ai_launcher.py
-```
-
-#### API Not Responding
-```bash
-# Check if server is running
-lsof -i :8080
-
-# Check logs
-tail -f logs/gerdsen_ai.log
-
-# Test API endpoint
-curl http://localhost:8080/v1/models
-```
-
-#### Performance Issues
-```bash
-# Check system resources
-python3 src/enhanced_apple_silicon_detector.py
-
-# Monitor thermal state
-python3 -c "from src.production_gerdsen_ai import *; print(get_thermal_state())"
-
-# Check optimization settings
-python3 validate_functionality.py
-```
-
-### Getting Help
-- **Documentation**: Check the `docs/` directory for detailed guides
-- **Logs**: Application logs are stored in `logs/gerdsen_ai.log`
-- **Diagnostics**: Run `python3 validate_functionality.py` for system diagnostics
-- **Issues**: Report bugs and feature requests on the project repository
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+For detailed solutions and advanced debugging, check the full [Troubleshooting Guide](TROUBLESHOOTING.md).
 
 ## 🙏 Acknowledgments
 
-- **Apple**: For the incredible Apple Silicon architecture and development frameworks
-- **MLX Team**: For the high-performance machine learning framework
-- **OpenAI**: For the API specification that enables VS Code integration
-- **VS Code Community**: For creating amazing AI-powered development tools
+- **Apple MLX Team**: For the excellent ML framework for Apple Silicon
+- **OpenAI**: For the API specification
+- **VS Code AI Extensions**: For driving local LLM adoption
 
-## 📈 Roadmap
+## 📈 Next Steps
 
-### Upcoming Features
-- **Multi-Model Support**: Load and run multiple models simultaneously
-- **Custom Model Training**: Fine-tune models on local data
-- **Advanced Scheduling**: Time-based optimization and task scheduling
-- **Cloud Integration**: Optional cloud model synchronization
-- **Plugin System**: Extensible architecture for third-party integrations
-
-### Version History
-- **v2.0.0**: Production-ready release with full Apple Silicon optimization
-- **v1.5.0**: Added OpenAI API compatibility and VS Code integration
-- **v1.0.0**: Initial release with basic MLX support
+See [todo.md](todo.md) for the detailed roadmap and upcoming features.
 
 ---
 
-**Built with ❤️ for Apple Silicon Macs**
+**Built with ❤️ for Apple Silicon**
 

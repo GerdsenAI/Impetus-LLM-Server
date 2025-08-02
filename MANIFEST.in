@@ -1,0 +1,33 @@
+# Include documentation
+include README.md
+include LICENSE
+include CHANGELOG.md
+include QUICKSTART.md
+
+# Include configuration files
+include pyproject.toml
+include setup.py
+recursive-include gerdsen_ai_server *.txt *.md
+
+# Include package data
+recursive-include gerdsen_ai_server *.json *.yaml *.yml
+recursive-include gerdsen_ai_server *.html *.css *.js
+
+# Include test files
+recursive-include tests *.py
+
+# Include service files
+recursive-include service *.service *.plist *.sh
+
+# Exclude unnecessary files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.swp
+global-exclude .DS_Store
+global-exclude __pycache__
+prune .git
+prune venv
+prune .pytest_cache
+prune .mypy_cache
+prune impetus-dashboard/node_modules
+prune impetus-dashboard/dist
