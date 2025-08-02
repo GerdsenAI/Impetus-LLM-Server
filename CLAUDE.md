@@ -13,7 +13,30 @@ This project emphasizes systematic problem-solving through:
 
 Impetus-LLM-Server is a high-performance machine learning model management system optimized for Apple Silicon hardware. The project consists of a Python backend server and a React frontend dashboard, focusing on MLX model management and inference.
 
+### Current Status (January 2025)
+- **Version**: v0.1.0 Released ✅
+- **Current Branch**: `feature/complete-unit-tests`
+- **Priority**: Completing unit test coverage for download manager, hardware detection, and error recovery
+- **Test Coverage**: 84 tests passing, 3 test suites pending implementation
+
 ## Key Commands
+
+### Testing Commands
+```bash
+# Run all tests
+python -m pytest gerdsen_ai_server/tests/ -v
+
+# Run specific test files
+python -m pytest gerdsen_ai_server/tests/test_mlx_loader.py -v
+python -m pytest gerdsen_ai_server/tests/test_model_warmup.py -v
+python -m pytest gerdsen_ai_server/tests/test_api_models.py -v
+python -m pytest gerdsen_ai_server/tests/test_kv_cache.py -v
+python -m pytest gerdsen_ai_server/tests/test_integration.py -v
+python -m pytest gerdsen_ai_server/tests/test_performance.py -v
+
+# Run with coverage
+python -m pytest gerdsen_ai_server/tests/ --cov=gerdsen_ai_server.src --cov-report=html
+```
 
 ### Frontend Development (Root directory)
 ```bash
@@ -38,6 +61,12 @@ pnpm preview        # Preview production build
 ```bash
 cd gerdsen_ai_server
 python src/main.py  # Run the Flask server on port 5000
+
+# Production deployment
+impetus validate    # Check system compatibility
+impetus setup      # Interactive setup wizard
+impetus server     # Start the server
+impetus models     # List available models
 ```
 
 ### Python Dependencies
@@ -45,6 +74,23 @@ python src/main.py  # Run the Flask server on port 5000
 - Production: `gerdsen_ai_server/requirements_production.txt`
 - Development: `requirements_dev.txt`
 - macOS specific: `requirements_macos.txt`
+
+## Known Issues & Gotchas
+
+### Source Code Access
+- The `gerdsen_ai_server/src/` directory may have permission issues or contain compiled/binary files
+- Source code might be in a compiled format for production deployment
+- When testing, mock dependencies extensively to avoid hardware-specific issues
+
+### Testing Environment
+- Tests require Python 3.11+ with pytest
+- Some tests may fail without actual Apple Silicon hardware
+- Mock MLX and hardware dependencies when running tests in CI/CD
+
+### Common Development Issues
+1. **Git Lock Files**: If you encounter `.git/index.lock` errors, remove the lock file before git operations
+2. **Large Uncommitted Files**: The project may accumulate large files (node_modules, __pycache__, etc.) - ensure .gitignore is properly configured
+3. **Python Path Issues**: Tests expect imports from `src.` - ensure PYTHONPATH includes the gerdsen_ai_server directory
 
 ## Architecture Overview
 
@@ -207,3 +253,53 @@ Example workflow for a performance issue:
 - **Decide**: Implement memory-mapped loading (OODA)
 - **Act**: Code, test, and measure results (OODA)
 - **Question**: "Did this solve the root cause or just the symptom?" (Socratic)
+
+## Current Development Focus
+
+### Immediate Priority: Unit Test Completion
+
+The project has achieved v0.1.0 release with 84 passing tests, but requires completion of three critical test suites:
+
+1. **Download Manager Tests** (`test_download_manager.py`)
+   - Mock HuggingFace Hub API interactions
+   - Test download progress tracking and WebSocket events
+   - Test error scenarios (network failures, disk space)
+   - Test concurrent downloads and cancellation
+
+2. **Hardware Detection Tests** (`test_hardware_detection.py`)
+   - Mock system hardware information
+   - Test Apple Silicon chip detection (M1-M4)
+   - Test memory and GPU capabilities detection
+   - Test thermal monitoring and unsupported hardware handling
+
+3. **Error Recovery Tests** (`test_error_recovery.py`)
+   - Test out-of-memory recovery mechanisms
+   - Test thermal throttling responses
+   - Test retry logic with exponential backoff
+   - Test failure loop prevention
+
+### Testing Best Practices
+
+When implementing tests:
+- Use mocking extensively to avoid hardware dependencies
+- Test both success and failure paths
+- Ensure tests are deterministic and fast
+- Follow existing test patterns in the codebase
+- Add integration tests for complex workflows
+
+### Next Priorities After Testing
+
+1. **macOS Native Integration**
+   - Menubar application with PyObjC
+   - App bundle creation and code signing
+   - Auto-update with Sparkle framework
+
+2. **Advanced Inference Features**
+   - Function calling support
+   - JSON mode for structured output
+   - Grammar-constrained generation
+
+3. **Dashboard Enhancements**
+   - Dark/Light mode
+   - Model comparison features
+   - 3D performance visualizations
