@@ -1,0 +1,34 @@
+[Unit]
+Description=Impetus LLM Server - High-performance local LLM server for Apple Silicon
+Documentation=https://github.com/GerdsenAI/Impetus-LLM-Server
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+Group=%i
+WorkingDirectory=/home/%i/impetus-llm-server/gerdsen_ai_server
+Environment="PATH=/home/%i/impetus-llm-server/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+Environment="IMPETUS_ENVIRONMENT=production"
+ExecStart=/home/%i/impetus-llm-server/venv/bin/python src/main.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/var/log/impetus/server.log
+StandardError=append:/var/log/impetus/error.log
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/%i/impetus-llm-server/models
+ReadWritePaths=/var/log/impetus
+
+# Resource limits
+MemoryLimit=16G
+CPUQuota=200%
+TasksMax=100
+
+[Install]
+WantedBy=multi-user.target

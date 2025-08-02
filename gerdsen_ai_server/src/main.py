@@ -147,6 +147,11 @@ def create_app():
     # Store app_state in Flask config
     app.config['app_state'] = app_state
     
+    # Apply production configuration if in production
+    if settings.environment == "production":
+        from src.config.production import apply_production_config
+        app_state['limiter'] = apply_production_config(app, socketio)
+    
     # Initialize error recovery service
     error_recovery_service.set_app_state(app_state)
     
