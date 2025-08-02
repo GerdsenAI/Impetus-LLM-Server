@@ -1485,3 +1485,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+def is_mlx_supported() -> bool:
+    """Check if MLX models are supported"""
+    return True  # Mock implementation for now
