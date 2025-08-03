@@ -150,7 +150,16 @@ stop_services() {
     
     # Kill any running processes
     echo "Stopping any running Impetus processes..."
-    pkill -f "impetus" 2>/dev/null || true
+    # Kill only processes whose command line matches known installation locations
+    for installation in "${INSTALL_LOCATIONS[@]}"; do
+        pgrep -f "$installation" | while read -r pid; do
+            if [[ -n "$pid" ]]; then
+                echo "Killing process with PID $pid matching $installation"
+                kill "$pid" 2>/dev/null || true
+            fi
+        done
+    done
+    # Also kill specific known process names, but with more precise patterns
     pkill -f "gerdsen_ai_server" 2>/dev/null || true
     pkill -f "gunicorn.*wsgi:application" 2>/dev/null || true
     
