@@ -229,13 +229,17 @@ stop_services() {
         else
             # Fallback: kill by exact command path
             IMPETUS_BIN="$INSTALL_DIR/impetus"
-            pgrep -x "$(basename "$IMPETUS_BIN")" | while read -r pid; do
-                CMD=$(ps -p "$pid" -o args=)
-                if [[ "$CMD" == "$IMPETUS_BIN"* ]]; then
-                    kill "$pid" 2>/dev/null || true
-                    echo "✓ Killed Impetus process (PID: $pid)"
-                fi
-            done
+            if [[ -f "$IMPETUS_BIN" ]]; then
+                pgrep -x "$(basename "$IMPETUS_BIN")" | while read -r pid; do
+                    CMD=$(ps -p "$pid" -o args=)
+                    if [[ "$CMD" == "$IMPETUS_BIN"* ]]; then
+                        kill "$pid" 2>/dev/null || true
+                        echo "✓ Killed Impetus process (PID: $pid)"
+                    fi
+                done
+            else
+                echo -e "${YELLOW}Impetus binary not found at $IMPETUS_BIN; skipping process kill.${NC}"
+            fi
         fi
         # Also kill gerdsen_ai_server by exact match
         GERDSEN_BIN="$INSTALL_DIR/gerdsen_ai_server"
