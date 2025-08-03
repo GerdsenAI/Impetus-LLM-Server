@@ -151,10 +151,11 @@ stop_services() {
     # Kill any running processes
     echo "Stopping any running Impetus processes..."
     # Kill only processes whose command line matches known installation locations
-    for installation in "${INSTALL_LOCATIONS[@]}"; do
-        pgrep -f "$installation" | while read -r pid; do
+    # Kill processes by known executable names (more precise)
+    for proc_name in "gerdsen_ai_server" "impetus-llm-server" "impetus_server"; do
+        pgrep -x "$proc_name" | while read -r pid; do
             if [[ -n "$pid" ]]; then
-                echo "Killing process with PID $pid matching $installation"
+                echo "Killing process with PID $pid (name: $proc_name)"
                 kill "$pid" 2>/dev/null || true
             fi
         done
