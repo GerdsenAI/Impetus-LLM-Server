@@ -75,7 +75,7 @@ jobs:
         cd gerdsen_ai_server
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-cov pytest-asyncio ruff mypy
+        pip install -r requirements_dev.txt
     
     - name: Run linting
       run: |
