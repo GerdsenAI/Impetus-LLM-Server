@@ -65,3 +65,7 @@ gerdsen_ai_server/.clinerules/
 *~
 *.tmp
 *.temp
+*.old
+*.bak
+.smb*
+*.dmg
