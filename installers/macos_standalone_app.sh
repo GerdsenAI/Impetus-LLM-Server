@@ -126,6 +126,10 @@ download_python_framework() {
     cp "$PYTHON_EXE" "$RESOURCES_DIR/python/python3"
     
     # Copy Python standard library
+    if [[ -z "$PYTHON_MAJOR_MINOR" ]]; then
+        echo -e "${RED}Error: PYTHON_MAJOR_MINOR is not set. Aborting.${NC}"
+        exit 1
+    fi
     PYTHON_LIB="$PYTHON_HOME/lib/python$PYTHON_MAJOR_MINOR"
     if [[ -d "$PYTHON_LIB" ]]; then
         echo "Copying Python standard library..."
