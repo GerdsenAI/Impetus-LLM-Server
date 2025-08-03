@@ -1,421 +1,160 @@
 # Impetus LLM Server
 
-**v1.0.0** - Production-ready local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints with enterprise-grade security, monitoring, and deployment capabilities.
+**v1.0.0** - High-performance local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints with a beautiful dashboard interface.
 
-## 📑 Table of Contents
-- [Features](#-features)
-- [Requirements](#-requirements)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [API Endpoints](#api-endpoints)
-- [Configuration](#configuration)
-- [Production Deployment](#-production-deployment)
-- [Development](#-development)
-- [Performance](#-performance)
-- [Troubleshooting](#-troubleshooting)
+## 🎯 Quick Start for Users
+
+### Download the App
+1. Download the latest release from [Releases](https://github.com/GerdsenAI/Impetus-LLM-Server/releases)
+2. Open the `.dmg` file
+3. Drag **Impetus.app** to your Applications folder
+4. Double-click to run!
+
+That's it! No Python, no terminal commands, no setup required.
 
 ## 🚀 Features
 
-### Core Functionality
-- **Apple Silicon Optimization**: Dynamic detection and optimization for M1, M2, M3, and M4 chips (including Pro, Max, and Ultra variants)
-- **OpenAI-Compatible API**: Full compatibility with VS Code extensions (Cline, Continue, Cursor, etc.)
-- **MLX Framework Integration**: Leverages Apple's MLX for optimal performance on unified memory architecture
-- **Real-time Hardware Monitoring**: CPU, GPU, memory, and thermal state tracking with Metal performance metrics
-- **WebSocket Updates**: Live performance metrics and system status broadcasting
+### For End Users
+- **Zero Setup**: Download, install, run - just like any Mac app
+- **Beautiful Dashboard**: Real-time monitoring and control at http://localhost:5173
+- **Fast Performance**: 50-110 tokens/sec on Apple Silicon
+- **OpenAI Compatible**: Works with VS Code extensions, Continue.dev, Cursor, and more
+- **Automatic Updates**: Built-in updater keeps you on the latest version
 
-### Model Management
-- **Model Discovery**: Browse and download from curated list of optimized models
-- **One-Click Download & Load**: Automatic model loading after download with progress tracking
-- **Performance Benchmarking**: Measure actual tokens/second, first token latency, and GPU utilization
-- **Smart Memory Management**: Automatic model unloading on memory pressure
-- **Error Recovery**: Comprehensive error handling with automatic recovery strategies
-- **KV Cache**: Optimized multi-turn conversation performance with key-value caching
-- **Model Warmup**: Eliminate cold start latency with pre-compiled Metal kernels
+### For Developers
+- **API Compatible**: Drop-in replacement for OpenAI API
+- **WebSocket Support**: Real-time streaming responses
+- **Comprehensive Docs**: Interactive API documentation at http://localhost:8080/docs
+- **Multiple Models**: Support for Mistral, Llama, Phi, and more
+- **Production Ready**: Health checks, monitoring, and enterprise features
 
-### Production Features (v1.0.0)
-- **Gunicorn Production Server**: Enterprise-grade WSGI server with worker management
-- **API Documentation**: Interactive Swagger UI at `/docs` with auto-generated OpenAPI specs
-- **Health Monitoring**: Kubernetes-compatible liveness and readiness probes
-- **Input Validation**: Comprehensive Pydantic schema validation for all endpoints
-- **CI/CD Pipeline**: Complete GitHub Actions workflows for testing and deployment
-- **Container Support**: Docker and Kubernetes deployment configurations
+## 📋 System Requirements
 
-### Developer Experience
-- **Zero Configuration**: Works out of the box with sensible defaults
-- **Environment Variables**: Full configuration through .env file
-- **Comprehensive Logging**: Structured logs with Loguru
-- **Enhanced Metrics**: Prometheus-compatible metrics with detailed breakdowns
-- **CORS Support**: Configurable for web app integration
-- **Security**: Bearer token authentication and request sanitization
+- **macOS** 13.0 or later
+- **Apple Silicon** (M1, M2, M3, or M4 series)
+- **8GB RAM** minimum (16GB recommended)
+- **10GB disk space** for models
 
-## 📋 Requirements
+## 🛠 For Developers
 
-### System Requirements
-- **macOS**: 13.0+ on Apple Silicon (M1/M2/M3/M4 series)
-- **Memory**: 8GB RAM minimum, 16GB+ recommended for larger models
-- **Storage**: 10GB+ free space for models
+### Building from Source
 
-### Software Requirements
-- **Python**: 3.11+
-- **Node.js**: 18+ with pnpm
-- **MLX**: Installed automatically with pip
+If you want to build the app yourself or contribute to development:
 
-## 🛠 Installation
-
-### Quick Install (Recommended)
 ```bash
-# One-line installer
-curl -sSL https://raw.githubusercontent.com/GerdsenAI/Impetus-LLM-Server/main/install.sh | bash
-
-# Validate installation
-impetus validate
-```
-
-### Install from Source
-```bash
-# Clone and install
+# Clone the repository
 git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
 cd Impetus-LLM-Server
-pip install -e .
 
-# Run setup wizard
-impetus setup
+# Build the standalone app
+cd installers
+./macos_standalone_app.sh
+
+# The app will be in build_standalone/Impetus.app
 ```
 
-### Manual Installation
+### Creating Your Own Distribution
 
-#### 1. Clone the Repository
-```bash
-git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
-cd Impetus-LLM-Server
+We provide several installer options:
+
+- **Standalone App** (Recommended): `installers/macos_standalone_app.sh`
+  - Creates a fully self-contained .app with embedded Python
+  - Best for end-user distribution
+
+- **Simple App**: `installers/macos_simple_app.sh`
+  - Creates a lighter .app that requires Python on the system
+  - Good for developers
+
+- **Production Server**: `installers/production_installer.sh`
+  - Sets up Gunicorn + nginx for server deployments
+
+See [installers/README.md](installers/README.md) for all options.
+
+### API Usage
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8080/v1",
+    api_key="your-api-key"  # Get from ~/.impetus/config
+)
+
+response = client.chat.completions.create(
+    model="mistral-7b",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
 ```
-
-#### 2. Backend Setup
-```bash
-# Navigate to backend
-cd gerdsen_ai_server
-
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On macOS/Linux
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Copy environment configuration
-cp .env.example .env
-```
-
-#### 3. Frontend Setup
-```bash
-# Navigate to frontend (in new terminal)
-cd impetus-dashboard
-
-# Install dependencies
-pnpm install
-```
-
-#### 4. VS Code Integration
-Configure your AI extension with:
-- **Base URL**: `http://localhost:8080`
-- **API Key**: Your configured key from .env
-- **Model**: Any loaded model ID (e.g., `mlx-community/Mistral-7B-Instruct-v0.3-4bit`)
-
-## 🚀 Usage
-
-### Quick Start
-```bash
-# Start the server
-impetus server
-
-# Or start directly
-impetus-server
-```
-
-Access the dashboard at `http://localhost:5173`
-
-### CLI Commands
-```bash
-# System validation
-impetus validate
-
-# Interactive setup
-impetus setup
-
-# Start server
-impetus server
-
-# List models
-impetus models
-
-# Show help
-impetus --help
-```
-
-### Manual Start
-```bash
-# Terminal 1: Start backend
-cd gerdsen_ai_server
-source venv/bin/activate
-python src/main.py
-
-# Terminal 2: Start frontend
-cd impetus-dashboard
-pnpm dev
-```
-
-### API Endpoints
-
-#### OpenAI-Compatible Endpoints
-- `GET /v1/models` - List available models
-- `POST /v1/chat/completions` - Chat completions (streaming supported)
-- `POST /v1/completions` - Text completions
-
-#### Model Management Endpoints
-- `GET /api/models/discover` - Browse available models with performance estimates
-- `POST /api/models/download` - Download model with auto-load option
-- `GET /api/models/list` - List loaded models with benchmark status
-- `POST /api/models/load` - Load a model into memory
-- `POST /api/models/unload` - Unload a model from memory
-- `POST /api/models/benchmark/{model_id}` - Run performance benchmark
-- `GET /api/models/benchmark/{model_id}/history` - Get benchmark history
-- `GET /api/models/cache/status` - Get KV cache statistics
-- `POST /api/models/cache/clear` - Clear KV cache
-- `GET/PUT /api/models/cache/settings` - Manage cache settings
-- `POST /api/models/warmup/{model_id}` - Warm up model to eliminate cold start
-- `GET /api/models/warmup/status` - Get warmup status for all models
-- `POST /api/models/warmup/{model_id}/benchmark` - Benchmark cold vs warm performance
-
-#### Hardware Monitoring Endpoints
-- `GET /api/hardware/info` - Get hardware information
-- `GET /api/hardware/metrics` - Get real-time metrics including GPU
-- `GET /api/hardware/gpu/metrics` - Detailed GPU/Metal metrics
-- `GET /api/hardware/optimization` - Get optimization recommendations
-- `POST /api/hardware/performance-mode` - Set performance mode
-
-#### Health Check Endpoints (v1.0.0)
-- `GET /api/health/live` - Kubernetes liveness probe
-- `GET /api/health/ready` - Kubernetes readiness probe
-- `GET /api/health/status` - Detailed component health status
-- `GET /api/health/metrics` - Prometheus-compatible metrics
-- `GET /api/health/metrics/json` - JSON format metrics
-
-#### Documentation Endpoints (v1.0.0)
-- `GET /docs` - Interactive Swagger UI documentation
-- `GET /api/docs/openapi.json` - OpenAPI 3.0 specification
 
 ### Configuration
 
-Configure via `.env` file in `gerdsen_ai_server/`:
+The app stores configuration in `~/Library/Application Support/Impetus/`:
 
 ```bash
-# Server
-IMPETUS_HOST=0.0.0.0
-IMPETUS_PORT=8080
-IMPETUS_API_KEY=your-secret-key
+# View configuration
+cat ~/Library/Application\ Support/Impetus/config/server.env
 
-# Models
-IMPETUS_DEFAULT_MODEL=mlx-community/Mistral-7B-Instruct-v0.3-4bit
-IMPETUS_MAX_LOADED_MODELS=3
+# Models are stored in
+~/Library/Application\ Support/Impetus/models/
 
-# Performance
-IMPETUS_PERFORMANCE_MODE=balanced  # efficiency, balanced, performance
-IMPETUS_MAX_TOKENS=2048
-IMPETUS_TEMPERATURE=0.7
-
-# Logging
-IMPETUS_LOG_LEVEL=INFO
+# Logs for debugging
+~/Library/Application\ Support/Impetus/logs/impetus.log
 ```
 
-## 🚀 Production Deployment
+## 🌟 Model Library
 
-**v1.0.0** includes comprehensive production deployment capabilities with multiple deployment options.
+Popular models that work great with Impetus:
 
-### Quick Production Start
+- **Mistral 7B**: Best balance of speed and quality
+- **Llama 3**: Latest from Meta with excellent performance  
+- **Phi-3**: Microsoft's efficient small model
+- **Qwen**: Excellent for code and technical tasks
+
+Download models directly from the dashboard!
+
+## 🔧 Troubleshooting
+
+### App Won't Open
+- Right-click and select "Open" to bypass Gatekeeper on first run
+- Check Console.app for detailed error messages
+
+### Server Not Starting
+- Check if port 8080 is already in use
+- View logs: `~/Library/Application Support/Impetus/logs/impetus.log`
+
+### Performance Issues
+- Ensure no other heavy applications are running
+- Try a smaller model (Phi-3 mini)
+- Check Activity Monitor for resource usage
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Development Setup
+
 ```bash
-# Install production dependencies
-cd gerdsen_ai_server
-pip install -r requirements_production.txt
+# Install development dependencies
+pip install -r requirements_dev.txt
 
-# Configure environment
-cp .env.example .env
-# Edit .env with IMPETUS_API_KEY and other settings
-
-# Start production server
-./start_production.sh
-```
-
-### Deployment Options
-
-#### 1. Docker Compose (Recommended)
-```bash
-# Clone and configure
-git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
-cd Impetus-LLM-Server
-cp .env.example .env
-
-# Start complete stack
-docker-compose up -d
-
-# Check status
-docker-compose ps
-docker-compose logs -f impetus-server
-```
-
-#### 2. Kubernetes
-```bash
-# Apply Kubernetes manifests
-kubectl apply -f docs/kubernetes/
-
-# Check deployment
-kubectl get pods -n impetus-system
-kubectl logs -f deployment/impetus-server -n impetus-system
-```
-
-#### 3. Native Installation with Gunicorn
-```bash
-# Install and configure
-pip install -r requirements_production.txt
-
-# Start with Gunicorn
-gunicorn --config gunicorn_config.py wsgi:application
-
-# Or use the startup script
-./start_production.sh
-```
-
-### Production Features
-- **Load Balancing**: nginx reverse proxy with SSL termination
-- **Health Monitoring**: Kubernetes liveness and readiness probes
-- **Auto-scaling**: Horizontal pod autoscaling based on CPU/memory
-- **Security**: Input validation, CORS, rate limiting, SSL/TLS
-- **Observability**: Prometheus metrics, structured logging, tracing
-
-#### 4. Service Management
-```bash
-# macOS (launchd)
-sudo cp service/impetus.plist /Library/LaunchDaemons/
-sudo launchctl load /Library/LaunchDaemons/impetus.plist
-
-# Linux (systemd)
-sudo cp service/impetus.service /etc/systemd/system/
-sudo systemctl enable impetus
-sudo systemctl start impetus
-```
-
-#### 5. Health Monitoring
-Monitor service health with built-in endpoints:
-- `/health` - Basic health check
-- `/api/hardware/metrics` - System metrics
-- `/api/models/list` - Model status
-
-### Docker Deployment (Experimental)
-```bash
-docker build -t impetus-llm-server .
-docker run -p 8080:8080 -v ./models:/models impetus-llm-server
-```
-
-## 🔧 Development
-
-### Project Structure
-```
-Impetus-LLM-Server/
-├── gerdsen_ai_server/           # Backend (Flask + MLX)
-│   ├── src/
-│   │   ├── main.py             # Application entry point
-│   │   ├── config/             # Configuration management
-│   │   ├── routes/             # API endpoints
-│   │   ├── model_loaders/      # Model loading infrastructure
-│   │   ├── utils/              # Utilities and helpers
-│   │   └── inference/          # Inference engines
-│   ├── requirements.txt        # Python dependencies
-│   └── .env.example           # Environment configuration
-├── impetus-dashboard/          # Frontend (React + TypeScript)
-│   ├── src/
-│   │   ├── components/        # React components
-│   │   ├── App.tsx           # Main application
-│   │   └── main.tsx          # Entry point
-│   ├── package.json          # Node dependencies
-│   └── vite.config.ts        # Vite configuration
-├── CLAUDE.md                  # Development philosophy
-├── README.md                  # This file
-└── todo.md                    # Project roadmap
-```
-
-### Development Workflow
-```bash
 # Run tests
+pytest gerdsen_ai_server/tests/
+
+# Run with hot reload
 cd gerdsen_ai_server
-pytest tests/
-
-# Lint code
-pnpm lint  # Frontend
-ruff check src/  # Backend
-
-# Type checking
-pnpm tsc  # Frontend
-mypy src/  # Backend
+python src/main.py --reload
 ```
-
-## 📊 Performance
-
-### Expected Performance (7B Models)
-- **M4 Series**: 80-120 tokens/second
-- **M3 Series**: 60-100 tokens/second  
-- **M2 Series**: 40-80 tokens/second
-- **M1 Series**: 30-60 tokens/second
-- **Model Loading**: <5 seconds with memory mapping
-- **First Token**: <200ms when warmed up
-
-### Optimization Features
-- **MLX Framework**: Optimized for Apple Silicon unified memory
-- **Dynamic Batching**: Automatic batch size optimization
-- **Memory Management**: Smart model loading/unloading
-- **Thermal Monitoring**: Automatic performance adjustment
-- **Per-Core Monitoring**: Real-time CPU usage tracking
-- **KV Cache**: LRU cache management for conversations
-- **Model Warmup**: Pre-compilation and performance optimization
-
-## 🛡 Security
-
-- **API Key Authentication**: Bearer token authentication
-- **CORS Configuration**: Controlled cross-origin access
-- **Local Processing**: All data stays on your machine
-- **No Telemetry**: Zero external data collection
-- **Input Validation**: Comprehensive request validation
-
-## 🐛 Troubleshooting
-
-See our comprehensive [Troubleshooting Guide](TROUBLESHOOTING.md) for detailed solutions.
-
-### Quick Diagnostics
-```bash
-# Run system validation
-impetus validate
-
-# Check server status
-impetus server --check
-```
-
-### Common Issues
-- **Installation problems**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-installation-issues)
-- **Connection errors**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-connection-issues)
-- **Model loading**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-model-loading-issues)
-- **Performance**: See [Troubleshooting Guide](TROUBLESHOOTING.md#-performance-issues)
-
-For detailed solutions and advanced debugging, check the full [Troubleshooting Guide](TROUBLESHOOTING.md).
-
-## 🙏 Acknowledgments
-
-- **Apple MLX Team**: For the excellent ML framework for Apple Silicon
-- **OpenAI**: For the API specification
-- **VS Code AI Extensions**: For driving local LLM adoption
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgments
+
+- Built with [MLX](https://github.com/ml-explore/mlx) by Apple
+- UI powered by React and Three.js
+- OpenAI API compatibility for seamless integration
 
 ---
 
-**Built with ❤️ for Apple Silicon**
-
+**Ready to supercharge your Mac with local AI?** [Download Impetus now!](https://github.com/GerdsenAI/Impetus-LLM-Server/releases)

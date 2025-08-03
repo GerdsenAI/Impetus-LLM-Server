@@ -1,184 +1,152 @@
 # Impetus LLM Server - Quick Start Guide
 
-**v1.0.0** - Get up and running with production-ready Impetus in 5 minutes!
+**v1.0.0** - Get up and running with Impetus in under 60 seconds!
 
-## Prerequisites
+## For End Users - Just Download and Run!
 
-- macOS 13.0+ on Apple Silicon (M1/M2/M3/M4)
-- Python 3.11+
-- 8GB+ RAM (16GB recommended)
-- 10GB+ free disk space
+### 1. Download Impetus
+- Go to [Releases](https://github.com/GerdsenAI/Impetus-LLM-Server/releases)
+- Download `Impetus-Standalone-1.0.0.dmg`
+- Open the DMG file
+- Drag **Impetus** to your Applications folder
 
-## Installation
+### 2. Run Impetus
+- Double-click **Impetus** in Applications
+- The dashboard will open automatically in your browser
+- That's it! No setup, no terminal, no dependencies needed
 
-### Option 1: Install from source (Recommended)
+### 3. Download Your First Model
+- In the dashboard, click "Model Browser"
+- Choose a model (we recommend **Mistral 7B** to start)
+- Click "Download & Load"
+- Once loaded, you're ready to use AI locally!
+
+## System Requirements
+
+- **macOS** 13.0 or later
+- **Apple Silicon** Mac (M1, M2, M3, or M4)
+- **8GB RAM** minimum (16GB recommended)
+- **10GB disk space** for models
+
+## Using Impetus with VS Code
+
+Configure your AI extension (Continue.dev, Cursor, Cline, etc.):
+- **API Base**: `http://localhost:8080/v1`
+- **API Key**: Check `~/Library/Application Support/Impetus/config/server.env`
+- **Model**: Use the model ID from the dashboard
+
+## For Developers
+
+### Building from Source
 
 ```bash
 # Clone the repository
 git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
 cd Impetus-LLM-Server
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+# Build the standalone app
+cd installers
+./macos_standalone_app.sh
 
-# Install the server
-pip install -e .
-
-# Install a model (Mistral 7B)
-impetus --setup
+# Your app is ready in build_standalone/Impetus.app
 ```
 
-### Option 2: Docker (Production Ready)
+### Development Mode
 
 ```bash
-# Clone and start with Docker Compose
-git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
-cd Impetus-LLM-Server
+# Set up development environment
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r gerdsen_ai_server/requirements.txt
+
+# Run in development
+cd gerdsen_ai_server
+python src/main.py
+```
+
+### Docker Deployment
+
+```bash
+# Using the Docker installer
+cd installers
+./docker_installer.sh
+
+# Or manually with docker-compose
 docker-compose up -d
-
-# Check status
-docker-compose logs -f impetus-server
 ```
 
-### Option 3: Quick install script
+## API Quick Reference
 
+### Test the API
 ```bash
-curl -sSL https://raw.githubusercontent.com/GerdsenAI/Impetus-LLM-Server/main/install.sh | bash
-```
-
-## First Run
-
-1. **Start the server**:
-   ```bash
-   # Development mode
-   impetus-server
-   
-   # Production mode (v1.0.0)
-   cd gerdsen_ai_server
-   ./start_production.sh
-   ```
-
-2. **Open the dashboard** in your browser:
-   ```
-   http://localhost:5173
-   ```
-
-3. **Test the API**:
-   ```bash
-   curl http://localhost:8080/v1/models
-   ```
-
-4. **View API Documentation** (v1.0.0):
-   ```
-   http://localhost:8080/docs
-   ```
-
-## Download Your First Model
-
-1. **Via Dashboard**: 
-   - Open http://localhost:5173
-   - Click "Model Browser"
-   - Select "Mistral 7B Instruct" 
-   - Click "Download & Load"
-
-2. **Via API**:
-   ```bash
-   curl -X POST http://localhost:8080/api/models/download \
-     -H "Content-Type: application/json" \
-     -d '{"model_id": "mlx-community/Mistral-7B-Instruct-v0.3-4bit", "auto_load": true}'
-   ```
-
-## VS Code Integration
-
-Configure your AI extension (Cline, Continue, Cursor):
-
-- **Base URL**: `http://localhost:8080`
-- **API Key**: `your-api-key` (from IMPETUS_API_KEY env var)
-- **Model**: `mlx-community/Mistral-7B-Instruct-v0.3-4bit`
-
-## Basic Configuration
-
-Create `.env` file in project root:
-
-```bash
-# Server
-IMPETUS_HOST=0.0.0.0
-IMPETUS_PORT=8080
-IMPETUS_API_KEY=your-secret-key
-
-# Model
-IMPETUS_DEFAULT_MODEL=mlx-community/Mistral-7B-Instruct-v0.3-4bit
-
-# Performance
-IMPETUS_PERFORMANCE_MODE=balanced
-```
-
-## Common Commands
-
-```bash
-# List loaded models
-curl http://localhost:8080/api/models/list
-
-# Check hardware info
-curl http://localhost:8080/api/hardware/info
-
-# Run benchmark
-curl -X POST http://localhost:8080/api/models/benchmark/your-model-id
+# List available models
+curl http://localhost:8080/v1/models
 
 # Chat completion
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your-api-key" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "model": "your-model-id",
+    "model": "mistral-7b",
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
 
-## Run as a Service
+### API Documentation
+Open http://localhost:8080/docs for interactive API documentation
 
-### macOS (launchd)
-```bash
-# Install service
-sudo cp service/impetus.plist /Library/LaunchDaemons/
-sudo launchctl load /Library/LaunchDaemons/impetus.plist
+## Configuration
 
-# Start/stop
-sudo launchctl start impetus
-sudo launchctl stop impetus
+The app stores all data in:
 ```
-
-### Linux (systemd)
-```bash
-# Install service
-sudo cp service/impetus.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable impetus
-
-# Start/stop
-sudo systemctl start impetus
-sudo systemctl stop impetus
+~/Library/Application Support/Impetus/
+├── config/server.env    # Configuration and API key
+├── models/              # Downloaded models
+├── cache/               # Model cache
+└── logs/                # Application logs
 ```
 
 ## Troubleshooting
 
-For common issues and solutions, see our comprehensive [Troubleshooting Guide](TROUBLESHOOTING.md).
+### App Won't Open
+- Right-click Impetus and select "Open" (first time only)
+- Check Console.app for errors
 
-Quick fixes:
-- **Server won't start**: Check port 8080 with `lsof -i :8080`
-- **Model won't load**: Try smaller 4-bit model, check memory
-- **Performance issues**: Use `IMPETUS_PERFORMANCE_MODE=performance`
-- **Connection errors**: Run `impetus validate` to check system
+### Port Already in Use
+```bash
+# Find what's using port 8080
+lsof -i :8080
 
-Need more help? Check the full [Troubleshooting Guide](TROUBLESHOOTING.md).
+# Kill the process if needed
+kill -9 <PID>
+```
+
+### Performance Issues
+- Close other heavy applications
+- Try a smaller model (4-bit versions)
+- Check Activity Monitor for resource usage
+
+### View Logs
+```bash
+cat ~/Library/Application\ Support/Impetus/logs/impetus.log
+```
+
+## Recommended Models
+
+| Model | Size | Speed | Quality | Best For |
+|-------|------|-------|---------|----------|
+| **Mistral 7B** | 4GB | Fast | Great | General use |
+| **Llama 3 8B** | 5GB | Fast | Excellent | Conversations |
+| **Phi-3 Mini** | 2GB | Very Fast | Good | Quick tasks |
+| **Qwen 2.5** | 4GB | Fast | Great | Code & technical |
 
 ## Next Steps
 
-- Read the [full documentation](README.md)
-- Browse [available models](http://localhost:5173)
-- Join our [community](https://github.com/GerdsenAI/Impetus-LLM-Server/discussions)
+- Explore more models in the Model Browser
+- Check out the [API Documentation](http://localhost:8080/docs)
+- Join our [GitHub Discussions](https://github.com/GerdsenAI/Impetus-LLM-Server/discussions)
+- Report issues on [GitHub](https://github.com/GerdsenAI/Impetus-LLM-Server/issues)
 
 ---
 
-**Need help?** Open an issue at https://github.com/GerdsenAI/Impetus-LLM-Server/issues
+**Enjoy your local AI!** 🚀

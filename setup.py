@@ -22,7 +22,7 @@ if requirements_path.exists():
 
 setup(
     name="impetus-llm-server",
-    version="0.1.0",
+    version="1.0.0",
     author="GerdsenAI",
     author_email="dev@gerdsenai.com",
     description="Lightning-fast local LLM server optimized for Apple Silicon with OpenAI-compatible API",
