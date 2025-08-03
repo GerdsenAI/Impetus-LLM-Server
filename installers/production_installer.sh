@@ -104,7 +104,8 @@ check_requirements() {
     # Check Python version
     PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
     REQUIRED_VERSION="3.11"
-    if (( $(echo "$PYTHON_VERSION < $REQUIRED_VERSION" | bc -l) )); then
+    python3 -c "import sys; exit(0) if sys.version_info >= tuple(map(int, '$REQUIRED_VERSION'.split('.'))) else exit(1)"
+    if [[ $? -ne 0 ]]; then
         echo -e "${RED}Error: Python $REQUIRED_VERSION+ is required (found $PYTHON_VERSION)${NC}"
         exit 1
     fi
@@ -263,8 +264,8 @@ configure_production() {
     # Generate API key if not provided
     if [[ -z "$API_KEY" ]]; then
         API_KEY=$(openssl rand -hex 32)
-        echo "Generated API key: $API_KEY"
-        echo -e "${YELLOW}⚠️  Please save this API key securely!${NC}"
+        echo -e "${YELLOW}⚠️  An API key has been generated and stored in $CONFIG_DIR/.env. Please ensure it is kept secure.${NC}"
+        # Note: The API key is not printed to the console for security reasons.
     fi
     
     # Calculate worker count based on CPU cores

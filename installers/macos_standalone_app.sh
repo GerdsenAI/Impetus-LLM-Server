@@ -326,8 +326,8 @@ on run
         with icon note
     
     if button returned of dialogResult is "Stop Server" then
-        do shell script "pkill -F \"$HOME/Library/Application Support/Impetus/server.pid\" 2>/dev/null || true"
-        do shell script "pkill -F \"$HOME/Library/Application Support/Impetus/dashboard.pid\" 2>/dev/null || true"
+        do shell script "pkill -F '$HOME/Library/Application Support/Impetus/server.pid' 2>/dev/null || true"
+        do shell script "pkill -F '$HOME/Library/Application Support/Impetus/dashboard.pid' 2>/dev/null || true"
         display notification "Impetus Server stopped" with title "Impetus"
     end if
 end run

@@ -219,8 +219,33 @@ stop_services() {
         fi
         
         # Kill any remaining processes
-        pkill -f "impetus" 2>/dev/null || true
-        pkill -f "gerdsen_ai_server" 2>/dev/null || true
+        # Try to kill by PID file if exists
+        if [[ -f "$INSTALL_DIR/impetus.pid" ]]; then
+            IMPETUS_PID=$(cat "$INSTALL_DIR/impetus.pid")
+            if ps -p "$IMPETUS_PID" > /dev/null 2>&1; then
+                kill "$IMPETUS_PID" 2>/dev/null || true
+                echo "✓ Killed Impetus process (PID: $IMPETUS_PID)"
+            fi
+        else
+            # Fallback: kill by exact command path
+            IMPETUS_BIN="$INSTALL_DIR/impetus"
+            pgrep -x "$(basename "$IMPETUS_BIN")" | while read -r pid; do
+                CMD=$(ps -p "$pid" -o args=)
+                if [[ "$CMD" == "$IMPETUS_BIN"* ]]; then
+                    kill "$pid" 2>/dev/null || true
+                    echo "✓ Killed Impetus process (PID: $pid)"
+                fi
+            done
+        fi
+        # Also kill gerdsen_ai_server by exact match
+        GERDSEN_BIN="$INSTALL_DIR/gerdsen_ai_server"
+        pgrep -x "$(basename "$GERDSEN_BIN")" | while read -r pid; do
+            CMD=$(ps -p "$pid" -o args=)
+            if [[ "$CMD" == "$GERDSEN_BIN"* ]]; then
+                kill "$pid" 2>/dev/null || true
+                echo "✓ Killed gerdsen_ai_server process (PID: $pid)"
+            fi
+        done
     fi
 }
 
