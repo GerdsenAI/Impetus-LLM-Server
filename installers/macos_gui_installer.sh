@@ -205,7 +205,7 @@ if [[ $(echo "$CURRENT_VERSION < $MIN_VERSION" | bc) -eq 1 ]]; then
 fi
 
 # Check available disk space
-AVAILABLE_SPACE=$(df -BG /Applications | awk 'NR==2 {print $4}' | sed 's/G//')
+AVAILABLE_SPACE=$(df -g /Applications | awk 'NR==2 {print $4}')
 if [[ $AVAILABLE_SPACE -lt 5 ]]; then
     echo "Error: At least 5GB of free space is required in /Applications"
     exit 1
