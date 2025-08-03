@@ -1,0 +1,122 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.1)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Additional release notes (optional)'
+        required: false
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  create-release:
+    name: Create Manual Release
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Validate version format
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        if ! echo "$VERSION" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+          echo "Error: Version must be in format X.Y.Z (e.g., 1.0.1)"
+          exit 1
+        fi
+    
+    - name: Update version numbers
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        
+        # Update setup.py
+        sed -i '' "s/version=\"[0-9.]*\"/version=\"$VERSION\"/" setup.py
+        
+        # Update package.json
+        cd impetus-dashboard
+        npm version $VERSION --no-git-tag-version
+        cd ..
+        
+        # Commit version updates
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add setup.py impetus-dashboard/package.json
+        git commit -m "chore: bump version to $VERSION"
+        git push
+    
+    - name: Build macOS App
+      uses: ./.github/workflows/build-app.yml
+      with:
+        version: ${{ github.event.inputs.version }}
+        upload_artifacts: true
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: impetus-macos-dmg
+        path: ./release-assets/
+    
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        VERSION="v${{ github.event.inputs.version }}"
+        
+        # Get the previous tag
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        echo "# Release Notes for $VERSION" > RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        
+        # Add custom release notes if provided
+        if [ -n "${{ github.event.inputs.release_notes }}" ]; then
+          echo "${{ github.event.inputs.release_notes }}" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+        fi
+        
+        # Add changelog since last tag
+        if [ -n "$PREVIOUS_TAG" ]; then
+          echo "## Changes since $PREVIOUS_TAG" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s" >> RELEASE_NOTES.md
+        else
+          echo "## Initial Release" >> RELEASE_NOTES.md
+        fi
+        
+        echo "" >> RELEASE_NOTES.md
+        echo "## Installation" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "1. Download \`Impetus-Standalone-${{ github.event.inputs.version }}.dmg\`" >> RELEASE_NOTES.md
+        echo "2. Open the DMG file" >> RELEASE_NOTES.md
+        echo "3. Drag Impetus to your Applications folder" >> RELEASE_NOTES.md
+        echo "4. Double-click to run!" >> RELEASE_NOTES.md
+        
+        # Output for GitHub release
+        echo "notes<<EOF" >> $GITHUB_OUTPUT
+        cat RELEASE_NOTES.md >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        name: Impetus v${{ github.event.inputs.version }}
+        body: ${{ steps.release_notes.outputs.notes }}
+        draft: false
+        prerelease: ${{ github.event.inputs.prerelease }}
+        files: |
+          ./release-assets/*.dmg
+          ./release-assets/*.sha256
+        generate_release_notes: true
