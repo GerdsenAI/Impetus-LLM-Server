@@ -2,18 +2,24 @@
 Health check and status endpoints for production monitoring
 """
 
-from flask import Blueprint, jsonify, current_app
-from datetime import datetime
-import psutil
-import time
 import threading
-from typing import Dict, List, Optional
+import time
+from datetime import datetime
+
+import psutil
+from flask import Blueprint, current_app
 from loguru import logger
+
 from ..config.settings import settings
 from ..schemas.health_schemas import (
-    HealthStatus, DetailedHealthResponse, ReadinessResponse, 
-    LivenessResponse, HealthMetrics, ComponentHealth,
-    SystemHealth, ModelHealth, MLXHealth
+    DetailedHealthResponse,
+    HealthMetrics,
+    HealthStatus,
+    LivenessResponse,
+    MLXHealth,
+    ModelHealth,
+    ReadinessResponse,
+    SystemHealth,
 )
 from ..utils.validation import create_response
 
@@ -49,7 +55,7 @@ def health_check():
     try:
         # Quick health check
         uptime = (datetime.now() - start_time).total_seconds()
-        
+
         # Check if heartbeat is recent (within last 30 seconds)
         heartbeat_age = (datetime.now() - last_heartbeat).total_seconds()
         if heartbeat_age > 30:
@@ -59,23 +65,23 @@ def health_check():
                 'error': 'Heartbeat stale',
                 'timestamp': datetime.now().isoformat()
             }, 503)
-        
+
         health_status = HealthStatus(
             status='healthy',
             timestamp=datetime.now(),
             version=settings.version,
             uptime_seconds=uptime
         )
-        
+
         health_state['last_successful_check'] = datetime.now()
         health_state['consecutive_failures'] = 0
-        
+
         return create_response(health_status)
-        
+
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         health_state['consecutive_failures'] += 1
-        
+
         return create_response({
             'status': 'unhealthy',
             'error': str(e),
@@ -89,16 +95,16 @@ def readiness_check():
     try:
         checks = {}
         ready = True
-        
+
         # Check if models are available (if required)
         app_state = current_app.config.get('app_state', {})
         loaded_models = app_state.get('loaded_models', {})
-        
+
         # Check system resources
         memory = psutil.virtual_memory()
         checks['memory_available'] = memory.percent < 95
         checks['models_loaded'] = len(loaded_models) > 0 or not settings.model.require_model_for_ready
-        
+
         # Check MLX availability (if on macOS)
         try:
             import platform
@@ -111,19 +117,19 @@ def readiness_check():
         except Exception as e:
             logger.warning(f"MLX check failed: {e}")
             checks['mlx_available'] = False
-        
+
         # Overall readiness
         ready = all(checks.values())
-        
+
         response = ReadinessResponse(
             ready=ready,
             timestamp=datetime.now(),
             checks=checks,
             message="Ready" if ready else "Not ready"
         )
-        
+
         return create_response(response, 200 if ready else 503)
-        
+
     except Exception as e:
         logger.error(f"Readiness check failed: {e}")
         return create_response({
@@ -139,16 +145,16 @@ def detailed_status():
     try:
         uptime = (datetime.now() - start_time).total_seconds()
         app_state = current_app.config.get('app_state', {})
-        
+
         # System health
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
         load_avg = psutil.getloadavg() if hasattr(psutil, 'getloadavg') else [0, 0, 0]
-        
+
         # Get thermal state from hardware info
         hardware_info = app_state.get('hardware_info', {})
         thermal_state = 'nominal'  # Default
-        
+
         system_health = SystemHealth(
             name='system',
             status='healthy' if cpu_percent < 80 and memory.percent < 90 else 'degraded',
@@ -159,11 +165,11 @@ def detailed_status():
             thermal_state=thermal_state,
             load_average=list(load_avg)
         )
-        
+
         # Model health
         loaded_models = app_state.get('loaded_models', {})
         model_health_list = []
-        
+
         for model_id in loaded_models:
             model_health_list.append(ModelHealth(
                 name=f"model_{model_id.replace('/', '_')}",
@@ -173,7 +179,7 @@ def detailed_status():
                 last_check=datetime.now(),
                 inference_count=0  # TODO: Track this
             ))
-        
+
         # MLX health
         mlx_health = None
         try:
@@ -189,7 +195,7 @@ def detailed_status():
                 )
         except Exception as e:
             logger.warning(f"MLX health check failed: {e}")
-        
+
         # Calculate overall health score
         health_score = 100.0
         if cpu_percent > 80:
@@ -198,13 +204,13 @@ def detailed_status():
             health_score -= 30
         if len(loaded_models) == 0:
             health_score -= 10
-        
+
         overall_status = 'healthy'
         if health_score < 70:
             overall_status = 'degraded'
         if health_score < 40:
             overall_status = 'unhealthy'
-        
+
         response = DetailedHealthResponse(
             status=overall_status,
             timestamp=datetime.now(),
@@ -216,9 +222,9 @@ def detailed_status():
             mlx=mlx_health,
             health_score=health_score
         )
-        
+
         return create_response(response)
-        
+
     except Exception as e:
         logger.error(f"Detailed status check failed: {e}")
         return create_response({
@@ -255,73 +261,73 @@ def prometheus_metrics():
         app_state = current_app.config.get('app_state', {})
         metrics = app_state.get('metrics', {})
         loaded_models = app_state.get('loaded_models', {})
-        
+
         # Get system metrics
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
         uptime = (datetime.now() - start_time).total_seconds()
-        
+
         # Format metrics in Prometheus format
         output = []
-        
+
         # Application metrics
         output.append('# HELP impetus_info Application information')
         output.append('# TYPE impetus_info gauge')
         output.append(f'impetus_info{{version=\"{settings.version}\",environment=\"{settings.environment}\"}} 1')
-        
+
         output.append('# HELP impetus_uptime_seconds Application uptime in seconds')
         output.append('# TYPE impetus_uptime_seconds gauge')
         output.append(f'impetus_uptime_seconds {uptime}')
-        
+
         # Request metrics
         output.append('# HELP impetus_requests_total Total number of requests')
         output.append('# TYPE impetus_requests_total counter')
         output.append(f'impetus_requests_total {metrics.get("requests_total", 0)}')
-        
+
         output.append('# HELP impetus_tokens_generated_total Total tokens generated')
         output.append('# TYPE impetus_tokens_generated_total counter')
         output.append(f'impetus_tokens_generated_total {metrics.get("tokens_generated", 0)}')
-        
+
         output.append('# HELP impetus_average_latency_ms Average request latency in milliseconds')
         output.append('# TYPE impetus_average_latency_ms gauge')
         output.append(f'impetus_average_latency_ms {metrics.get("average_latency_ms", 0)}')
-        
+
         # Model metrics
         output.append('# HELP impetus_models_loaded Number of models currently loaded')
         output.append('# TYPE impetus_models_loaded gauge')
         output.append(f'impetus_models_loaded {len(loaded_models)}')
-        
+
         # System metrics
         output.append('# HELP impetus_cpu_usage_percent CPU usage percentage')
         output.append('# TYPE impetus_cpu_usage_percent gauge')
         output.append(f'impetus_cpu_usage_percent {cpu_percent}')
-        
+
         output.append('# HELP impetus_memory_usage_percent Memory usage percentage')
         output.append('# TYPE impetus_memory_usage_percent gauge')
         output.append(f'impetus_memory_usage_percent {memory.percent}')
-        
+
         output.append('# HELP impetus_memory_available_bytes Available memory in bytes')
         output.append('# TYPE impetus_memory_available_bytes gauge')
         output.append(f'impetus_memory_available_bytes {memory.available}')
-        
+
         # Health check metrics
         output.append('# HELP impetus_health_status Health status (1=healthy, 0=unhealthy)')
         output.append('# TYPE impetus_health_status gauge')
         output.append(f'impetus_health_status {1 if health_state["consecutive_failures"] == 0 else 0}')
-        
+
         output.append('# HELP impetus_consecutive_health_failures Number of consecutive health check failures')
         output.append('# TYPE impetus_consecutive_health_failures gauge')
         output.append(f'impetus_consecutive_health_failures {health_state["consecutive_failures"]}')
-        
+
         # Per-model metrics
         for model_id in loaded_models:
             safe_model_id = model_id.replace('/', '_').replace('-', '_')
-            output.append(f'# HELP impetus_model_loaded Model loaded status')
-            output.append(f'# TYPE impetus_model_loaded gauge')
+            output.append('# HELP impetus_model_loaded Model loaded status')
+            output.append('# TYPE impetus_model_loaded gauge')
             output.append(f'impetus_model_loaded{{model=\"{model_id}\"}} 1')
-        
+
         return '\n'.join(output), 200, {'Content-Type': 'text/plain; charset=utf-8'}
-        
+
     except Exception as e:
         logger.error(f"Metrics endpoint failed: {e}")
         return f"# Error generating metrics: {e}", 500, {'Content-Type': 'text/plain'}
@@ -334,16 +340,16 @@ def json_metrics():
         app_state = current_app.config.get('app_state', {})
         metrics = app_state.get('metrics', {})
         loaded_models = app_state.get('loaded_models', {})
-        
+
         # Get system metrics
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
         uptime = (datetime.now() - start_time).total_seconds()
-        
+
         # Get process metrics
         process = psutil.Process()
         process_memory = process.memory_info()
-        
+
         metrics_response = HealthMetrics(
             timestamp=datetime.now(),
             total_requests=metrics.get('requests_total', 0),
@@ -365,9 +371,9 @@ def json_metrics():
             active_connections=metrics.get('active_connections', 0),
             websocket_connections=metrics.get('websocket_connections', 0)
         )
-        
+
         return create_response(metrics_response)
-        
+
     except Exception as e:
         logger.error(f"JSON metrics endpoint failed: {e}")
         return create_response({

@@ -2,33 +2,29 @@
 Model management endpoints
 """
 
-from flask import Blueprint, jsonify, request, current_app
 from pathlib import Path
+
+from flask import Blueprint, current_app, jsonify, request
 from loguru import logger
-from typing import Dict, List
+
 from ..config.settings import settings
-from ..services.model_discovery import ModelDiscoveryService, ModelCategory
-from ..services.download_manager import download_manager
-from ..services.benchmark_service import benchmark_service
-from ..utils.error_recovery import with_error_recovery, ErrorType
-from ..utils.error_responses import ErrorResponse, handle_error
 from ..inference.kv_cache_manager import kv_cache_manager
+from ..services.benchmark_service import benchmark_service
+from ..services.download_manager import download_manager
+from ..services.model_discovery import ModelCategory, ModelDiscoveryService
 from ..services.model_warmup import model_warmup_service
+from ..utils.error_recovery import ErrorType, with_error_recovery
+from ..utils.error_responses import ErrorResponse, handle_error
 from ..utils.mmap_loader import mmap_loader
-from ..schemas.model_schemas import (
-    ModelDownloadRequest, ModelLoadRequest, ModelUnloadRequest, 
-    BenchmarkRequest, WarmupRequest, CacheSettingsRequest
-)
-from ..utils.validation import validate_json, validate_path_params, validate_model_id, create_response
 
 bp = Blueprint('models', __name__)
 
 
 @with_error_recovery(ErrorType.MODEL_LOAD_FAILURE, max_retries=2)
-def _load_model_internal(model_id: str, app_state: Dict) -> Dict:
+def _load_model_internal(model_id: str, app_state: dict) -> dict:
     """Internal function to load a model. Returns result dict with status/error."""
     loaded_models = app_state.get('loaded_models', {})
-    
+
     # Check if already loaded
     if model_id in loaded_models:
         return {
@@ -36,7 +32,7 @@ def _load_model_internal(model_id: str, app_state: Dict) -> Dict:
             'model_id': model_id,
             'message': 'Model is already loaded'
         }
-    
+
     # Check memory before loading
     import psutil
     memory = psutil.virtual_memory()
@@ -45,7 +41,7 @@ def _load_model_internal(model_id: str, app_state: Dict) -> Dict:
         # Estimate required memory (rough estimate)
         required_gb = 8.0  # Default estimate for 7B model
         return ErrorResponse.insufficient_memory(required_gb, available_gb)[1]
-    
+
     # Check if we need to unload models
     if len(loaded_models) >= settings.model.max_loaded_models:
         return {
@@ -53,27 +49,27 @@ def _load_model_internal(model_id: str, app_state: Dict) -> Dict:
             'message': f'Maximum {settings.model.max_loaded_models} models can be loaded simultaneously',
             'status_code': 507
         }
-    
+
     try:
         # Import model loader
         from ..model_loaders.mlx_loader import MLXModelLoader
-        
+
         # Create loader and load model
         loader = MLXModelLoader()
         model = loader.load_model(model_id)
-        
+
         # Store in app state
         loaded_models[model_id] = model
-        
+
         logger.info(f"Successfully loaded model: {model_id}")
-        
+
         return {
             'status': 'success',
             'model_id': model_id,
             'message': 'Model loaded successfully',
             'memory_used_gb': psutil.virtual_memory().used / (1024 ** 3)
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to load model {model_id}: {e}")
         error_resp = ErrorResponse.model_load_failed(model_id, str(e))
@@ -84,11 +80,11 @@ def _load_model_internal(model_id: str, app_state: Dict) -> Dict:
         }
 
 
-def get_available_models() -> List[Dict]:
+def get_available_models() -> list[dict]:
     """Get list of available models from the models directory"""
     models = []
     models_dir = settings.model.models_dir
-    
+
     if models_dir.exists():
         # Look for model directories
         for model_path in models_dir.iterdir():
@@ -102,26 +98,26 @@ def get_available_models() -> List[Dict]:
                     'format': 'unknown',
                     'loaded': False
                 }
-                
+
                 # Check for MLX format
                 if (model_path / 'config.json').exists():
                     model_info['format'] = 'mlx'
                     # Calculate total size
                     total_size = sum(f.stat().st_size for f in model_path.rglob('*') if f.is_file())
                     model_info['size_gb'] = total_size / (1024 ** 3)
-                
+
                 # Check for GGUF format
                 gguf_files = list(model_path.glob('*.gguf'))
                 if gguf_files:
                     model_info['format'] = 'gguf'
                     model_info['size_gb'] = gguf_files[0].stat().st_size / (1024 ** 3)
-                
+
                 models.append(model_info)
-    
+
     # Add loaded models
     app_state = current_app.config.get('app_state', {})
     loaded_models = app_state.get('loaded_models', {})
-    
+
     for model_id in loaded_models:
         # Mark as loaded if already in list
         for model in models:
@@ -138,7 +134,7 @@ def get_available_models() -> List[Dict]:
                 'format': 'mlx',
                 'loaded': True
             })
-    
+
     return models
 
 
@@ -147,11 +143,11 @@ def list_models():
     """List all available models"""
     try:
         models = get_available_models()
-        
+
         # Add benchmark info if available
         app_state = current_app.config.get('app_state', {})
         model_benchmarks = app_state.get('model_benchmarks', {})
-        
+
         for model in models:
             model_id = model['id']
             if model_id in model_benchmarks:
@@ -162,7 +158,7 @@ def list_models():
                 }
             else:
                 model['benchmark'] = {'available': False}
-            
+
             # Add warmup status
             warmup_status = model_warmup_service.get_warmup_status(model_id)
             if warmup_status:
@@ -173,7 +169,7 @@ def list_models():
                 }
             else:
                 model['warmup'] = {'is_warmed': False}
-        
+
         return jsonify({
             'models': models,
             'models_directory': str(settings.model.models_dir)
@@ -190,31 +186,31 @@ def load_model():
     model_id = data.get('model_id')
     auto_warmup = data.get('auto_warmup', False)
     use_mmap = data.get('use_mmap', True)
-    
+
     if not model_id:
         return jsonify({'error': 'model_id is required'}), 400
-    
+
     app_state = current_app.config.get('app_state', {})
-    
+
     # Pass auto_warmup to the loader
     if auto_warmup:
         # Import model loader
         from ..model_loaders.mlx_loader import MLXModelLoader
         loader = MLXModelLoader()
-        
+
         try:
             # Load with auto warmup and optional mmap
             model = loader.load_model(
-                model_id, 
-                auto_warmup=True, 
+                model_id,
+                auto_warmup=True,
                 warmup_async=True,
                 use_mmap=use_mmap
             )
             app_state['loaded_models'][model_id] = model
-            
+
             # Get warmup status
             warmup_status = model_warmup_service.get_warmup_status(model_id)
-            
+
             return jsonify({
                 'status': 'success',
                 'model_id': model_id,
@@ -234,7 +230,7 @@ def load_model():
     else:
         # Regular load without warmup
         result = _load_model_internal(model_id, app_state)
-        
+
         # Return appropriate response based on result
         if 'error' in result:
             status_code = result.get('status_code', 500)
@@ -251,40 +247,40 @@ def unload_model():
     """Unload a model from memory"""
     data = request.get_json()
     model_id = data.get('model_id')
-    
+
     if not model_id:
         return jsonify({'error': 'model_id is required'}), 400
-    
+
     app_state = current_app.config.get('app_state', {})
     loaded_models = app_state.get('loaded_models', {})
-    
+
     if model_id not in loaded_models:
         return jsonify({
             'error': 'Model not loaded',
             'message': f'Model {model_id} is not currently loaded'
         }), 404
-    
+
     try:
         # Remove from loaded models
         model = loaded_models.pop(model_id)
-        
+
         # Clean up model resources
         if hasattr(model, 'unload'):
             model.unload()
-        
+
         # Force garbage collection
         import gc
         gc.collect()
-        
+
         logger.info(f"Successfully unloaded model: {model_id}")
-        
+
         return jsonify({
             'status': 'success',
             'model_id': model_id,
             'message': 'Model unloaded successfully',
             'memory_freed_gb': psutil.virtual_memory().available / (1024 ** 3)
         })
-        
+
     except Exception as e:
         logger.error(f"Failed to unload model {model_id}: {e}")
         return jsonify({
@@ -299,24 +295,24 @@ def download_model():
     data = request.get_json()
     model_id = data.get('model_id')
     auto_load = data.get('auto_load', False)
-    
+
     if not model_id:
         return jsonify({'error': 'model_id is required'}), 400
-    
+
     # Import services
     from ..services.download_manager import download_manager
     from ..services.model_discovery import ModelDiscoveryService
-    
+
     # Get model info
     discovery = ModelDiscoveryService()
     model_info = discovery.get_model_info(model_id)
-    
+
     if not model_info:
         # Try to estimate size for unknown models
         estimated_size = download_manager.get_download_size(model_id) or 5.0
     else:
         estimated_size = model_info.size_gb
-    
+
     # Check disk space
     has_space, available_gb = download_manager.check_disk_space(estimated_size)
     if not has_space:
@@ -324,21 +320,21 @@ def download_model():
             'error': 'Insufficient disk space',
             'message': f'Need {estimated_size:.1f}GB but only {available_gb:.1f}GB available'
         }), 507
-    
+
     # Create download task
     task_id = download_manager.create_download_task(model_id)
-    
+
     # Start download in background
     import asyncio
     from threading import Thread
-    
+
     def download_in_background():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        
+
         # Store the app for context
         app = current_app._get_current_object()
-        
+
         # Create progress callback for WebSocket updates
         def progress_callback(progress):
             with app.app_context():
@@ -353,13 +349,13 @@ def download_model():
                         'eta_seconds': progress.eta_seconds,
                         'progress': progress.downloaded_bytes / progress.total_bytes if progress.total_bytes > 0 else 0
                     }, room=f'download_{task_id}')
-        
+
         # Register callback
         download_manager.register_progress_callback(task_id, progress_callback)
-        
+
         async def do_download():
             success = await download_manager.download_model(task_id)
-            
+
             # Send completion event
             with app.app_context():
                 app_state = app.config.get('app_state', {})
@@ -372,20 +368,20 @@ def download_model():
                         'success': success,
                         'status': task.status.value if task else 'unknown'
                     }, room=f'download_{task_id}')
-            
+
                 if success and auto_load:
                     logger.info(f"Model {model_id} downloaded, starting auto-load")
-                    
+
                     # Emit auto-load started event
                     if socketio:
                         socketio.emit('auto_load_started', {
                             'model_id': model_id,
                             'message': 'Starting automatic model loading'
                         }, room=f'download_{task_id}')
-                    
+
                     # Attempt to load the model
                     load_result = _load_model_internal(model_id, app_state)
-                    
+
                     if 'error' in load_result:
                         # Auto-load failed
                         logger.error(f"Auto-load failed for {model_id}: {load_result['message']}")
@@ -405,18 +401,18 @@ def download_model():
                                 'message': load_result['message'],
                                 'memory_used_gb': load_result.get('memory_used_gb', 0)
                             }, room=f'download_{task_id}')
-                            
+
                             # Also emit models update to all clients
                             loaded_models = list(app_state.get('loaded_models', {}).keys())
                             socketio.emit('models_update', {
                                 'loaded_models': loaded_models
                             }, room='models')
-        
+
         loop.run_until_complete(do_download())
-    
+
     thread = Thread(target=download_in_background, daemon=True)
     thread.start()
-    
+
     return jsonify({
         'status': 'started',
         'task_id': task_id,
@@ -431,13 +427,13 @@ def optimize_model():
     data = request.get_json()
     model_id = data.get('model_id')
     optimization_type = data.get('type', 'quantize')  # quantize, compile, etc.
-    
+
     if not model_id:
         return jsonify({'error': 'model_id is required'}), 400
-    
+
     # TODO: Implement model optimization
     # This would use MLX optimization techniques
-    
+
     return jsonify({
         'error': 'Not implemented',
         'message': 'Model optimization will be implemented in the next phase'
@@ -448,13 +444,13 @@ def optimize_model():
 def discover_models():
     """Discover available models from curated list"""
     discovery = ModelDiscoveryService()
-    
+
     # Get query parameters
     category = request.args.get('category')
     search = request.args.get('search')
     available_memory = request.args.get('available_memory', type=float)
     use_case = request.args.get('use_case')
-    
+
     # Get models based on filters
     if search:
         models = discovery.search_models(search)
@@ -468,12 +464,12 @@ def discover_models():
         models = discovery.get_recommended_models(available_memory, use_case)
     else:
         models = discovery.get_all_models()
-    
+
     # Get current hardware info for performance estimates
     app_state = current_app.config.get('app_state', {})
     hardware_info = app_state.get('hardware_info', {})
     chip_type = hardware_info.get('chip_type', 'M1')
-    
+
     # Convert to JSON-serializable format
     results = []
     for model in models:
@@ -492,7 +488,7 @@ def discover_models():
             'popularity_score': model.popularity_score,
             'estimated_tokens_per_sec': estimated_performance
         })
-    
+
     return jsonify({
         'models': results,
         'total': len(results),
@@ -504,24 +500,24 @@ def discover_models():
 def get_recommended_models():
     """Get recommended models based on system capabilities"""
     import psutil
-    
+
     discovery = ModelDiscoveryService()
-    
+
     # Get available memory
     memory = psutil.virtual_memory()
     available_gb = memory.available / (1024 ** 3)
-    
+
     # Get use case from query
     use_case = request.args.get('use_case', 'general-qa')
-    
+
     # Get recommendations
     models = discovery.get_recommended_models(available_gb, use_case)
-    
+
     # Get hardware info
     app_state = current_app.config.get('app_state', {})
     hardware_info = app_state.get('hardware_info', {})
     chip_type = hardware_info.get('chip_type', 'M1')
-    
+
     # Format results
     results = []
     for model in models:
@@ -536,7 +532,7 @@ def get_recommended_models():
             'estimated_tokens_per_sec': estimated_performance,
             'reason': f"Fits in {available_gb:.1f}GB available memory"
         })
-    
+
     return jsonify({
         'recommendations': results,
         'system': {
@@ -551,10 +547,10 @@ def get_recommended_models():
 def get_download_status(task_id: str):
     """Get status of a download task"""
     task = download_manager.get_task_status(task_id)
-    
+
     if not task:
         return jsonify({'error': 'Task not found'}), 404
-    
+
     return jsonify({
         'task_id': task.task_id,
         'model_id': task.model_id,
@@ -574,10 +570,10 @@ def get_download_status(task_id: str):
 def cancel_download(task_id: str):
     """Cancel a download task"""
     success = download_manager.cancel_download(task_id)
-    
+
     if not success:
         return jsonify({'error': 'Cannot cancel task'}), 400
-    
+
     return jsonify({
         'status': 'cancelled',
         'task_id': task_id
@@ -588,7 +584,7 @@ def cancel_download(task_id: str):
 def list_downloads():
     """List all download tasks"""
     tasks = download_manager.get_all_tasks()
-    
+
     results = []
     for task in tasks.values():
         results.append({
@@ -598,7 +594,7 @@ def list_downloads():
             'progress': task.progress,
             'started_at': task.started_at.isoformat() if task.started_at else None
         })
-    
+
     return jsonify({
         'downloads': results,
         'total': len(results)
@@ -610,22 +606,22 @@ def benchmark_model(model_id: str):
     """Run performance benchmark on a loaded model"""
     app_state = current_app.config.get('app_state', {})
     loaded_models = app_state.get('loaded_models', {})
-    
+
     # Check if model is loaded
     if model_id not in loaded_models:
         return jsonify({
             'error': 'Model not loaded',
             'message': f'Model {model_id} must be loaded before benchmarking'
         }), 404
-    
+
     # Get hardware info
     hardware_info = app_state.get('hardware_info', {})
     chip_type = hardware_info.get('chip_type', 'Unknown')
-    
+
     # Get custom prompts if provided
     data = request.get_json() or {}
     custom_prompts = data.get('prompts')
-    
+
     try:
         # Run benchmark
         model = loaded_models[model_id]
@@ -635,18 +631,18 @@ def benchmark_model(model_id: str):
             chip_type=chip_type,
             custom_prompts=custom_prompts
         )
-        
+
         # Update model info with benchmark results
         if 'model_benchmarks' not in app_state:
             app_state['model_benchmarks'] = {}
-        
+
         app_state['model_benchmarks'][model_id] = {
             'latest': suite.timestamp,
             'average_tokens_per_second': suite.average_tokens_per_second,
             'average_first_token_latency_ms': suite.average_first_token_latency_ms,
             'peak_tokens_per_second': suite.peak_tokens_per_second
         }
-        
+
         return jsonify({
             'status': 'success',
             'model_id': model_id,
@@ -670,7 +666,7 @@ def benchmark_model(model_id: str):
                 for r in suite.results
             ]
         })
-        
+
     except Exception as e:
         logger.error(f"Benchmark failed for {model_id}: {e}")
         return jsonify({
@@ -683,10 +679,10 @@ def benchmark_model(model_id: str):
 def get_benchmark_history(model_id: str):
     """Get benchmark history for a model"""
     limit = request.args.get('limit', 10, type=int)
-    
+
     try:
         history = benchmark_service.get_model_history(model_id, limit=limit)
-        
+
         return jsonify({
             'model_id': model_id,
             'history': [
@@ -701,7 +697,7 @@ def get_benchmark_history(model_id: str):
                 for suite in history
             ]
         })
-        
+
     except Exception as e:
         logger.error(f"Failed to get benchmark history: {e}")
         return jsonify({'error': 'Failed to retrieve history'}), 500
@@ -712,7 +708,7 @@ def get_benchmark_comparison():
     """Get benchmark comparison across all models and chips"""
     try:
         summary = benchmark_service.get_all_models_summary()
-        
+
         # Group by model
         models = {}
         for row in summary:
@@ -722,7 +718,7 @@ def get_benchmark_comparison():
                     'model_id': model_id,
                     'chips': {}
                 }
-            
+
             models[model_id]['chips'][row['chip_type']] = {
                 'average_tokens_per_second': round(row['avg_tps'], 1),
                 'average_first_token_latency_ms': round(row['avg_ttft'], 1),
@@ -730,12 +726,12 @@ def get_benchmark_comparison():
                 'latest_run': row['latest_run'],
                 'total_runs': row['total_runs']
             }
-        
+
         return jsonify({
             'models': list(models.values()),
             'total_models': len(models)
         })
-        
+
     except Exception as e:
         logger.error(f"Failed to get benchmark comparison: {e}")
         return jsonify({'error': 'Failed to retrieve comparison'}), 500
@@ -754,7 +750,7 @@ def clear_cache():
     data = request.get_json() or {}
     model_id = data.get('model_id')
     conversation_id = data.get('conversation_id')
-    
+
     if model_id and conversation_id:
         # Clear specific conversation cache
         success = kv_cache_manager.clear_cache(model_id, conversation_id)
@@ -796,13 +792,13 @@ def cache_settings():
     else:
         # Update settings
         data = request.get_json()
-        
+
         if 'max_memory_gb' in data:
             kv_cache_manager.max_memory_mb = data['max_memory_gb'] * 1024
-            
+
         if 'max_conversations' in data:
             kv_cache_manager.max_conversations = data['max_conversations']
-        
+
         return jsonify({
             'status': 'updated',
             'max_memory_gb': kv_cache_manager.max_memory_mb / 1024,
@@ -815,19 +811,19 @@ def warmup_model(model_id: str):
     """Warm up a model to eliminate cold start latency"""
     app_state = current_app.config.get('app_state', {})
     loaded_models = app_state.get('loaded_models', {})
-    
+
     # Check if model is loaded
     if model_id not in loaded_models:
         return jsonify({
             'error': 'Model not loaded',
             'message': f'Model {model_id} must be loaded before warming up'
         }), 404
-    
+
     # Get parameters
     data = request.get_json() or {}
     num_prompts = data.get('num_prompts', 3)
     async_warmup = data.get('async', True)
-    
+
     try:
         # Warm up the model
         model = loaded_models[model_id]
@@ -837,7 +833,7 @@ def warmup_model(model_id: str):
             num_prompts=num_prompts,
             async_warmup=async_warmup
         )
-        
+
         return jsonify({
             'status': 'warming' if async_warmup and not status.is_warmed else 'warmed',
             'model_id': model_id,
@@ -846,7 +842,7 @@ def warmup_model(model_id: str):
             'kernel_compilation_time_ms': status.kernel_compilation_time_ms if status.kernel_compilation_time_ms > 0 else None,
             'error': status.error
         })
-        
+
     except Exception as e:
         logger.error(f"Failed to warm up model {model_id}: {e}")
         return jsonify({
@@ -859,11 +855,11 @@ def warmup_model(model_id: str):
 def get_warmup_status():
     """Get warmup status for all models"""
     all_status = model_warmup_service.get_all_warmup_status()
-    
+
     # Get loaded models
     app_state = current_app.config.get('app_state', {})
     loaded_models = set(app_state.get('loaded_models', {}).keys())
-    
+
     # Include loaded models that haven't been warmed
     for model_id in loaded_models:
         if model_id not in all_status:
@@ -876,7 +872,7 @@ def get_warmup_status():
                 'error': None,
                 'age_seconds': None
             }
-    
+
     return jsonify({
         'warmup_status': all_status,
         'total_models': len(all_status),
@@ -889,24 +885,24 @@ def benchmark_cold_vs_warm(model_id: str):
     """Benchmark cold vs warm performance for a model"""
     app_state = current_app.config.get('app_state', {})
     loaded_models = app_state.get('loaded_models', {})
-    
+
     # Check if model is loaded
     if model_id not in loaded_models:
         return jsonify({
             'error': 'Model not loaded',
             'message': f'Model {model_id} must be loaded before benchmarking'
         }), 404
-    
+
     try:
         # Run cold vs warm benchmark
         model = loaded_models[model_id]
         results = model_warmup_service.benchmark_cold_vs_warm(model, model_id)
-        
+
         if 'error' in results:
             return jsonify(results), 500
-        
+
         return jsonify(results)
-        
+
     except Exception as e:
         logger.error(f"Benchmark failed for {model_id}: {e}")
         return jsonify({
@@ -920,45 +916,45 @@ def benchmark_mmap_loading():
     """Benchmark memory-mapped loading vs regular loading"""
     data = request.get_json() or {}
     model_path = data.get('model_path')
-    
+
     if not model_path:
         # Try to find a loaded model to benchmark
         app_state = current_app.config.get('app_state', {})
         loaded_models = app_state.get('loaded_models', {})
-        
+
         if not loaded_models:
             return jsonify({
                 'error': 'No model specified',
                 'message': 'Provide model_path or load a model first'
             }), 400
-        
+
         # Use first loaded model
         model_id = list(loaded_models.keys())[0]
         model_path = settings.model.models_dir / model_id.replace('/', '_')
     else:
         model_path = Path(model_path)
-    
+
     if not model_path.exists():
         return jsonify({
             'error': 'Model path not found',
             'message': f'Path does not exist: {model_path}'
         }), 404
-    
+
     try:
         # Run benchmark
         results = mmap_loader.benchmark_load_time(model_path)
-        
+
         # Add memory usage info
         memory_stats = mmap_loader.get_memory_usage()
         results.update(memory_stats)
-        
+
         return jsonify({
             'status': 'success',
             'model_path': str(model_path),
             'results': results,
             'recommendation': 'Use mmap' if results.get('speedup', 0) > 1.2 else 'Regular loading is fine'
         })
-        
+
     except Exception as e:
         logger.error(f"Memory map benchmark failed: {e}")
         return jsonify({
@@ -971,7 +967,7 @@ def benchmark_mmap_loading():
 def get_mmap_status():
     """Get memory-mapped loading status"""
     stats = mmap_loader.get_memory_usage()
-    
+
     return jsonify({
         'enabled': True,
         'stats': stats,
