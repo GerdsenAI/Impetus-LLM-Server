@@ -264,7 +264,15 @@ configure_production() {
     # Generate API key if not provided
     if [[ -z "$API_KEY" ]]; then
         API_KEY=$(openssl rand -hex 32)
-        echo -e "${YELLOW}⚠️  An API key has been generated and stored in $CONFIG_DIR/.env. Please ensure it is kept secure.${NC}"
+        echo -e "${RED}============================================================${NC}"
+        echo -e "${YELLOW}⚠️  IMPORTANT SECURITY NOTICE${NC}"
+        echo -e "${YELLOW}An API key has been generated and stored in:${NC}"
+        echo -e "${BLUE}    $CONFIG_DIR/.env${NC}"
+        echo -e "${YELLOW}Please ensure this file is kept secure and backed up safely.${NC}"
+        echo -e "${YELLOW}You will need this API key to access the Impetus LLM Server.${NC}"
+        echo -e "${RED}============================================================${NC}"
+        echo -e "${YELLOW}Press ENTER to acknowledge and continue...${NC}"
+        read -r
         # Note: The API key is not printed to the console for security reasons.
     fi
     
