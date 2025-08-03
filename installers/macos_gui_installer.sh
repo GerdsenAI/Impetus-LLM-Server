@@ -199,7 +199,7 @@ fi
 # Check macOS version
 MIN_VERSION="13.0"
 CURRENT_VERSION=$(sw_vers -productVersion)
-if [[ $(echo "$CURRENT_VERSION < $MIN_VERSION" | bc) -eq 1 ]]; then
+if [[ "$(printf '%s\n' "$MIN_VERSION" "$CURRENT_VERSION" | sort -V | head -n1)" != "$MIN_VERSION" ]]; then
     echo "Error: macOS $MIN_VERSION or later is required (found $CURRENT_VERSION)"
     exit 1
 fi
