@@ -264,8 +264,8 @@ configure_production() {
     # Generate API key if not provided
     if [[ -z "$API_KEY" ]]; then
         API_KEY=$(openssl rand -hex 32)
-        echo "Generated API key: $API_KEY"
-        echo -e "${YELLOW}⚠️  Please save this API key securely!${NC}"
+        echo -e "${YELLOW}⚠️  An API key has been generated and stored in $CONFIG_DIR/.env. Please ensure it is kept secure.${NC}"
+        # Note: The API key is not printed to the console for security reasons.
     fi
     
     # Calculate worker count based on CPU cores
