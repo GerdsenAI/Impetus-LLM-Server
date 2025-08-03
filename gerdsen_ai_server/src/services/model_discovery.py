@@ -2,9 +2,9 @@
 Model Discovery Service - Curated list of high-quality MLX models
 """
 
-from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
 from enum import Enum
+
 from loguru import logger
 
 
@@ -27,21 +27,21 @@ class ModelInfo:
     quantization: str
     context_length: int
     description: str
-    performance: Dict[str, int]  # chip_type -> tokens_per_sec
-    features: List[str]
-    recommended_for: List[str]
+    performance: dict[str, int]  # chip_type -> tokens_per_sec
+    features: list[str]
+    recommended_for: list[str]
     min_memory_gb: float
     popularity_score: float  # 0-10 rating
 
 
 class ModelDiscoveryService:
     """Service for discovering and recommending MLX models"""
-    
+
     def __init__(self):
         self.models = self._initialize_model_catalog()
         logger.info(f"Model discovery service initialized with {len(self.models)} models")
-    
-    def _initialize_model_catalog(self) -> List[ModelInfo]:
+
+    def _initialize_model_catalog(self) -> list[ModelInfo]:
         """Initialize the curated model catalog"""
         return [
             # General Purpose Models
@@ -73,7 +73,7 @@ class ModelDiscoveryService:
                 min_memory_gb=12.0,
                 popularity_score=8.5
             ),
-            
+
             # Efficient Models
             ModelInfo(
                 id="mlx-community/Llama-3.2-3B-Instruct-4bit",
@@ -103,7 +103,7 @@ class ModelDiscoveryService:
                 min_memory_gb=4.0,
                 popularity_score=8.8
             ),
-            
+
             # Coding Models
             ModelInfo(
                 id="mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
@@ -133,7 +133,7 @@ class ModelDiscoveryService:
                 min_memory_gb=6.0,
                 popularity_score=8.9
             ),
-            
+
             # Chat Models
             ModelInfo(
                 id="mlx-community/Llama-3.2-8B-Instruct-4bit",
@@ -163,7 +163,7 @@ class ModelDiscoveryService:
                 min_memory_gb=10.0,
                 popularity_score=8.7
             ),
-            
+
             # Specialized Models
             ModelInfo(
                 id="mlx-community/NousHermes-2-Mistral-7B-DPO-4bit",
@@ -180,41 +180,41 @@ class ModelDiscoveryService:
                 popularity_score=8.4
             ),
         ]
-    
-    def get_all_models(self) -> List[ModelInfo]:
+
+    def get_all_models(self) -> list[ModelInfo]:
         """Get all available models"""
         return self.models
-    
-    def get_models_by_category(self, category: ModelCategory) -> List[ModelInfo]:
+
+    def get_models_by_category(self, category: ModelCategory) -> list[ModelInfo]:
         """Get models filtered by category"""
         return [m for m in self.models if m.category == category]
-    
-    def get_recommended_models(self, 
+
+    def get_recommended_models(self,
                              available_memory_gb: float,
-                             use_case: Optional[str] = None) -> List[ModelInfo]:
+                             use_case: str | None = None) -> list[ModelInfo]:
         """Get recommended models based on system capabilities and use case"""
         suitable_models = [
-            m for m in self.models 
+            m for m in self.models
             if m.min_memory_gb <= available_memory_gb
         ]
-        
+
         if use_case:
             # Filter by recommended use cases
             suitable_models = [
-                m for m in suitable_models 
+                m for m in suitable_models
                 if use_case in m.recommended_for
             ]
-        
+
         # Sort by popularity score
         suitable_models.sort(key=lambda m: m.popularity_score, reverse=True)
-        
+
         return suitable_models[:5]  # Return top 5
-    
-    def search_models(self, query: str) -> List[ModelInfo]:
+
+    def search_models(self, query: str) -> list[ModelInfo]:
         """Search models by name, features, or description"""
         query_lower = query.lower()
         results = []
-        
+
         for model in self.models:
             # Search in various fields
             if any([
@@ -225,28 +225,28 @@ class ModelDiscoveryService:
                 query_lower in model.id.lower()
             ]):
                 results.append(model)
-        
+
         # Sort by relevance (popularity)
         results.sort(key=lambda m: m.popularity_score, reverse=True)
-        
+
         return results
-    
-    def get_model_info(self, model_id: str) -> Optional[ModelInfo]:
+
+    def get_model_info(self, model_id: str) -> ModelInfo | None:
         """Get detailed information about a specific model"""
         for model in self.models:
             if model.id == model_id:
                 return model
         return None
-    
-    def estimate_performance(self, model_id: str, chip_type: str) -> Optional[int]:
+
+    def estimate_performance(self, model_id: str, chip_type: str) -> int | None:
         """Estimate tokens/sec for a model on specific hardware"""
         model = self.get_model_info(model_id)
         if not model:
             return None
-        
+
         # Extract base chip type (m1, m2, m3, m4)
         chip_base = chip_type.lower().split()[0] if chip_type else "m1"
-        
+
         # Map variations to base types
         chip_mapping = {
             "m1": "m1", "m1 pro": "m1", "m1 max": "m1", "m1 ultra": "m1",
@@ -254,10 +254,10 @@ class ModelDiscoveryService:
             "m3": "m3", "m3 pro": "m3", "m3 max": "m3", "m3 ultra": "m3",
             "m4": "m4", "m4 pro": "m4", "m4 max": "m4", "m4 ultra": "m4",
         }
-        
+
         chip_key = chip_mapping.get(chip_base, "m1")
         base_performance = model.performance.get(chip_key, 50)
-        
+
         # Adjust for chip variants
         if "ultra" in chip_type.lower():
             return int(base_performance * 1.5)
@@ -265,5 +265,5 @@ class ModelDiscoveryService:
             return int(base_performance * 1.3)
         elif "pro" in chip_type.lower():
             return int(base_performance * 1.1)
-        
+
         return base_performance

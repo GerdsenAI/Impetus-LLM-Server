@@ -1,0 +1,360 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - premium-llm-server  # Alternative main branch name
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # Check if we should create a release
+  check-release:
+    name: Check Release Conditions
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+      previous_tag: ${{ steps.check.outputs.previous_tag }}
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check for version changes
+      id: check
+      run: |
+        # Get current version from setup.py
+        CURRENT_VERSION=$(grep -E "version=" setup.py | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Get the latest tag
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "Latest tag: $LATEST_TAG"
+        
+        # Check if this is a manual workflow dispatch
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "Manual release triggered"
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "version=v$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "previous_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        elif [[ "v$CURRENT_VERSION" != "$LATEST_TAG" ]]; then
+          echo "Version changed, creating release"
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "version=v$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "previous_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        else
+          echo "No version change, checking commit messages"
+          # Check if there are any feat: or fix: commits since last tag
+          FEAT_COMMITS=$(git log $LATEST_TAG..HEAD --grep="^feat:" --grep="^fix:" --grep="^perf:" -E | wc -l)
+          if [[ $FEAT_COMMITS -gt 0 ]]; then
+            echo "Found $FEAT_COMMITS feature/fix commits"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            # Auto-increment patch version
+            IFS='.' read -ra VERSION_PARTS <<< "${CURRENT_VERSION}"
+            NEW_PATCH=$((VERSION_PARTS[2] + 1))
+            NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$NEW_PATCH"
+            echo "version=v$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "previous_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          else
+            echo "No release needed"
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          fi
+        fi
+
+  # Run all quality checks
+  quality-checks:
+    name: Quality Checks
+    needs: check-release
+    if: needs.check-release.outputs.should_release == 'true'
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install Python dependencies
+      run: |
+        cd gerdsen_ai_server
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements_dev.txt
+    
+    - name: Run Python tests
+      run: |
+        cd gerdsen_ai_server
+        pytest tests/ -v --cov=src --cov-report=xml
+    
+    - name: Run Python linting
+      run: |
+        cd gerdsen_ai_server
+        ruff check src/ tests/ || true  # Don't fail on linting
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: 8
+    
+    - name: Cache pnpm dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.pnpm-store
+        key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+    
+    - name: Install frontend dependencies
+      run: |
+        cd impetus-dashboard
+        pnpm install
+    
+    - name: Build frontend
+      run: |
+        cd impetus-dashboard
+        pnpm build
+    
+    - name: Upload frontend build
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-dist
+        path: impetus-dashboard/dist/
+        retention-days: 1
+
+  # Build macOS standalone app
+  build-macos-app:
+    name: Build macOS App
+    needs: [check-release, quality-checks]
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+    
+    - name: Install build dependencies
+      run: |
+        # Install Python dependencies for building
+        python -m pip install --upgrade pip wheel
+        
+        # Install pnpm for frontend build
+        npm install -g pnpm
+        
+        # Install required tools
+        brew install create-dmg || true
+    
+    - name: Download frontend build
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-dist
+        path: impetus-dashboard/dist/
+    
+    - name: Update version in installer script
+      run: |
+        VERSION="${{ needs.check-release.outputs.version }}"
+        VERSION_NO_V="${VERSION#v}"
+        sed -i '' "s/PRODUCT_VERSION=\"[0-9.]*\"/PRODUCT_VERSION=\"$VERSION_NO_V\"/" installers/macos_standalone_app.sh
+    
+    - name: Build standalone app
+      run: |
+        cd installers
+        chmod +x macos_standalone_app.sh
+        ./macos_standalone_app.sh
+    
+    - name: Code sign app (if certificate available)
+      if: env.APPLE_CERT_BASE64 != ''
+      env:
+        APPLE_CERT_BASE64: ${{ secrets.APPLE_CERT_BASE64 }}
+        APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+        APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
+      run: |
+        # Import certificate
+        echo "$APPLE_CERT_BASE64" | base64 --decode > certificate.p12
+        security create-keychain -p actions temp.keychain
+        security import certificate.p12 -k temp.keychain -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign
+        security list-keychains -s temp.keychain
+        security unlock-keychain -p actions temp.keychain
+        security set-key-partition-list -S apple-tool:,apple: -s -k actions temp.keychain
+        
+        # Sign the app
+        codesign --force --deep --sign "$APPLE_IDENTITY" "installers/build_standalone/Impetus.app"
+        
+        # Verify signature
+        codesign --verify --deep --strict "installers/build_standalone/Impetus.app"
+        
+        # Clean up
+        security delete-keychain temp.keychain
+        rm certificate.p12
+    
+    - name: Create DMG checksums
+      run: |
+        cd installers
+        DMG_FILE=$(ls *.dmg | head -1)
+        shasum -a 256 "$DMG_FILE" > "$DMG_FILE.sha256"
+        echo "DMG_FILE=$DMG_FILE" >> $GITHUB_ENV
+        echo "DMG checksum:"
+        cat "$DMG_FILE.sha256"
+    
+    - name: Upload DMG artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-dmg
+        path: |
+          installers/*.dmg
+          installers/*.dmg.sha256
+        retention-days: 7
+
+  # Create GitHub Release
+  create-release:
+    name: Create Release
+    needs: [check-release, quality-checks, build-macos-app]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Download macOS DMG
+      uses: actions/download-artifact@v4
+      with:
+        name: macos-dmg
+        path: ./release-assets/
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        VERSION="${{ needs.check-release.outputs.version }}"
+        PREVIOUS_TAG="${{ needs.check-release.outputs.previous_tag }}"
+        
+        echo "# Changelog for $VERSION" > CHANGELOG.md
+        echo "" >> CHANGELOG.md
+        echo "## 🚀 Features" >> CHANGELOG.md
+        git log $PREVIOUS_TAG..HEAD --grep="^feat:" -E --pretty=format:"- %s" >> CHANGELOG.md || echo "- No new features" >> CHANGELOG.md
+        echo -e "\n" >> CHANGELOG.md
+        
+        echo "## 🐛 Bug Fixes" >> CHANGELOG.md
+        git log $PREVIOUS_TAG..HEAD --grep="^fix:" -E --pretty=format:"- %s" >> CHANGELOG.md || echo "- No bug fixes" >> CHANGELOG.md
+        echo -e "\n" >> CHANGELOG.md
+        
+        echo "## 🔧 Other Changes" >> CHANGELOG.md
+        git log $PREVIOUS_TAG..HEAD --grep="^(chore|docs|style|refactor|test|build|ci):" -E --pretty=format:"- %s" >> CHANGELOG.md || echo "- Various improvements" >> CHANGELOG.md
+        echo -e "\n" >> CHANGELOG.md
+        
+        echo "## 📦 Installation" >> CHANGELOG.md
+        echo "" >> CHANGELOG.md
+        echo "1. Download \`Impetus-Standalone-${VERSION#v}.dmg\`" >> CHANGELOG.md
+        echo "2. Open the DMG file" >> CHANGELOG.md
+        echo "3. Drag Impetus to your Applications folder" >> CHANGELOG.md
+        echo "4. Double-click to run!" >> CHANGELOG.md
+        echo "" >> CHANGELOG.md
+        echo "**Requirements**: macOS 13.0+ on Apple Silicon (M1/M2/M3/M4)" >> CHANGELOG.md
+        echo "" >> CHANGELOG.md
+        echo "## 📝 Checksums" >> CHANGELOG.md
+        echo '```' >> CHANGELOG.md
+        cat ./release-assets/*.sha256 >> CHANGELOG.md
+        echo '```' >> CHANGELOG.md
+        
+        # Set changelog as output
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        cat CHANGELOG.md >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ needs.check-release.outputs.version }}
+        name: Impetus ${{ needs.check-release.outputs.version }}
+        body: ${{ steps.changelog.outputs.changelog }}
+        draft: false
+        prerelease: false
+        files: |
+          ./release-assets/*.dmg
+          ./release-assets/*.sha256
+        generate_release_notes: true
+    
+    - name: Update latest release badge
+      run: |
+        # This could update a badge in README or create a latest-release.json
+        echo '{"version": "${{ needs.check-release.outputs.version }}", "date": "'$(date -u +"%Y-%m-%d"))'"}' > latest-release.json
+
+  # Optional: Notify about release
+  notify-release:
+    name: Notify Release
+    needs: [check-release, create-release]
+    runs-on: ubuntu-latest
+    if: always() && needs.create-release.result == 'success'
+    
+    steps:
+    - name: Send Slack notification
+      if: env.SLACK_WEBHOOK != ''
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      run: |
+        curl -X POST $SLACK_WEBHOOK \
+          -H 'Content-type: application/json' \
+          -d '{
+            "text": "🎉 Impetus ${{ needs.check-release.outputs.version }} has been released!",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Impetus ${{ needs.check-release.outputs.version }} Released!*\n\nDownload the latest version from GitHub Releases."
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "View Release"
+                    },
+                    "url": "https://github.com/${{ github.repository }}/releases/tag/${{ needs.check-release.outputs.version }}"
+                  }
+                ]
+              }
+            ]
+          }'

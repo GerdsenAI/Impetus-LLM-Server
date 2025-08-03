@@ -3,16 +3,14 @@ Model Benchmarking Service
 Measures and tracks model performance metrics for optimization
 """
 
-import time
-import json
 import sqlite3
-from pathlib import Path
-from dataclasses import dataclass, asdict
-from typing import Dict, List, Optional, Tuple
-from datetime import datetime
 import statistics
-from loguru import logger
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime
+
 import psutil
+from loguru import logger
 
 from ..config.settings import settings
 from ..utils.metal_monitor import metal_monitor
@@ -30,10 +28,10 @@ class BenchmarkResult:
     memory_used_gb: float
     gpu_utilization_avg: float
     gpu_memory_used_gb: float
-    temperature_celsius: Optional[float]
+    temperature_celsius: float | None
     timestamp: str
     chip_type: str
-    
+
     @property
     def tokens_per_second_sustained(self) -> float:
         """Tokens per second excluding first token latency"""
@@ -50,23 +48,23 @@ class BenchmarkSuite:
     model_id: str
     chip_type: str
     timestamp: str
-    results: List[BenchmarkResult]
-    
+    results: list[BenchmarkResult]
+
     @property
     def average_tokens_per_second(self) -> float:
         """Average tokens per second across all tests"""
         return statistics.mean(r.tokens_per_second for r in self.results)
-    
+
     @property
     def average_first_token_latency_ms(self) -> float:
         """Average time to first token"""
         return statistics.mean(r.time_to_first_token_ms for r in self.results)
-    
+
     @property
     def peak_tokens_per_second(self) -> float:
         """Best tokens per second achieved"""
         return max(r.tokens_per_second for r in self.results)
-    
+
     @property
     def average_memory_gb(self) -> float:
         """Average memory usage"""
@@ -75,7 +73,7 @@ class BenchmarkSuite:
 
 class BenchmarkService:
     """Service for benchmarking model performance"""
-    
+
     # Standard prompts for benchmarking
     BENCHMARK_PROMPTS = [
         # Short prompt (conversation starter)
@@ -113,11 +111,11 @@ Now, please explain the differences between lists and tuples in Python, when to 
             "category": "code"
         }
     ]
-    
+
     def __init__(self):
         self.db_path = settings.model.cache_dir / "benchmarks.db"
         self._init_database()
-    
+
     def _init_database(self):
         """Initialize SQLite database for storing benchmark results"""
         with sqlite3.connect(self.db_path) as conn:
@@ -140,37 +138,37 @@ Now, please explain the differences between lists and tuples in Python, when to 
                     UNIQUE(model_id, timestamp, prompt_length)
                 )
             """)
-            
+
             conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_model_timestamp 
                 ON benchmarks(model_id, timestamp DESC)
             """)
-            
+
             conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_chip_model 
                 ON benchmarks(chip_type, model_id)
             """)
-    
-    def benchmark_model(self, model, model_id: str, chip_type: str, 
-                       custom_prompts: Optional[List[Dict]] = None) -> BenchmarkSuite:
+
+    def benchmark_model(self, model, model_id: str, chip_type: str,
+                       custom_prompts: list[dict] | None = None) -> BenchmarkSuite:
         """Run complete benchmark suite on a model"""
         logger.info(f"Starting benchmark for model: {model_id}")
-        
+
         prompts = custom_prompts or self.BENCHMARK_PROMPTS
         results = []
         timestamp = datetime.utcnow().isoformat()
-        
+
         # Warmup run (not recorded)
         logger.info("Running warmup...")
         try:
             model.generate("Hello", max_tokens=10)
         except Exception as e:
             logger.warning(f"Warmup failed: {e}")
-        
+
         # Run benchmarks
         for i, prompt_config in enumerate(prompts):
             logger.info(f"Running benchmark {i+1}/{len(prompts)}: {prompt_config['category']}")
-            
+
             try:
                 result = self._benchmark_single(
                     model=model,
@@ -180,64 +178,64 @@ Now, please explain the differences between lists and tuples in Python, when to 
                     chip_type=chip_type,
                     timestamp=timestamp
                 )
-                
+
                 if result:
                     results.append(result)
-                    
+
                 # Cool down between tests
                 time.sleep(2)
-                
+
             except Exception as e:
                 logger.error(f"Benchmark failed for prompt {i+1}: {e}")
-        
+
         if not results:
             raise ValueError("All benchmarks failed")
-        
+
         suite = BenchmarkSuite(
             model_id=model_id,
             chip_type=chip_type,
             timestamp=timestamp,
             results=results
         )
-        
+
         # Store results
         self._store_results(results)
-        
+
         logger.info(f"Benchmark complete: {suite.average_tokens_per_second:.1f} avg tokens/sec")
-        
+
         return suite
-    
-    def _benchmark_single(self, model, model_id: str, prompt: str, 
-                         max_tokens: int, chip_type: str, timestamp: str) -> Optional[BenchmarkResult]:
+
+    def _benchmark_single(self, model, model_id: str, prompt: str,
+                         max_tokens: int, chip_type: str, timestamp: str) -> BenchmarkResult | None:
         """Run a single benchmark test"""
         # Get initial metrics
         process = psutil.Process()
         initial_memory = process.memory_info().rss / (1024 ** 3)
-        
+
         # Start GPU monitoring
         gpu_metrics = []
         if metal_monitor._is_macos():
             metal_monitor.start_monitoring(interval_seconds=0.1)
-            
+
             def gpu_callback(metrics):
                 gpu_metrics.append(metrics)
-            
+
             metal_monitor.add_callback(gpu_callback)
-        
+
         try:
             # Tokenize prompt to get length
             prompt_tokens = model.tokenize(prompt) if hasattr(model, 'tokenize') else None
             prompt_length = len(prompt_tokens) if prompt_tokens else len(prompt.split())
-            
+
             # Time the generation
             start_time = time.perf_counter()
             first_token_time = None
             tokens_generated = 0
-            
+
             # Use streaming to measure first token latency
             if hasattr(model, 'generate_stream'):
                 for i, token in enumerate(model.generate_stream(
-                    prompt, 
+                    prompt,
                     max_tokens=max_tokens,
                     temperature=0.7
                 )):
@@ -249,29 +247,29 @@ Now, please explain the differences between lists and tuples in Python, when to 
                 first_token_time = time.perf_counter()
                 response = model.generate(prompt, max_tokens=max_tokens, temperature=0.7)
                 tokens_generated = len(model.tokenize(response)) if hasattr(model, 'tokenize') else len(response.split())
-            
+
             end_time = time.perf_counter()
-            
+
             # Calculate metrics
             total_time_ms = (end_time - start_time) * 1000
             time_to_first_token_ms = (first_token_time - start_time) * 1000 if first_token_time else 50.0
             tokens_per_second = (tokens_generated / total_time_ms) * 1000 if total_time_ms > 0 else 0
-            
+
             # Get final memory
             final_memory = process.memory_info().rss / (1024 ** 3)
             memory_used = final_memory - initial_memory
-            
+
             # Get GPU metrics
             gpu_util_avg = 0.0
             gpu_memory_avg = 0.0
             temperature = None
-            
+
             if gpu_metrics:
                 gpu_util_avg = statistics.mean(m.gpu_utilization for m in gpu_metrics)
                 gpu_memory_avg = statistics.mean(m.memory_used_gb for m in gpu_metrics)
                 temps = [m.temperature_celsius for m in gpu_metrics if m.temperature_celsius]
                 temperature = statistics.mean(temps) if temps else None
-            
+
             return BenchmarkResult(
                 model_id=model_id,
                 prompt_length=prompt_length,
@@ -286,13 +284,13 @@ Now, please explain the differences between lists and tuples in Python, when to 
                 timestamp=timestamp,
                 chip_type=chip_type
             )
-            
+
         finally:
             # Clean up GPU monitoring
             if metal_monitor._is_macos() and gpu_callback in metal_monitor.callbacks:
                 metal_monitor.remove_callback(gpu_callback)
-    
-    def _store_results(self, results: List[BenchmarkResult]):
+
+    def _store_results(self, results: list[BenchmarkResult]):
         """Store benchmark results in database"""
         with sqlite3.connect(self.db_path) as conn:
             for result in results:
@@ -310,12 +308,12 @@ Now, please explain the differences between lists and tuples in Python, when to 
                     data['gpu_utilization_avg'], data['gpu_memory_used_gb'],
                     data['temperature_celsius'], data['timestamp'], data['chip_type']
                 ))
-    
-    def get_model_history(self, model_id: str, limit: int = 10) -> List[BenchmarkSuite]:
+
+    def get_model_history(self, model_id: str, limit: int = 10) -> list[BenchmarkSuite]:
         """Get benchmark history for a model"""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
-            
+
             # Get unique benchmark runs
             runs = conn.execute("""
                 SELECT DISTINCT timestamp, chip_type 
@@ -324,7 +322,7 @@ Now, please explain the differences between lists and tuples in Python, when to 
                 ORDER BY timestamp DESC 
                 LIMIT ?
             """, (model_id, limit)).fetchall()
-            
+
             suites = []
             for run in runs:
                 # Get all results for this run
@@ -333,11 +331,11 @@ Now, please explain the differences between lists and tuples in Python, when to 
                     WHERE model_id = ? AND timestamp = ?
                     ORDER BY prompt_length
                 """, (model_id, run['timestamp'])).fetchall()
-                
+
                 benchmark_results = [
                     BenchmarkResult(**dict(r)) for r in results
                 ]
-                
+
                 if benchmark_results:
                     suites.append(BenchmarkSuite(
                         model_id=model_id,
@@ -345,14 +343,14 @@ Now, please explain the differences between lists and tuples in Python, when to 
                         timestamp=run['timestamp'],
                         results=benchmark_results
                     ))
-            
+
             return suites
-    
-    def get_chip_comparison(self, model_id: str) -> Dict[str, Dict]:
+
+    def get_chip_comparison(self, model_id: str) -> dict[str, dict]:
         """Compare model performance across different chips"""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
-            
+
             results = conn.execute("""
                 SELECT 
                     chip_type,
@@ -367,7 +365,7 @@ Now, please explain the differences between lists and tuples in Python, when to 
                 GROUP BY chip_type
                 ORDER BY avg_tps DESC
             """, (model_id,)).fetchall()
-            
+
             return {
                 row['chip_type']: {
                     'average_tokens_per_second': row['avg_tps'],
@@ -379,12 +377,12 @@ Now, please explain the differences between lists and tuples in Python, when to 
                 }
                 for row in results
             }
-    
-    def get_all_models_summary(self) -> List[Dict]:
+
+    def get_all_models_summary(self) -> list[dict]:
         """Get summary of all benchmarked models"""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
-            
+
             results = conn.execute("""
                 SELECT 
                     model_id,
@@ -398,7 +396,7 @@ Now, please explain the differences between lists and tuples in Python, when to 
                 GROUP BY model_id, chip_type
                 ORDER BY avg_tps DESC
             """).fetchall()
-            
+
             return [dict(row) for row in results]
 
 

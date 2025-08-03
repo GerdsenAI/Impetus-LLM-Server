@@ -4,18 +4,22 @@ Documentation=https://github.com/GerdsenAI/Impetus-LLM-Server
 After=network.target
 
 [Service]
-Type=simple
+Type=notify
 User=%i
 Group=%i
 WorkingDirectory=/home/%i/impetus-llm-server/gerdsen_ai_server
 Environment="PATH=/home/%i/impetus-llm-server/venv/bin:/usr/local/bin:/usr/bin:/bin"
 Environment="PYTHONUNBUFFERED=1"
 Environment="IMPETUS_ENVIRONMENT=production"
-ExecStart=/home/%i/impetus-llm-server/venv/bin/python src/main.py
-Restart=on-failure
+ExecStart=/home/%i/impetus-llm-server/venv/bin/gunicorn \
+    --config /home/%i/impetus-llm-server/gerdsen_ai_server/gunicorn_config.py \
+    --worker-class eventlet \
+    wsgi:application
+Restart=always
 RestartSec=10
-StandardOutput=append:/var/log/impetus/server.log
-StandardError=append:/var/log/impetus/error.log
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=impetus-llm-server
 
 # Security hardening
 NoNewPrivileges=true
@@ -26,9 +30,11 @@ ReadWritePaths=/home/%i/impetus-llm-server/models
 ReadWritePaths=/var/log/impetus
 
 # Resource limits
-MemoryLimit=16G
+# Memory and CPU limits should be adjusted based on your hardware
+MemoryLimit=8G
 CPUQuota=200%
-TasksMax=100
+LimitNOFILE=65536
+LimitNPROC=4096
 
 [Install]
 WantedBy=multi-user.target

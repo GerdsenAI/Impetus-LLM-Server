@@ -1,43 +1,79 @@
-# Note: This Dockerfile is experimental and not officially supported in v0.1.0
-# Impetus is optimized for native macOS on Apple Silicon
-# Docker support is planned for future releases
+# Multi-stage Dockerfile for Impetus LLM Server
+# Optimized for production deployment
 
-FROM python:3.11-slim
+# Build stage for frontend
+FROM node:18-alpine AS frontend-builder
+
+WORKDIR /app/frontend
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy package files
+COPY impetus-dashboard/package.json impetus-dashboard/pnpm-lock.yaml ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY impetus-dashboard/ ./
+
+# Build frontend
+RUN pnpm build
+
+# Main application stage
+FROM python:3.11-slim AS production
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    IMPETUS_ENVIRONMENT=production
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
     curl \
-    build-essential \
+    gcc \
+    g++ \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app directory
+# Create non-root user
+RUN groupadd -r impetus && useradd -r -g impetus impetus
+
+# Create application directory
 WORKDIR /app
 
-# Copy backend files
-COPY gerdsen_ai_server/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements first for better caching
+COPY gerdsen_ai_server/requirements_production.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements_production.txt
 
 # Copy application code
-COPY gerdsen_ai_server/ ./gerdsen_ai_server/
-COPY setup.py pyproject.toml MANIFEST.in ./
+COPY gerdsen_ai_server/ ./
 
-# Install the package
-RUN pip install -e .
+# Copy built frontend
+COPY --from=frontend-builder /app/frontend/dist ./static/
 
-# Create directories
-RUN mkdir -p /root/.impetus/models /root/.impetus/cache /root/.impetus/logs
+# Copy configuration files
+COPY service/ ./service/
+COPY docs/ ./docs/
 
-# Expose ports
+# Create directories for models and logs
+RUN mkdir -p /models /logs && \
+    chown -R impetus:impetus /app /models /logs
+
+# Switch to non-root user
+USER impetus
+
+# Expose port
 EXPOSE 8080
-EXPOSE 5173
 
-# Set environment variables
-ENV IMPETUS_HOST=0.0.0.0
-ENV IMPETUS_PORT=8080
-ENV PYTHONUNBUFFERED=1
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/api/health/live || exit 1
 
-# Note: MLX requires Apple Silicon and won't work in Docker
-# This container can only run in API proxy mode or with CPU inference
-
-CMD ["python", "gerdsen_ai_server/src/main.py"]
+# Use Gunicorn for production
+CMD ["gunicorn", "--config", "gunicorn_config.py", "wsgi:application"]

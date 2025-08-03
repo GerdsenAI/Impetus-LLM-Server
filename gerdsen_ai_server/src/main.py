@@ -4,9 +4,10 @@ Impetus LLM Server - Main Application Entry Point
 High-performance LLM server optimized for Apple Silicon
 """
 
-import sys
 import signal
+import sys
 from pathlib import Path
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_socketio import SocketIO
@@ -16,11 +17,10 @@ from loguru import logger
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.config.settings import settings
-from src.utils.logger import app_logger
-from src.routes import health, hardware, models, openai_api, websocket
-from src.utils.hardware_detector import detect_hardware
+from src.routes import hardware, health, models, openai_api, websocket
 from src.utils.error_recovery import error_recovery_service
-
+from src.utils.hardware_detector import detect_hardware
+from src.utils.openapi_generator import create_swagger_ui_route
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -59,10 +59,10 @@ def register_blueprints():
     app.register_blueprint(hardware.bp, url_prefix='/api/hardware')
     app.register_blueprint(models.bp, url_prefix='/api/models')
     app.register_blueprint(openai_api.bp, url_prefix='/v1')
-    
+
     # Register WebSocket handlers
     websocket.register_handlers(socketio, app_state)
-    
+
     logger.info("All blueprints registered successfully")
 
 
@@ -71,22 +71,22 @@ def initialize_hardware():
     try:
         hardware_info = detect_hardware()
         app_state['hardware_info'] = hardware_info
-        
+
         logger.info(f"Hardware detected: {hardware_info['chip_type']} "
                    f"with {hardware_info['total_memory_gb']:.1f}GB RAM")
-        
+
         # Set performance mode based on hardware
         if hardware_info['performance_cores'] >= 8:
             logger.info("High-performance hardware detected, enabling performance mode")
             settings.hardware.performance_mode = "performance"
-        
+
         # Start Metal GPU monitoring if on macOS
         import platform
         if platform.system() == 'Darwin':
             from src.utils.metal_monitor import metal_monitor
             metal_monitor.start_monitoring(interval_seconds=2.0)
             logger.info("Started Metal GPU monitoring")
-            
+
     except Exception as e:
         logger.error(f"Failed to detect hardware: {e}")
         app_state['hardware_info'] = {
@@ -98,10 +98,20 @@ def initialize_hardware():
         }
 
 
+def setup_api_documentation():
+    """Setup OpenAPI documentation and Swagger UI"""
+    try:
+        # Create Swagger UI routes
+        create_swagger_ui_route(app)
+        logger.info("OpenAPI documentation initialized at /docs")
+    except Exception as e:
+        logger.warning(f"Failed to setup API documentation: {e}")
+
+
 def handle_shutdown(signum, frame):
     """Graceful shutdown handler"""
     logger.info("Received shutdown signal, cleaning up...")
-    
+
     # Stop Metal monitoring
     import platform
     if platform.system() == 'Darwin':
@@ -111,7 +121,7 @@ def handle_shutdown(signum, frame):
             logger.info("Stopped Metal GPU monitoring")
         except Exception as e:
             logger.error(f"Error stopping Metal monitoring: {e}")
-    
+
     # Shutdown warmup service
     try:
         from src.services.model_warmup import model_warmup_service
@@ -119,7 +129,7 @@ def handle_shutdown(signum, frame):
         logger.info("Shutdown warmup service")
     except Exception as e:
         logger.error(f"Error shutting down warmup service: {e}")
-    
+
     # Unload all models
     for model_id in list(app_state['loaded_models'].keys()):
         try:
@@ -127,7 +137,7 @@ def handle_shutdown(signum, frame):
             logger.info(f"Unloaded model: {model_id}")
         except Exception as e:
             logger.error(f"Error unloading model {model_id}: {e}")
-    
+
     sys.exit(0)
 
 
@@ -146,29 +156,32 @@ def create_app():
     """Application factory"""
     # Store app_state in Flask config
     app.config['app_state'] = app_state
-    
+
     # Apply production configuration if in production
     if settings.environment == "production":
         from src.config.production import apply_production_config
         app_state['limiter'] = apply_production_config(app, socketio)
-    
+
     # Initialize error recovery service
     error_recovery_service.set_app_state(app_state)
-    
+
     # Initialize hardware detection
     initialize_hardware()
-    
+
     # Register blueprints
     register_blueprints()
-    
+
+    # Setup OpenAPI documentation
+    setup_api_documentation()
+
     # Register signal handlers
     signal.signal(signal.SIGINT, handle_shutdown)
     signal.signal(signal.SIGTERM, handle_shutdown)
-    
+
     logger.info(f"Impetus LLM Server v{settings.version} initialized")
     logger.info(f"Environment: {settings.environment}")
     logger.info(f"Server will run on {settings.server.host}:{settings.server.port}")
-    
+
     # Print welcome message
     console_msg = f"""
     ╔══════════════════════════════════════════════════════════════╗
@@ -186,7 +199,7 @@ def create_app():
        • Run validation: impetus validate
     """
     print(console_msg)
-    
+
     return app, socketio
 
 
@@ -198,10 +211,10 @@ def main():
         from src.cli import main as cli_main
         cli_main()
         return
-    
+
     # Normal server startup
     app, socketio = create_app()
-    
+
     try:
         if settings.environment == "production":
             # Production mode with eventlet

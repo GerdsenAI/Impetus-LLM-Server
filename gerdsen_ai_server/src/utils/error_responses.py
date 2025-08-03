@@ -2,14 +2,14 @@
 User-friendly error responses with actionable suggestions
 """
 
+
 from flask import jsonify
-from typing import Dict, Optional, Any
 from loguru import logger
 
 
 class ErrorResponse:
     """Standardized error responses with helpful suggestions"""
-    
+
     @staticmethod
     def model_not_found(model_id: str) -> tuple:
         """Model not found error with suggestions"""
@@ -23,7 +23,7 @@ class ErrorResponse:
             ],
             'model_id': model_id
         }), 404
-    
+
     @staticmethod
     def insufficient_memory(required_gb: float, available_gb: float) -> tuple:
         """Memory error with suggestions"""
@@ -39,7 +39,7 @@ class ErrorResponse:
             'required_gb': required_gb,
             'available_gb': available_gb
         }), 507
-    
+
     @staticmethod
     def port_in_use(port: int) -> tuple:
         """Port conflict error with suggestions"""
@@ -54,7 +54,7 @@ class ErrorResponse:
             ],
             'port': port
         }), 500
-    
+
     @staticmethod
     def mlx_not_available() -> tuple:
         """MLX not available error"""
@@ -68,7 +68,7 @@ class ErrorResponse:
                 'Run validation: impetus validate'
             ]
         }), 500
-    
+
     @staticmethod
     def model_load_failed(model_id: str, error: str) -> tuple:
         """Model loading failed with specific error"""
@@ -78,7 +78,7 @@ class ErrorResponse:
             'Check available disk space: df -h',
             'Review logs for detailed error'
         ]
-        
+
         # Add specific suggestions based on error
         if 'memory' in error.lower():
             suggestions.insert(0, 'Try a smaller or more quantized model')
@@ -86,7 +86,7 @@ class ErrorResponse:
             suggestions.insert(0, 'Check file permissions: ls -la ~/.impetus/models/')
         elif 'corrupt' in error.lower() or 'invalid' in error.lower():
             suggestions.insert(0, 'Re-download the model, files may be corrupted')
-        
+
         return jsonify({
             'error': 'Model load failed',
             'message': f'Failed to load model "{model_id}": {error}',
@@ -94,7 +94,7 @@ class ErrorResponse:
             'model_id': model_id,
             'details': error
         }), 500
-    
+
     @staticmethod
     def download_failed(model_id: str, error: str) -> tuple:
         """Download failed with suggestions"""
@@ -104,12 +104,12 @@ class ErrorResponse:
             'Check available disk space: df -h',
             'Try again later if HuggingFace is down'
         ]
-        
+
         if 'space' in error.lower():
             suggestions.insert(0, 'Free up disk space - need at least 10GB')
         elif 'token' in error.lower() or 'auth' in error.lower():
             suggestions.insert(0, 'Some models require HF_TOKEN in .env')
-        
+
         return jsonify({
             'error': 'Download failed',
             'message': f'Failed to download model "{model_id}": {error}',
@@ -117,7 +117,7 @@ class ErrorResponse:
             'model_id': model_id,
             'details': error
         }), 500
-    
+
     @staticmethod
     def invalid_request(field: str, expected: str) -> tuple:
         """Invalid request parameter"""
@@ -132,7 +132,7 @@ class ErrorResponse:
             'field': field,
             'expected': expected
         }), 400
-    
+
     @staticmethod
     def thermal_throttling() -> tuple:
         """Thermal throttling warning"""
@@ -148,21 +148,21 @@ class ErrorResponse:
             ],
             'status': 'degraded_performance'
         }), 503
-    
+
     @staticmethod
     def generic_error(error: Exception, context: str = "") -> tuple:
         """Generic error with context"""
         error_str = str(error)
         logger.error(f"Error in {context}: {error_str}")
-        
+
         # Try to provide helpful suggestions based on error type
         suggestions = ['Check server logs for details']
-        
+
         if 'timeout' in error_str.lower():
             suggestions.append('Increase timeout values in settings')
         elif 'connection' in error_str.lower():
             suggestions.append('Check if all services are running')
-        
+
         return jsonify({
             'error': 'Internal server error',
             'message': f'An error occurred{f" in {context}" if context else ""}: {error_str}',
@@ -174,26 +174,26 @@ class ErrorResponse:
 def handle_error(error: Exception, context: str = "") -> tuple:
     """Main error handler that returns user-friendly responses"""
     error_str = str(error).lower()
-    
+
     # Route to specific error handlers based on content
     if 'memory' in error_str or 'oom' in error_str:
         # Try to extract memory info
         import psutil
         mem = psutil.virtual_memory()
         return ErrorResponse.insufficient_memory(8.0, mem.available / (1024**3))
-    
+
     elif 'mlx' in error_str and ('not found' in error_str or 'import' in error_str):
         return ErrorResponse.mlx_not_available()
-    
+
     elif 'address already in use' in error_str or 'port' in error_str:
         # Extract port if possible
         import re
         port_match = re.search(r'(\d{4,5})', error_str)
         port = int(port_match.group(1)) if port_match else 8080
         return ErrorResponse.port_in_use(port)
-    
+
     elif 'thermal' in error_str or 'throttl' in error_str:
         return ErrorResponse.thermal_throttling()
-    
+
     else:
         return ErrorResponse.generic_error(error, context)

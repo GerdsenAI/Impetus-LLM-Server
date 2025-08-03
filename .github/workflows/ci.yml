@@ -1,0 +1,320 @@
+name: CI
+
+on:
+  push:
+    branches: 
+      - main
+      - premium-llm-server
+      - develop
+      - 'feature/*'
+  pull_request:
+    branches: 
+      - main
+      - premium-llm-server
+      - develop
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # Quick checks that run on every push
+  quick-checks:
+    name: Quick Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check for large files
+      run: |
+        # Fail if any file is larger than 100MB
+        find . -type f -size +100M | grep -v .git | head -10 > large_files.txt || true
+        if [ -s large_files.txt ]; then
+          echo "Error: Large files detected:"
+          cat large_files.txt
+          exit 1
+        fi
+    
+    - name: Check file permissions
+      run: |
+        # Check that shell scripts are executable
+        find . -name "*.sh" -type f ! -perm -u+x | head -10 > non_executable.txt || true
+        if [ -s non_executable.txt ]; then
+          echo "Warning: Non-executable shell scripts found:"
+          cat non_executable.txt
+        fi
+
+  # Backend tests
+  backend-tests:
+    name: Backend Tests (Python ${{ matrix.python-version }})
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+    
+    - name: Install dependencies
+      run: |
+        cd gerdsen_ai_server
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements_dev.txt
+    
+    - name: Run linting
+      run: |
+        cd gerdsen_ai_server
+        ruff check src/ tests/ --output-format=github
+      continue-on-error: true
+    
+    - name: Run type checking
+      run: |
+        cd gerdsen_ai_server
+        mypy src/ --ignore-missing-imports
+      continue-on-error: true
+    
+    - name: Run tests
+      run: |
+        cd gerdsen_ai_server
+        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
+    
+    - name: Upload coverage
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./gerdsen_ai_server/coverage.xml
+        flags: backend
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+  # Frontend tests
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: 8
+    
+    - name: Get pnpm store directory
+      shell: bash
+      run: |
+        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+    
+    - name: Setup pnpm cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+    
+    - name: Install dependencies
+      run: |
+        cd impetus-dashboard
+        pnpm install
+    
+    - name: Run linting
+      run: |
+        cd impetus-dashboard
+        pnpm lint
+      continue-on-error: true
+    
+    - name: Run type checking
+      run: |
+        cd impetus-dashboard
+        pnpm tsc --noEmit
+    
+    - name: Build frontend
+      run: |
+        cd impetus-dashboard
+        pnpm build
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: impetus-dashboard/dist/
+        retention-days: 1
+
+  # Security scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Run Trivy in table format for summary
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'table'
+        exit-code: '0'
+
+  # Build macOS app (only on main branches)
+  build-macos-app:
+    name: Build macOS App
+    needs: [backend-tests, frontend-tests]
+    if: |
+      github.event_name == 'push' && 
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/premium-llm-server')
+    uses: ./.github/workflows/build-app.yml
+    with:
+      version: '1.0.0'
+      upload_artifacts: true
+
+  # Docker build
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    if: github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Download frontend build
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: impetus-dashboard/dist/
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: false
+        tags: |
+          gerdsenai/impetus-llm-server:latest
+          gerdsenai/impetus-llm-server:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Integration tests (optional, runs after build)
+  integration-tests:
+    name: Integration Tests
+    needs: [backend-tests, frontend-tests]
+    runs-on: macos-latest
+    if: |
+      github.event_name == 'pull_request' || 
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Download frontend build
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: impetus-dashboard/dist/
+    
+    - name: Install backend dependencies
+      run: |
+        cd gerdsen_ai_server
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Start server
+      run: |
+        cd gerdsen_ai_server
+        python src/main.py &
+        echo $! > server.pid
+        
+        # Wait for server to start
+        for i in {1..30}; do
+          if curl -f http://localhost:8080/api/health/live; then
+            echo "Server is ready"
+            break
+          fi
+          sleep 2
+        done
+    
+    - name: Run API tests
+      run: |
+        # Test health endpoints
+        curl -f http://localhost:8080/api/health/live
+        curl -f http://localhost:8080/api/health/ready
+        curl -f http://localhost:8080/api/health/status
+        
+        # Test API endpoints
+        curl -f http://localhost:8080/v1/models
+        curl -f http://localhost:8080/api/hardware/info
+        
+        # Test OpenAPI docs
+        curl -f http://localhost:8080/docs
+    
+    - name: Stop server
+      if: always()
+      run: |
+        if [ -f server.pid ]; then
+          kill $(cat server.pid) || true
+        fi
+
+  # Summary job
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, security-scan]
+    if: always()
+    
+    steps:
+    - name: Summary
+      run: |
+        echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Frontend Tests | ${{ needs.frontend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY

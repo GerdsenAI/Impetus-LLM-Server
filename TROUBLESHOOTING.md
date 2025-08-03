@@ -1,15 +1,35 @@
 # Impetus LLM Server - Troubleshooting Guide
 
-This guide helps you resolve common issues with Impetus LLM Server.
+**v1.0.0** - This guide helps you resolve common issues with Impetus LLM Server, including production deployment issues.
 
 ## Quick Diagnostics
 
-Run the validation command first:
+### System Validation
 ```bash
+# Check system compatibility
 impetus validate
+
+# Check health status (v1.0.0)
+curl http://localhost:8080/api/health/status
+
+# Check detailed system metrics
+curl http://localhost:8080/api/hardware/metrics
 ```
 
-This will check your system compatibility and highlight any issues.
+### Production Diagnostics (v1.0.0)
+```bash
+# Check production server status
+systemctl status impetus  # Linux
+launchctl list | grep impetus  # macOS
+
+# Check Docker deployment
+docker-compose ps
+docker-compose logs impetus-server
+
+# Check Kubernetes deployment
+kubectl get pods -n impetus-system
+kubectl logs -f deployment/impetus-server -n impetus-system
+```
 
 ## Common Issues
 
@@ -221,11 +241,103 @@ IMPETUS_API_KEY=your-secret-key
 2. Check API endpoint: http://localhost:8080/api/models/list
 3. Verify backend connection
 
+### 🚢 Production Issues (v1.0.0)
+
+#### Health Check Failures
+**Symptom**: Kubernetes pods failing readiness/liveness probes
+
+**Solutions**:
+```bash
+# Check health endpoints directly
+curl http://localhost:8080/api/health/live
+curl http://localhost:8080/api/health/ready
+
+# Check detailed health status
+curl http://localhost:8080/api/health/status
+
+# Verify service configuration
+kubectl describe pod <pod-name> -n impetus-system
+```
+
+#### Gunicorn Worker Issues
+**Symptom**: Workers crashing or high memory usage
+
+**Solutions**:
+```bash
+# Check worker status
+ps aux | grep gunicorn
+
+# Restart with different worker count
+IMPETUS_WORKERS=2 ./start_production.sh
+
+# Monitor memory usage
+watch -n 1 'ps aux | grep gunicorn'
+```
+
+#### Docker Container Issues
+**Symptom**: Container not starting or crashing
+
+**Solutions**:
+```bash
+# Check container logs
+docker-compose logs -f impetus-server
+
+# Check container health
+docker inspect impetus-server
+
+# Restart with debug
+docker-compose up impetus-server
+```
+
+#### SSL/TLS Certificate Issues
+**Symptom**: HTTPS not working or certificate errors
+
+**Solutions**:
+```bash
+# Check certificate validity
+openssl x509 -in ssl/cert.pem -text -noout
+
+# Regenerate self-signed certificate
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout ssl/key.pem -out ssl/cert.pem
+
+# Check nginx configuration
+nginx -t
+```
+
+#### API Validation Errors
+**Symptom**: 400 errors with validation details
+
+**Solutions**:
+- Check request format against OpenAPI docs at `/docs`
+- Ensure all required fields are provided
+- Validate data types match schema requirements
+- Check authentication headers
+
 ## Advanced Debugging
 
 ### Enable debug logging
 ```bash
+# Development mode
 IMPETUS_LOG_LEVEL=DEBUG impetus-server
+
+# Production mode
+IMPETUS_LOG_LEVEL=DEBUG ./start_production.sh
+
+# Docker mode
+docker-compose -f docker-compose.yml -f docker-compose.debug.yml up
+```
+
+### Performance Debugging
+```bash
+# Check system metrics
+curl http://localhost:8080/api/hardware/metrics
+
+# Monitor real-time performance
+watch -n 1 'curl -s http://localhost:8080/api/health/metrics/json | jq .'
+
+# Profile API requests
+curl -w "@curl-format.txt" http://localhost:8080/v1/models
 ```
 
 ### Check system resources

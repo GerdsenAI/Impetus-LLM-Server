@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.gerdsenai.impetus</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/impetus-server</string>
+        <string>--production</string>
+    </array>
+    
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>IMPETUS_ENVIRONMENT</key>
+        <string>production</string>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+    
+    <key>WorkingDirectory</key>
+    <string>/usr/local/share/impetus-llm-server</string>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>Crashed</key>
+        <true/>
+    </dict>
+    
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+    
+    <key>StandardOutPath</key>
+    <string>/usr/local/var/log/impetus/server.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/usr/local/var/log/impetus/error.log</string>
+    
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    
+    <key>Nice</key>
+    <integer>0</integer>
+    
+    <key>LowPriorityIO</key>
+    <false/>
+    
+    <key>HardResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65536</integer>
+        <key>NumberOfProcesses</key>
+        <integer>4096</integer>
+    </dict>
+    
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>32768</integer>
+        <key>NumberOfProcesses</key>
+        <integer>2048</integer>
+    </dict>
+</dict>
+</plist>

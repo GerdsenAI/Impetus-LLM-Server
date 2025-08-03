@@ -2,12 +2,13 @@
 Production configuration and hardening for Impetus LLM Server
 """
 
+import logging
+import sys
+
 from flask import Flask
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import logging
 from loguru import logger
-import sys
 
 
 def configure_rate_limiting(app: Flask) -> Limiter:
@@ -19,20 +20,20 @@ def configure_rate_limiting(app: Flask) -> Limiter:
         storage_uri="memory://",
         strategy="fixed-window"
     )
-    
+
     # Specific limits for expensive endpoints
     @limiter.limit("5 per minute")
     def limit_model_operations():
         pass
-    
+
     @limiter.limit("10 per minute")
     def limit_inference():
         pass
-    
+
     @limiter.limit("100 per minute")
     def limit_api_calls():
         pass
-    
+
     return limiter
 
 
@@ -40,7 +41,7 @@ def configure_logging(app: Flask):
     """Configure production logging"""
     # Remove default handlers
     logger.remove()
-    
+
     # Add production handlers
     logger.add(
         sys.stdout,
@@ -49,7 +50,7 @@ def configure_logging(app: Flask):
         backtrace=False,
         diagnose=False
     )
-    
+
     # Add file handler for errors
     logger.add(
         "logs/error.log",
@@ -60,7 +61,7 @@ def configure_logging(app: Flask):
         backtrace=True,
         diagnose=True
     )
-    
+
     # Add file handler for all logs
     logger.add(
         "logs/impetus.log",
@@ -70,17 +71,17 @@ def configure_logging(app: Flask):
         retention="7 days",
         compression="zip"
     )
-    
+
     # Configure Flask logging
     app.logger.handlers = []
     app.logger.propagate = False
-    
+
     # Intercept Flask logs
     class InterceptHandler(logging.Handler):
         def emit(self, record):
             logger_opt = logger.opt(depth=6, exception=record.exc_info)
             logger_opt.log(record.levelname, record.getMessage())
-    
+
     app.logger.addHandler(InterceptHandler())
 
 
@@ -93,10 +94,10 @@ def configure_security(app: Flask):
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-        
+
         # CORS headers are handled by flask-cors
         return response
-    
+
     # Additional security settings
     app.config.update(
         SESSION_COOKIE_SECURE=True,
@@ -129,18 +130,18 @@ def configure_graceful_shutdown(app: Flask, socketio):
     """Configure graceful shutdown handlers"""
     import signal
     import sys
-    
+
     def shutdown_handler(signum, frame):
         logger.info("Received shutdown signal, initiating graceful shutdown...")
-        
+
         # Stop accepting new requests
         app.config['SHUTTING_DOWN'] = True
-        
+
         # Wait for active requests to complete (with timeout)
         import time
         timeout = 30  # 30 seconds
         start = time.time()
-        
+
         while True:
             active = app.config.get('ACTIVE_REQUESTS', 0)
             if active == 0:
@@ -149,11 +150,11 @@ def configure_graceful_shutdown(app: Flask, socketio):
                 logger.warning(f"Timeout waiting for {active} active requests")
                 break
             time.sleep(0.1)
-        
+
         # Clean shutdown
         socketio.stop()
         sys.exit(0)
-    
+
     signal.signal(signal.SIGTERM, shutdown_handler)
     signal.signal(signal.SIGINT, shutdown_handler)
 
@@ -164,23 +165,23 @@ def apply_production_config(app: Flask, socketio):
     app.config['ENV'] = 'production'
     app.config['DEBUG'] = False
     app.config['TESTING'] = False
-    
+
     # Configure components
     limiter = configure_rate_limiting(app)
     configure_logging(app)
     configure_security(app)
     configure_connection_pooling(app)
     configure_graceful_shutdown(app, socketio)
-    
+
     # Middleware for request tracking
     @app.before_request
     def track_request():
         if not app.config.get('SHUTTING_DOWN', False):
             app.config['ACTIVE_REQUESTS'] = app.config.get('ACTIVE_REQUESTS', 0) + 1
-    
+
     @app.after_request
     def untrack_request(response):
         app.config['ACTIVE_REQUESTS'] = max(0, app.config.get('ACTIVE_REQUESTS', 0) - 1)
         return response
-    
+
     return limiter
