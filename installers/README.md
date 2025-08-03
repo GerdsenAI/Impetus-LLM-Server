@@ -4,61 +4,70 @@ This directory contains various installers for different deployment scenarios.
 
 ## Quick Start
 
-For most users who want a simple macOS app:
+For users who want a fully self-contained macOS app (no dependencies):
 ```bash
-./macos_simple_app.sh
+./macos_standalone_app.sh
 ```
 
-This creates `Impetus.app` that you can distribute. Users need Python 3.11+ installed.
+This creates a standalone `Impetus.app` with Python and all dependencies included. Users don't need anything installed!
 
 ## Available Installers
 
-### 1. macOS Simple App (`macos_simple_app.sh`)
-**Best for: End users who want a regular macOS app**
+### 1. macOS Standalone App (`macos_standalone_app.sh`) ⭐ RECOMMENDED
+**Best for: End users who want it to "just work"**
+- Creates a fully self-contained .app bundle
+- Includes Python runtime and all dependencies
+- No requirements on user's system
+- ~250MB download but instant start
+- Professional distribution-ready DMG
+
+### 2. macOS Simple App (`macos_simple_app.sh`)
+**Best for: Users who already have Python installed**
 - Creates a standard .app bundle
 - Generates .dmg for distribution  
 - Auto-installs dependencies on first launch
 - Requires: Python 3.11+ on user's system
+- Smaller download (~50MB)
 
-### 2. macOS GUI Installer (`macos_gui_installer.sh`)
+### 3. macOS GUI Installer (`macos_gui_installer.sh`)
 **Best for: Creating a traditional .pkg installer**
 - Creates a .pkg installer with installation wizard
 - Includes pre/post install scripts
 - Professional installation experience
 - Note: Currently has issues with bundling dependencies
 
-### 3. macOS App Bundle Builder (`macos_app_builder.sh`)
+### 4. macOS App Bundle Builder (`macos_app_builder.sh`)
 **Best for: Fully self-contained app (experimental)**
 - Attempts to bundle Python runtime
 - No dependencies required on user's system
 - Larger file size
 - More complex build process
 
-### 4. Production Installer (`production_installer.sh`)
+### 5. Production Installer (`production_installer.sh`)
 **Best for: Server deployments**
 - Sets up Gunicorn + nginx
 - Configures as system service
 - Production-grade deployment
 - For servers, not desktop users
 
-### 5. Docker Installer (`docker_installer.sh`)
+### 6. Docker Installer (`docker_installer.sh`)
 **Best for: Container deployments**
 - Creates Docker images
 - Sets up docker-compose
 - Good for cloud deployments
 
-### 6. Service Installer (`service_installer.sh`)
+### 7. Service Installer (`service_installer.sh`)
 **Best for: Adding service integration**
 - Adds systemd/launchd service
 - For existing installations
 - Auto-start on boot
 
-### 7. Uninstaller (`uninstaller.sh`)
+### 8. Uninstaller (`uninstaller.sh`)
 - Removes Impetus installations
 - Supports all installation types
 - Optional data preservation
 
-### 8. Updater (`updater.sh`)
+### 9. Updater (`updater.sh`)
 - Zero-downtime updates
 - Automatic rollback on failure
 - For existing installations
@@ -67,7 +76,17 @@ This creates `Impetus.app` that you can distribute. Users need Python 3.11+ inst
 
 ### For Desktop Users
 
-1. **Simplest Option**: Use `macos_simple_app.sh`
+1. **Best Option**: Use `macos_standalone_app.sh` ⭐
+   ```bash
+   ./macos_standalone_app.sh
+   # Creates Impetus-Standalone-1.0.0.dmg
+   ```
+   
+   Users need:
+   - macOS 13.0+ on Apple Silicon
+   - Nothing else! Everything included!
+
+2. **Smaller Download**: Use `macos_simple_app.sh`
    ```bash
    ./macos_simple_app.sh
    # Creates Impetus-1.0.0.dmg
@@ -77,7 +96,7 @@ This creates `Impetus.app` that you can distribute. Users need Python 3.11+ inst
    - macOS 13.0+ on Apple Silicon
    - Python 3.11+ (from python.org or Homebrew)
 
-2. **Traditional Installer**: Use `macos_gui_installer.sh`
+3. **Traditional Installer**: Use `macos_gui_installer.sh`
    ```bash
    ./macos_gui_installer.sh
    # Creates Impetus-LLM-Server-1.0.0.pkg
