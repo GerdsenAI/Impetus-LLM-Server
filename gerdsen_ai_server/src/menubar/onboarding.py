@@ -1,346 +1,261 @@
 #!/usr/bin/env python3
 """
-Onboarding Tour for Impetus Menu Bar Application
-Provides a guided tour for first-time users
+Onboarding Tour System for Impetus LLM Server
+Provides guided introduction to application features
 """
 
-import os
-import json
+import rumps
 import time
 import threading
-import rumps
-from typing import Optional, Callable, Dict, Any
-
+from typing import List, Dict, Callable, Optional
 
 class OnboardingTour:
-    """Manages the first-run onboarding experience"""
+    """Manages the onboarding tour for new users"""
     
-    def __init__(self, preferences_file: str, app_instance=None):
-        self.preferences_file = preferences_file
-        self.app_instance = app_instance
-        self.tour_completed = False
+    def __init__(self, app_instance):
+        self.app = app_instance
         self.current_step = 0
-        self.tour_steps = []
-        self.completion_callback: Optional[Callable] = None
-        
-        # Load tour status
-        self.load_tour_status()
-        
-        # Define tour steps
-        self.setup_tour_steps()
+        self.tour_active = False
+        self.tour_steps = self._create_tour_steps()
     
-    def load_tour_status(self):
-        """Load tour completion status from preferences"""
-        try:
-            if os.path.exists(self.preferences_file):
-                with open(self.preferences_file, 'r') as f:
-                    prefs = json.load(f)
-                    self.tour_completed = prefs.get('onboarding_completed', False)
-        except Exception as e:
-            print(f"Error loading tour status: {e}")
-            self.tour_completed = False
-    
-    def save_tour_status(self):
-        """Save tour completion status to preferences"""
-        try:
-            # Load existing preferences
-            prefs = {}
-            if os.path.exists(self.preferences_file):
-                with open(self.preferences_file, 'r') as f:
-                    prefs = json.load(f)
-            
-            # Update tour status
-            prefs['onboarding_completed'] = self.tour_completed
-            
-            # Save back to file
-            os.makedirs(os.path.dirname(self.preferences_file), exist_ok=True)
-            with open(self.preferences_file, 'w') as f:
-                json.dump(prefs, f, indent=2)
-        except Exception as e:
-            print(f"Error saving tour status: {e}")
-    
-    def is_first_run(self) -> bool:
-        """Check if this is the first run of the application"""
-        return not self.tour_completed
-    
-    def setup_tour_steps(self):
-        """Define the tour steps"""
-        self.tour_steps = [
+    def _create_tour_steps(self) -> List[Dict]:
+        """Create the tour steps"""
+        return [
             {
-                "title": "Welcome to Impetus! 🧠",
-                "message": "Welcome to Impetus LLM Server!\n\n"
-                          "Impetus is a high-performance local AI server optimized for Apple Silicon.\n\n"
-                          "This quick tour will show you how to use the menu bar app to control your AI server.",
-                "action": "welcome",
-                "buttons": {"next": "Start Tour", "skip": "Skip Tour"},
-                "notification": None
+                'title': '🎉 Welcome to Impetus!',
+                'message': '''Welcome to Impetus LLM Server!
+
+Your personal AI assistant is now running locally on your Mac, powered by Apple Silicon and MLX.
+
+Impetus provides:
+• High-performance local LLM inference
+• Multiple AI models at your fingertips  
+• Privacy-first approach (everything stays local)
+• Native macOS integration
+
+Let's take a quick tour to get you started!''',
+                'button': 'Start Tour',
+                'action': None
             },
             {
-                "title": "Menu Bar Icon",
-                "message": "Look for the brain icon (🧠) in your menu bar.\n\n"
-                          "This icon shows your server status:\n"
-                          "🧠 Server stopped\n"
-                          "🟡 Server starting/stopping\n"
-                          "🟢 Server running\n"
-                          "🔴 Server error\n\n"
-                          "Click the icon to access all features!",
-                "action": "show_icon",
-                "buttons": {"next": "Next", "skip": "Skip Tour"},
-                "notification": "Click the brain icon (🧠) in your menu bar to continue"
+                'title': '🧠 Your Menu Bar Control Center',
+                'message': '''The brain emoji (🧠) in your menu bar is your control center.
+
+Icon states:
+🧠 Server stopped
+🟢 Server running  
+🟡 Loading/processing
+🔴 Error state
+
+Click the brain anytime to access all features. The icon changes color to show you what's happening at a glance.''',
+                'button': 'Next',
+                'action': 'highlight_menubar'
             },
             {
-                "title": "Server Control",
-                "message": "Use 'Start Server' to begin serving AI models.\n\n"
-                          "When running, you can:\n"
-                          "• Access the dashboard in your browser\n"
-                          "• Use the OpenAI-compatible API\n"
-                          "• Load different AI models\n\n"
-                          "Try starting the server now!",
-                "action": "server_control",
-                "buttons": {"next": "Next", "skip": "Skip Tour"},
-                "notification": "Try clicking 'Start Server' to see it in action"
+                'title': '⚡ Server Control',
+                'message': '''Start and stop your LLM server with one click.
+
+When you start the server:
+• The icon turns green 🟢
+• You'll get a notification
+• The API becomes available at localhost:8080
+
+The server runs in the background, ready to handle your AI requests instantly.''',
+                'button': 'Next',
+                'action': 'highlight_server_control'
             },
             {
-                "title": "Model Management",
-                "message": "The 'Models' menu lets you:\n\n"
-                          "• Load different AI models\n"
-                          "• Switch between models instantly\n"
-                          "• See model sizes and specs\n"
-                          "• Load custom models\n\n"
-                          "Models are automatically downloaded when needed.",
-                "action": "model_management",
-                "buttons": {"next": "Next", "skip": "Skip Tour"},
-                "notification": "Explore the Models menu to see available AI models"
+                'title': '🤖 Model Management',
+                'message': '''Choose from multiple pre-configured AI models:
+
+• Mistral 7B - Great for general conversation
+• Llama 3.2 3B - Fast and efficient
+• Phi 3.5 Mini - Perfect for coding
+• Qwen 2.5 Coder - Advanced code generation
+
+Or load your own custom models! All models are optimized for Apple Silicon with MLX.''',
+                'button': 'Next',
+                'action': 'highlight_models'
             },
             {
-                "title": "Performance Modes",
-                "message": "Optimize performance for your needs:\n\n"
-                          "• Efficiency Mode - Lower power, longer battery\n"
-                          "• Balanced Mode - Good performance and efficiency\n"
-                          "• Performance Mode - Maximum speed\n\n"
-                          "Your preference is saved automatically.",
-                "action": "performance_modes",
-                "buttons": {"next": "Next", "skip": "Skip Tour"},
-                "notification": "Try switching performance modes to see the difference"
+                'title': '🚀 Performance Modes',
+                'message': '''Optimize performance for your needs:
+
+• Efficiency Mode - Best battery life
+• Balanced Mode - Good performance & efficiency  
+• Performance Mode - Maximum speed
+
+Your choice is automatically saved and will persist between app restarts.''',
+                'button': 'Next',
+                'action': 'highlight_performance'
             },
             {
-                "title": "Dashboard & API",
-                "message": "Access your tools:\n\n"
-                          "• Dashboard - Beautiful web interface for testing\n"
-                          "• API Documentation - Complete API reference\n"
-                          "• Server Stats - Monitor CPU, memory, and uptime\n\n"
-                          "Everything opens in your browser automatically.",
-                "action": "integrations",
-                "buttons": {"next": "Next", "skip": "Skip Tour"},
-                "notification": "Try 'Open Dashboard' to see the web interface"
+                'title': '🌐 Dashboard & API Access',
+                'message': '''Access your LLM server through:
+
+• Web Dashboard - User-friendly interface
+• REST API - OpenAI-compatible endpoints
+• Swagger Documentation - Complete API reference
+
+Perfect for integrating with other apps or building your own AI-powered tools!''',
+                'button': 'Next',
+                'action': 'highlight_dashboard'
             },
             {
-                "title": "You're All Set! 🎉",
-                "message": "Congratulations! You're ready to use Impetus.\n\n"
-                          "Key features:\n"
-                          "✅ High-performance local AI\n"
-                          "✅ OpenAI-compatible API\n"
-                          "✅ Easy model switching\n"
-                          "✅ Beautiful dashboard\n"
-                          "✅ Apple Silicon optimized\n\n"
-                          "Start your server and begin using AI locally!",
-                "action": "completion",
-                "buttons": {"finish": "Get Started!", "help": "Need Help?"},
-                "notification": "Welcome to Impetus! Start your server to begin."
+                'title': '🎯 You\'re All Set!',
+                'message': '''Congratulations! You're ready to use Impetus.
+
+Quick tips:
+• Server Stats shows CPU, memory, and uptime
+• Help menu lets you retake this tour anytime
+• Preferences are automatically saved
+• Quit dialog prevents accidental server shutdown
+
+Enjoy your local AI assistant! 🚀
+
+Need help? Check the Help menu or visit our documentation.''',
+                'button': 'Finish Tour',
+                'action': 'complete_tour'
             }
         ]
     
-    def start_tour(self, completion_callback: Optional[Callable] = None):
+    def start_tour(self, completion_callback=None):
         """Start the onboarding tour"""
-        if self.tour_completed:
-            print("Tour already completed")
-            return False
+        if self.tour_active:
+            return
         
-        self.completion_callback = completion_callback
+        self.tour_active = True
         self.current_step = 0
-        
-        # Start with welcome step
-        self.show_current_step()
-        return True
+        self.completion_callback = completion_callback
+        self._show_current_step()
     
-    def show_current_step(self):
+    def restart_tour(self):
+        """Restart the tour from the beginning"""
+        response = rumps.alert(
+            title="Restart Tour",
+            message="Would you like to take the onboarding tour again?\n\nThis will walk you through all the features of Impetus LLM Server.",
+            ok="Start Tour",
+            cancel="Cancel"
+        )
+        
+        if response == 1:  # OK pressed
+            self.start_tour()
+    
+    def _show_current_step(self):
         """Show the current tour step"""
-        if self.current_step >= len(self.tour_steps):
-            self.complete_tour()
+        if not self.tour_active or self.current_step >= len(self.tour_steps):
+            self._complete_tour()
             return
         
         step = self.tour_steps[self.current_step]
         
-        # Show the main dialog
-        self.show_step_dialog(step)
-    
-    def show_step_dialog(self, step: Dict[str, Any]):
-        """Show a dialog for the current step"""
-        try:
-            title = step["title"]
-            message = step["message"]
-            buttons = step["buttons"]
-            
-            # Determine button configuration
-            if "next" in buttons and "skip" in buttons:
-                response = rumps.alert(
-                    title=title,
-                    message=message,
-                    ok=buttons["next"],
-                    cancel=buttons["skip"]
-                )
-                
-                if response == 1:  # Next button
-                    self.next_step()
-                else:  # Skip button
-                    self.skip_tour()
-                    
-            elif "finish" in buttons and "help" in buttons:
-                response = rumps.alert(
-                    title=title,
-                    message=message,
-                    ok=buttons["finish"],
-                    cancel=buttons["help"]
-                )
-                
-                if response == 1:  # Finish button
-                    self.complete_tour()
-                else:  # Help button
-                    self.show_help()
-                    self.complete_tour()
-                    
-            else:
-                # Single button
-                button_text = list(buttons.values())[0]
-                rumps.alert(title=title, message=message, ok=button_text)
-                self.next_step()
-            
-            # Show notification if specified
-            if step.get("notification"):
-                rumps.notification(
-                    title="Impetus Tour",
-                    subtitle=f"Step {self.current_step + 1} of {len(self.tour_steps)}",
-                    message=step["notification"],
-                    sound=False
-                )
-                
-        except Exception as e:
-            print(f"Error showing step dialog: {e}")
-            self.next_step()
-    
-    def next_step(self):
-        """Move to the next tour step"""
-        self.current_step += 1
+        # Execute any pre-step action
+        if step.get('action') and hasattr(self, f"_action_{step['action']}"):
+            getattr(self, f"_action_{step['action']}")()
         
-        # Small delay for better UX
-        def delayed_next():
-            time.sleep(1)
-            self.show_current_step()
+        # Show the step dialog
+        response = rumps.alert(
+            title=step['title'],
+            message=step['message'],
+            ok=step['button'],
+            cancel="Skip Tour" if self.current_step > 0 else None
+        )
         
-        threading.Thread(target=delayed_next, daemon=True).start()
+        if response == 1:  # OK pressed
+            self.current_step += 1
+            # Small delay for better UX
+            threading.Timer(0.5, self._show_current_step).start()
+        else:  # Cancel or skip
+            self._complete_tour()
+    
+    def _complete_tour(self):
+        """Complete the tour and mark as completed"""
+        self.tour_active = False
+        self.current_step = 0
+        
+        # Mark tour as completed in preferences
+        if hasattr(self.app, 'save_preference'):
+            self.app.save_preference('onboarding_completed', True)
+        
+        # Call completion callback if provided
+        if hasattr(self, 'completion_callback') and self.completion_callback:
+            self.completion_callback()
+        
+        # Show completion notification
+        rumps.notification(
+            title="Impetus LLM Server",
+            subtitle="Tour Complete!",
+            message="You're ready to use your local AI assistant. Happy computing! 🎉"
+        )
+    
+    # Tour step actions (visual highlights/guidance)
+    
+    def _action_highlight_menubar(self):
+        """Highlight the menu bar icon"""
+        # Since we can't directly highlight, we'll use notification
+        rumps.notification(
+            title="Look Up! 👆",
+            subtitle="Menu Bar Icon",
+            message="Find the brain emoji (🧠) in your menu bar at the top of the screen"
+        )
+    
+    def _action_highlight_server_control(self):
+        """Highlight server control features"""
+        rumps.notification(
+            title="Server Control",
+            subtitle="Start/Stop Server",
+            message="Click the brain icon and look for 'Start Server' option"
+        )
+    
+    def _action_highlight_models(self):
+        """Highlight model management"""
+        rumps.notification(
+            title="AI Models",
+            subtitle="Models Submenu",
+            message="Click the brain icon → Models to see available AI models"
+        )
+    
+    def _action_highlight_performance(self):
+        """Highlight performance modes"""
+        rumps.notification(
+            title="Performance Modes",
+            subtitle="Optimize Settings",
+            message="Click the brain icon → Performance Mode to optimize for your needs"
+        )
+    
+    def _action_highlight_dashboard(self):
+        """Highlight dashboard access"""
+        rumps.notification(
+            title="Dashboard & API",
+            subtitle="Web Access",
+            message="Click the brain icon → Open Dashboard or API Documentation"
+        )
+    
+    def _action_complete_tour(self):
+        """Complete the tour"""
+        # This is handled by _complete_tour method
+        pass
+    
+    def should_show_tour(self) -> bool:
+        """Check if tour should be shown (first run)"""
+        if hasattr(self.app, 'get_preference'):
+            return not self.app.get_preference('onboarding_completed', False)
+        return True
+    
+    def get_tour_progress(self) -> tuple:
+        """Get current tour progress (current_step, total_steps)"""
+        return (self.current_step, len(self.tour_steps))
     
     def skip_tour(self):
-        """Skip the tour"""
+        """Skip the tour and mark as completed"""
         response = rumps.alert(
-            title="Skip Tour?",
-            message="Are you sure you want to skip the tour?\n\n"
-                   "You can always restart it from the Help menu.",
+            title="Skip Tour",
+            message="Are you sure you want to skip the tour?\n\nYou can always restart it later from the Help menu.",
             ok="Skip Tour",
             cancel="Continue Tour"
         )
         
-        if response == 1:  # Skip confirmed
-            self.complete_tour()
-        else:  # Continue tour
-            self.show_current_step()
-    
-    def complete_tour(self):
-        """Complete the tour"""
-        self.tour_completed = True
-        self.save_tour_status()
-        
-        # Show completion notification
-        rumps.notification(
-            title="Tour Complete! 🎉",
-            subtitle="Impetus is ready to use",
-            message="Click the brain icon anytime to access features",
-            sound=False
-        )
-        
-        # Call completion callback if set
-        if self.completion_callback:
-            self.completion_callback()
-    
-    def show_help(self):
-        """Show help information"""
-        help_message = """Impetus Help & Resources:
-
-🌐 Dashboard: http://localhost:5173
-📚 API Docs: http://localhost:8080/docs
-📊 Server Stats: Check the menu for real-time info
-
-💡 Tips:
-• Start with a small model like Phi 3.5 Mini
-• Use Balanced mode for best experience  
-• Check server stats to monitor performance
-• The dashboard has a built-in chat interface
-
-Need more help? Check our documentation or GitHub."""
-        
-        rumps.alert(
-            title="Impetus Help",
-            message=help_message,
-            ok="Got it!"
-        )
-    
-    def restart_tour(self):
-        """Restart the tour (useful for help menu)"""
-        response = rumps.alert(
-            title="Restart Tour?",
-            message="This will restart the complete onboarding tour.\n\n"
-                   "Are you sure you want to continue?",
-            ok="Restart Tour",
-            cancel="Cancel"
-        )
-        
-        if response == 1:  # Restart confirmed
-            self.tour_completed = False
-            self.current_step = 0
-            self.start_tour()
-    
-    def show_welcome(self):
-        """Show welcome message without full tour"""
-        if not self.tour_completed:
-            return  # Don't show if tour hasn't been completed
-        
-        welcome_msg = """Welcome back to Impetus! 🧠
-
-Your high-performance local AI server is ready.
-
-Quick reminder:
-• Click the brain icon for all features
-• Start the server to begin using AI
-• Check the dashboard for a web interface
-
-Ready to get started?"""
-        
-        response = rumps.alert(
-            title="Welcome to Impetus",
-            message=welcome_msg,
-            ok="Start Server",
-            cancel="Later"
-        )
-        
-        if response == 1 and self.app_instance:
-            # Try to start server if app instance available
-            try:
-                if hasattr(self.app_instance, 'start_server') and callable(self.app_instance.start_server):
-                    self.app_instance.start_server(None)
-            except:
-                pass
-    
-    def reset_tour_status(self):
-        """Reset tour status (for testing)"""
-        self.tour_completed = False
-        self.current_step = 0
-        self.save_tour_status()
+        if response == 1:  # OK pressed
+            self._complete_tour()
+            return True
+        return False
