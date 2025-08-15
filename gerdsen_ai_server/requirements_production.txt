@@ -11,8 +11,8 @@ pydantic==2.8.2
 pydantic-settings==2.4.0
 
 # Apple Silicon ML Frameworks
-mlx==0.16.1
-mlx-lm==0.17.0
+mlx==0.27.1
+mlx-lm==0.19.3
 
 # System Monitoring
 psutil==6.0.0
@@ -23,4 +23,4 @@ loguru==0.7.2
 
 # Production server
 gunicorn==22.0.0
-gevent==24.2.1
+gevent==24.11.1

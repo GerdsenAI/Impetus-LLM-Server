@@ -150,7 +150,7 @@ def chat_completions(validated_data: ChatCompletionRequest):
         return jsonify(response)
 
 
-def generate_chat_stream(model, messages: list[dict], temperature: float,
+def generate_chat_stream(model, messages, temperature: float,
                         max_tokens: int, top_p: float, app_state: dict,
                         use_cache: bool = True, conversation_id: str = 'default') -> Generator:
     """Generate streaming chat completion response"""
@@ -275,7 +275,7 @@ def generate_chat_stream(model, messages: list[dict], temperature: float,
         yield "data: [DONE]\n\n"
 
 
-def generate_chat_completion(model, messages: list[dict], temperature: float,
+def generate_chat_completion(model, messages, temperature: float,
                            max_tokens: int, top_p: float, app_state: dict,
                            use_cache: bool = True, conversation_id: str = 'default') -> dict:
     """Generate non-streaming chat completion response"""
@@ -352,7 +352,7 @@ def generate_chat_completion(model, messages: list[dict], temperature: float,
         }, 500
 
 
-def convert_messages_to_prompt(messages: list[dict]) -> str:
+def convert_messages_to_prompt(messages) -> str:
     """Convert OpenAI message format to a single prompt string"""
     if not messages:
         return ""
@@ -365,8 +365,13 @@ def convert_messages_to_prompt(messages: list[dict]) -> str:
     system_message = None
 
     for message in messages:
-        role = message.get('role', 'user')
-        content = message.get('content', '')
+        # Handle both dict and ChatMessage objects
+        if hasattr(message, 'role'):
+            role = message.role
+            content = message.content
+        else:
+            role = message.get('role', 'user')
+            content = message.get('content', '')
 
         if role == 'system':
             system_message = content
