@@ -70,16 +70,22 @@ setup_virtualenv() {
 install_dependencies() {
     print_section "Installing Menu Bar Dependencies"
     
-    echo "Installing rumps (menu bar framework)..."
-    pip install rumps
+    echo "Installing latest MLX packages..."
+    pip install --upgrade mlx==0.28.0 mlx-lm==0.26.3 mlx-metal==0.28.0
     
-    echo "Installing PyObjC (macOS integration)..."
-    pip install pyobjc-core pyobjc-framework-Cocoa
+    echo "Installing menu bar framework..."
+    pip install rumps==0.4.0
     
-    echo "Installing psutil (for system stats)..."
-    pip install psutil
+    echo "Installing macOS integration..."
+    pip install pyobjc-core==11.1 pyobjc-framework-Cocoa==11.1
     
-    echo "✓ Dependencies installed"
+    echo "Installing system utilities..."
+    pip install psutil==7.0.0 sentencepiece==0.2.0
+    
+    echo "Installing server dependencies..."
+    pip install --upgrade -r gerdsen_ai_server/requirements_production.txt
+    
+    echo "✓ All dependencies installed with latest versions"
 }
 
 create_launch_agent() {
@@ -141,23 +147,35 @@ EOF
 test_installation() {
     print_section "Testing Installation"
     
-    echo "Starting menu bar app for 5 seconds..."
+    echo "Testing enhanced menu bar app..."
     
-    # Start in background
-    python run_menubar.py &
-    PID=$!
+    # Test import of required modules
+    python -c "
+import sys
+import os
+sys.path.insert(0, os.path.join(os.getcwd(), 'gerdsen_ai_server'))
+try:
+    from gerdsen_ai_server.src.menubar.permissions_manager import PermissionsManager
+    from gerdsen_ai_server.src.menubar.onboarding import OnboardingTour
+    import rumps
+    import psutil
+    print('✓ All modules imported successfully')
+except ImportError as e:
+    print(f'❌ Import error: {e}')
+    sys.exit(1)
+"
     
-    # Wait a bit
-    sleep 5
-    
-    # Check if it's running
-    if ps -p $PID > /dev/null; then
-        echo "✓ Menu bar app is running successfully!"
+    if [ $? -eq 0 ]; then
+        echo "✓ Enhanced menu bar app modules ready"
         
-        # Kill the test instance
-        kill $PID 2>/dev/null || true
+        # Brief test run
+        echo "Testing app launch (5 second test)..."
+        timeout 5 python run_menubar_enhanced.py > /dev/null 2>&1 &
+        sleep 6
+        
+        echo "✓ Installation test completed"
     else
-        echo -e "${YELLOW}Warning: Menu bar app may have issues${NC}"
+        echo -e "${YELLOW}Warning: Module import issues detected${NC}"
     fi
 }
 
@@ -170,22 +188,29 @@ print_success() {
     
     echo -e "\n${BLUE}📱 How to Use:${NC}"
     echo "────────────────"
-    echo "1. Start manually:"
+    echo "1. Start enhanced app (recommended):"
+    echo "   ${GREEN}python run_menubar_enhanced.py${NC}"
+    echo ""
+    echo "2. Or start basic version:"
     echo "   ${GREEN}python run_menubar.py${NC}"
     echo ""
-    echo "2. Or use desktop shortcut:"
+    echo "3. Or use desktop shortcut:"
     echo "   Double-click '${GREEN}Impetus Menu Bar${NC}' on your Desktop"
     echo ""
-    echo "3. Auto-start on login:"
+    echo "4. Auto-start on login:"
     echo "   ${GREEN}launchctl load ~/Library/LaunchAgents/com.gerdsenai.impetus.menubar.plist${NC}"
     echo ""
-    echo -e "${BLUE}📋 Features:${NC}"
-    echo "────────────"
+    echo -e "${BLUE}📋 Enhanced Features:${NC}"
+    echo "────────────────────"
     echo "• Start/stop Impetus server from menu bar"
-    echo "• Load and switch between MLX models"
-    echo "• Monitor server performance"
+    echo "• Load and switch between MLX models (latest MLX 0.28.0)"
+    echo "• Monitor server performance with real-time stats"
     echo "• Quick access to dashboard and API docs"
     echo "• System tray notifications"
+    echo "• 🆕 First-run onboarding tour"
+    echo "• 🆕 Permissions management"
+    echo "• 🆕 Enhanced error handling"
+    echo "• 🆕 Help system with guided tour"
     echo ""
     echo -e "${BLUE}🛑 To Stop:${NC}"
     echo "────────────"

@@ -1,6 +1,6 @@
 # Core Web Framework
 flask==3.0.3
-flask-cors==6.0.0
+flask-cors==6.0.1
 flask-socketio==5.3.6
 flask-limiter==3.5.0
 python-socketio==5.11.3
@@ -11,8 +11,10 @@ pydantic-settings==2.4.0
 python-multipart==0.0.18
 
 # Apple Silicon ML Frameworks
-mlx==0.16.3
-mlx-lm==0.17.0
+mlx==0.28.0
+mlx-lm==0.26.3
+mlx-metal==0.28.0
+sentencepiece==0.2.0
 transformers>=4.52.1
 
 # Model Management
@@ -20,7 +22,7 @@ huggingface-hub>=0.34.0
 hf-transfer==0.1.8  # For faster downloads
 
 # System Monitoring
-psutil==6.0.0
+psutil==7.0.0
 py-cpuinfo==9.0.0
 
 # Async Support
@@ -35,6 +37,11 @@ requests==2.32.4
 
 # Logging
 loguru==0.7.2
+
+# Menu Bar App Dependencies
+rumps==0.4.0
+pyobjc-core==11.1
+pyobjc-framework-Cocoa==11.1
 
 # Testing (optional but recommended)
 pytest==8.3.2

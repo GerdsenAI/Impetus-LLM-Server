@@ -13,41 +13,69 @@ This project emphasizes systematic problem-solving through:
 
 Impetus-LLM-Server is a **production-ready** local LLM server optimized for Apple Silicon, featuring MLX integration for high-performance inference.
 
-### Current Status: v1.0.1 - MLX Integration Complete ✅
+### Current Status: v1.0.2 - Enhanced Menu Bar App Complete ✅
 
 #### Working Features
-- ✅ **MLX Model Support**: Successfully loads and runs MLX models from HuggingFace
+- ✅ **MLX Model Support**: Successfully loads and runs MLX models from HuggingFace (MLX 0.28.0)
 - ✅ **OpenAI API Compatibility**: Full `/v1/chat/completions` endpoint support
 - ✅ **Streaming & Non-streaming**: Both response modes fully functional
 - ✅ **Auto-loading**: Models load automatically when requested via API
+- ✅ **Enhanced Menu Bar App**: Native macOS app with permissions & onboarding
 - ✅ **Standalone macOS App**: Self-contained .app with embedded Python runtime
 - ✅ **Production Server**: Gunicorn with Apple Silicon optimization
 - ✅ **React Dashboard**: Beautiful Three.js frontend interface
 
 #### Technical Stack
-- **Inference**: MLX (Apple's machine learning framework)
+- **Inference**: MLX 0.28.0 + mlx-lm 0.26.3 (Apple's ML framework - latest versions)
 - **Server**: Flask + Gunicorn + eventlet (WebSocket support)
 - **Models**: Support for Mistral, Llama, Phi, Qwen (4-bit and 8-bit quantized)
 - **API**: OpenAI-compatible endpoints for seamless integration
 - **Frontend**: React + Three.js dashboard
+- **Menu Bar**: rumps + PyObjC 11.1 (native macOS integration)
 
-## Active Development: Menu Bar App
+## Menu Bar Application - Production Ready ✅
 
-Currently building a native macOS menu bar application for seamless background operation:
-- Status indicators (idle/active/error)
-- Model management from menu
-- Server lifecycle control
-- Resource monitoring
-- Launch at login support
+Native macOS menu bar application with professional UX:
+
+### Features
+- 🧠 **Status Indicators**: Visual status (idle/running/error/loading)
+- 🚀 **Server Control**: Start/stop server from menu bar
+- 🤖 **Model Management**: Load and switch between AI models
+- ⚡ **Performance Modes**: Efficiency/Balanced/Performance settings
+- 📊 **System Monitoring**: CPU, memory, uptime statistics
+- 🔗 **Quick Access**: Dashboard and API documentation links
+- 🔔 **Notifications**: macOS native notifications for status updates
+
+### Enhanced UX Features (NEW)
+- 🎯 **First-Run Onboarding**: Interactive tour for new users
+- 🔐 **Permission Management**: Proper macOS permissions handling
+- ❓ **Help System**: Built-in help with guided tour
+- 📱 **Professional Dialogs**: Native macOS alert styling
+- 🛠 **Error Handling**: Graceful degradation and recovery
+
+### Files
+- `run_menubar_enhanced.py` - Enhanced app with onboarding (recommended)
+- `run_menubar.py` - Basic version
+- `gerdsen_ai_server/src/menubar/` - Core modules
+  - `permissions_manager.py` - macOS permissions handling
+  - `onboarding.py` - First-run tour system
+  - `config.py` - Configuration constants
 
 ## Dependencies & Requirements
 
-### Core Dependencies
+### Core Dependencies (Updated to Latest Versions)
 ```bash
-# MLX and ML
-mlx>=0.28.0              # Apple's ML framework
-mlx-lm>=0.26.3           # MLX language model support
-sentencepiece>=0.2.0     # Required for tokenizers
+# MLX and ML (Latest Versions)
+mlx==0.28.0              # Apple's ML framework (latest)
+mlx-lm==0.26.3           # MLX language model support (latest)
+mlx-metal==0.28.0        # MLX Metal backend (latest)
+sentencepiece==0.2.0     # Required for tokenizers
+
+# Menu Bar App Dependencies
+rumps==0.4.0             # macOS menu bar framework
+pyobjc-core==11.1        # Python-Objective-C bridge (latest)
+pyobjc-framework-Cocoa==11.1  # Cocoa framework bindings (latest)
+psutil==7.0.0            # System monitoring (latest)
 transformers>=4.52.1     # HuggingFace transformers
 huggingface-hub>=0.34.0  # Model downloading
 

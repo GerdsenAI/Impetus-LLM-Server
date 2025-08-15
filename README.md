@@ -1,6 +1,6 @@
 # Impetus LLM Server
 
-**v1.0.0** - High-performance local LLM server optimized for Apple Silicon, providing OpenAI-compatible API endpoints with a beautiful dashboard interface.
+**v1.0.2** - High-performance local LLM server optimized for Apple Silicon with enhanced menu bar application, featuring OpenAI-compatible API endpoints and a beautiful dashboard interface.
 
 ## 🎯 Quick Start for Users
 
@@ -14,19 +14,65 @@ That's it! No Python, no terminal commands, no setup required.
 
 ## 🚀 Features
 
+### 🆕 Enhanced Menu Bar Application
+- **Professional Onboarding**: Interactive first-run tour for new users
+- **Permission Management**: Proper macOS permissions with guided setup
+- **Native Experience**: Brain emoji (🧠) status indicator in menu bar
+- **Server Control**: Start/stop server with visual status updates
+- **Model Management**: Load and switch between AI models from menu
+- **Performance Modes**: Efficiency/Balanced/Performance settings
+- **System Monitoring**: Real-time CPU, memory, and uptime stats
+- **Help System**: Built-in help with guided tour restart
+
 ### For End Users
 - **Zero Setup**: Download, install, run - just like any Mac app
 - **Beautiful Dashboard**: Real-time monitoring and control at http://localhost:5173
-- **Fast Performance**: 50-110 tokens/sec on Apple Silicon
+- **Fast Performance**: 50-110 tokens/sec on Apple Silicon with MLX 0.28.0
 - **OpenAI Compatible**: Works with VS Code extensions, Continue.dev, Cursor, and more
-- **Automatic Updates**: Built-in updater keeps you on the latest version
+- **Menu Bar Control**: Native macOS menu bar app for seamless background operation
 
 ### For Developers
 - **API Compatible**: Drop-in replacement for OpenAI API
 - **WebSocket Support**: Real-time streaming responses
 - **Comprehensive Docs**: Interactive API documentation at http://localhost:8080/docs
-- **Multiple Models**: Support for Mistral, Llama, Phi, and more
+- **Multiple Models**: Support for Mistral, Llama, Phi, and more with latest MLX
 - **Production Ready**: Health checks, monitoring, and enterprise features
+
+## 🍎 Menu Bar Application
+
+### Quick Start with Menu Bar App
+
+For developers and power users who want background operation:
+
+```bash
+# Clone and setup
+git clone https://github.com/GerdsenAI/Impetus-LLM-Server.git
+cd Impetus-LLM-Server
+
+# Install enhanced menu bar app
+./installers/install_menubar.sh
+
+# Launch enhanced version (recommended)
+python run_menubar_enhanced.py
+
+# Or launch basic version
+python run_menubar.py
+```
+
+### Features
+
+- 🧠 **Visual Status**: Brain emoji changes based on server state
+  - 🧠 Server stopped (idle)
+  - 🟡 Server starting/stopping
+  - 🟢 Server running
+  - 🔴 Server error
+
+- 🎯 **First-Run Experience**: Professional onboarding tour
+- 🔐 **Permission Management**: Automatic macOS permissions setup
+- 🤖 **Model Management**: Load Mistral, Llama, Phi models from menu
+- ⚡ **Performance Tuning**: Switch between efficiency/performance modes
+- 📊 **System Monitoring**: Live CPU, memory, uptime tracking
+- 🔗 **Quick Access**: Dashboard and API docs one click away
 
 ## 📋 System Requirements
 
@@ -34,6 +80,7 @@ That's it! No Python, no terminal commands, no setup required.
 - **Apple Silicon** (M1, M2, M3, or M4 series)
 - **8GB RAM** minimum (16GB recommended)
 - **10GB disk space** for models
+- **Python 3.11+** (for menu bar app development)
 
 ## 🛠 For Developers
 
@@ -53,9 +100,14 @@ cd installers
 # The app will be in build_standalone/Impetus.app
 ```
 
-### Creating Your Own Distribution
+### Distribution Options
 
-We provide several installer options:
+We provide multiple installer and deployment options:
+
+- **Enhanced Menu Bar App**: `installers/install_menubar.sh`
+  - Creates native macOS menu bar application
+  - Includes onboarding tour and permissions management
+  - Best for developer and power user experience
 
 - **Standalone App** (Recommended): `installers/macos_standalone_app.sh`
   - Creates a fully self-contained .app with embedded Python
@@ -69,6 +121,27 @@ We provide several installer options:
   - Sets up Gunicorn + nginx for server deployments
 
 See [installers/README.md](installers/README.md) for all options.
+
+### Latest Dependencies
+
+The project now uses the latest versions:
+
+```bash
+# MLX Framework (Apple Silicon ML)
+mlx==0.28.0               # Latest Apple ML framework
+mlx-lm==0.26.3            # Language model support
+mlx-metal==0.28.0         # Metal GPU acceleration
+
+# Menu Bar Application
+rumps==0.4.0              # macOS menu bar framework
+pyobjc-core==11.1         # Python-Objective-C bridge
+pyobjc-framework-Cocoa==11.1  # Cocoa framework bindings
+
+# Server Framework
+flask==3.0.3              # Web framework
+gunicorn==23.0.0          # Production WSGI server
+psutil==7.0.0             # System monitoring
+```
 
 ### API Usage
 
