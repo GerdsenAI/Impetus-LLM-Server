@@ -1,330 +1,304 @@
 #!/usr/bin/env python3
 """
-Permissions Manager for Impetus Menu Bar Application
-Handles macOS permissions checking and requests
+Permissions Manager for Impetus LLM Server
+Handles macOS permission requests and guides users to system settings
 """
 
-import os
-import json
-import subprocess
 import rumps
-from pathlib import Path
-from typing import Dict, Optional, Callable
-from Foundation import NSUserNotificationCenter
-import objc
-
+import subprocess
+import os
+from typing import Dict, Tuple, Optional
 
 class PermissionsManager:
-    """Manages macOS permissions for the Impetus menu bar app"""
+    """Manages macOS permissions for the Impetus LLM Server"""
     
-    def __init__(self, preferences_file: str):
-        self.preferences_file = preferences_file
-        self.permissions = self.load_permissions()
+    def __init__(self):
+        self.permissions_status = {
+            'notifications': False,
+            'file_access': False,
+            'accessibility': False
+        }
+        self.check_permissions()
     
-    def load_permissions(self) -> Dict[str, bool]:
-        """Load stored permission status from preferences"""
+    def check_permissions(self) -> Dict[str, bool]:
+        """Check current permission status"""
+        # Check notifications permission
         try:
-            if os.path.exists(self.preferences_file):
-                with open(self.preferences_file, 'r') as f:
-                    prefs = json.load(f)
-                    return prefs.get('permissions', {})
-        except Exception as e:
-            print(f"Error loading permissions: {e}")
-        return {}
-    
-    def save_permissions(self):
-        """Save permission status to preferences"""
-        try:
-            # Load existing preferences
-            prefs = {}
-            if os.path.exists(self.preferences_file):
-                with open(self.preferences_file, 'r') as f:
-                    prefs = json.load(f)
-            
-            # Update permissions section
-            prefs['permissions'] = self.permissions
-            
-            # Save back to file
-            os.makedirs(os.path.dirname(self.preferences_file), exist_ok=True)
-            with open(self.preferences_file, 'w') as f:
-                json.dump(prefs, f, indent=2)
-        except Exception as e:
-            print(f"Error saving permissions: {e}")
-    
-    def check_notification_permission(self) -> bool:
-        """Check if notification permissions are granted"""
-        try:
-            # Use NSUserNotificationCenter to check authorization status
-            center = NSUserNotificationCenter.defaultUserNotificationCenter()
-            
-            # For rumps apps, notifications are usually enabled by default
-            # We'll assume they're available if rumps is working
-            return True
-        except Exception as e:
-            print(f"Error checking notification permission: {e}")
-            return False
-    
-    def check_accessibility_permission(self) -> bool:
-        """Check if accessibility permissions are granted"""
-        try:
-            # Run a simple AppleScript to check accessibility
-            script = '''
-            tell application "System Events"
-                try
-                    set frontApp to name of first application process whose frontmost is true
-                    return true
-                on error
-                    return false
-                end try
-            end tell
-            '''
-            
             result = subprocess.run([
-                'osascript', '-e', script
+                'osascript', '-e',
+                'tell application "System Events" to display notification "Permission Test" with title "Impetus"'
             ], capture_output=True, text=True, timeout=5)
-            
-            return result.returncode == 0 and 'true' in result.stdout.lower()
-        except Exception as e:
-            print(f"Error checking accessibility permission: {e}")
-            return False
-    
-    def check_file_access_permission(self) -> bool:
-        """Check if we have file system access for necessary directories"""
-        try:
-            # Test access to common directories we need
-            test_dirs = [
-                os.path.expanduser("~/Library/Application Support/Impetus"),
-                os.path.expanduser("~/Library/Preferences"),
-                os.path.expanduser("~/Library/Logs")
-            ]
-            
-            for test_dir in test_dirs:
-                Path(test_dir).mkdir(parents=True, exist_ok=True)
-                test_file = Path(test_dir) / "test_access.tmp"
-                test_file.write_text("test")
-                test_file.unlink()
-            
-            return True
-        except Exception as e:
-            print(f"Error checking file access: {e}")
-            return False
-    
-    def request_permission(self, permission_type: str, callback: Optional[Callable] = None) -> bool:
-        """Request a specific permission from the user"""
+            self.permissions_status['notifications'] = (result.returncode == 0)
+        except:
+            self.permissions_status['notifications'] = False
         
-        if permission_type == "notifications":
-            return self._request_notification_permission(callback)
-        elif permission_type == "accessibility":
-            return self._request_accessibility_permission(callback)
-        elif permission_type == "file_access":
-            return self._request_file_access_permission(callback)
-        else:
-            print(f"Unknown permission type: {permission_type}")
-            return False
-    
-    def _request_notification_permission(self, callback: Optional[Callable] = None) -> bool:
-        """Request notification permissions"""
+        # Check file access (test write to Documents)
         try:
-            # For rumps apps, notification permission is usually automatic
-            # Show a dialog explaining notifications will be used
-            response = rumps.alert(
-                title="Notifications Permission",
-                message="Impetus uses notifications to keep you informed about:\n\n"
-                       "• Server start/stop status\n"
-                       "• Model loading progress\n"
-                       "• System alerts and errors\n\n"
-                       "Notifications will appear in your Notification Center.",
-                ok="Allow Notifications",
-                cancel="Skip"
-            )
-            
-            granted = response == 1  # OK button clicked
-            self.permissions['notifications'] = granted
-            self.save_permissions()
-            
-            if callback:
-                callback('notifications', granted)
-            
-            return granted
-        except Exception as e:
-            print(f"Error requesting notification permission: {e}")
-            return False
+            test_file = os.path.expanduser("~/Documents/.impetus_permission_test")
+            with open(test_file, 'w') as f:
+                f.write("test")
+            os.remove(test_file)
+            self.permissions_status['file_access'] = True
+        except:
+            self.permissions_status['file_access'] = False
+        
+        # Accessibility is optional - assume false for now
+        self.permissions_status['accessibility'] = False
+        
+        return self.permissions_status
     
-    def _request_accessibility_permission(self, callback: Optional[Callable] = None) -> bool:
-        """Request accessibility permissions"""
-        try:
-            # Check if already granted
-            if self.check_accessibility_permission():
-                self.permissions['accessibility'] = True
-                self.save_permissions()
-                if callback:
-                    callback('accessibility', True)
+    def request_permissions(self) -> bool:
+        """Request necessary permissions from user"""
+        self.show_permissions_intro()
+        
+        success_count = 0
+        total_permissions = 2  # notifications + file_access (accessibility is optional)
+        
+        # Request notifications permission
+        if self.request_notifications_permission():
+            success_count += 1
+        
+        # Request file access permission
+        if self.request_file_access_permission():
+            success_count += 1
+        
+        # Optionally request accessibility
+        self.offer_accessibility_permission()
+        
+        return success_count >= total_permissions
+    
+    def show_permissions_intro(self):
+        """Show introduction dialog about permissions"""
+        message = """Welcome to Impetus LLM Server!
+
+To provide the best experience, Impetus needs a few permissions:
+
+• Notifications: Get updates about server status
+• File Access: Save preferences and access models
+• Accessibility: Enhanced menu bar interaction (optional)
+
+Let's set these up quickly..."""
+        
+        rumps.alert(
+            title="Setup Permissions",
+            message=message,
+            ok="Continue",
+            cancel=None
+        )
+    
+    def request_notifications_permission(self) -> bool:
+        """Request notifications permission"""
+        message = """Impetus would like to send you notifications about:
+
+• Server start/stop status
+• Model loading progress  
+• Error alerts
+• System updates
+
+This helps you stay informed about your LLM server."""
+        
+        response = rumps.alert(
+            title="Enable Notifications",
+            message=message,
+            ok="Enable Notifications",
+            cancel="Skip"
+        )
+        
+        if response == 1:  # OK pressed
+            # Test notification to trigger permission request
+            try:
+                subprocess.run([
+                    'osascript', '-e',
+                    'tell application "System Events" to display notification "Notifications enabled! 🎉" with title "Impetus LLM Server"'
+                ], timeout=5)
+                self.permissions_status['notifications'] = True
                 return True
-            
-            # Show dialog explaining accessibility permission
-            response = rumps.alert(
-                title="Accessibility Permission Required",
-                message="Impetus needs Accessibility permission to:\n\n"
-                       "• Monitor server health\n"
-                       "• Provide system status updates\n"
-                       "• Interact with system features\n\n"
-                       "Click 'Open Settings' to grant permission.",
-                ok="Open Settings",
-                cancel="Skip"
-            )
-            
-            if response == 1:  # OK button clicked
-                self.open_accessibility_settings()
-                # Don't mark as granted yet - user needs to manually enable
-                if callback:
-                    callback('accessibility', False)  # Pending user action
-                return False
-            else:
-                self.permissions['accessibility'] = False
-                self.save_permissions()
-                if callback:
-                    callback('accessibility', False)
-                return False
-                
-        except Exception as e:
-            print(f"Error requesting accessibility permission: {e}")
-            return False
-    
-    def _request_file_access_permission(self, callback: Optional[Callable] = None) -> bool:
-        """Request file system access permissions"""
-        try:
-            # Test if we already have access
-            if self.check_file_access_permission():
-                self.permissions['file_access'] = True
-                self.save_permissions()
-                if callback:
-                    callback('file_access', True)
-                return True
-            
-            # Show dialog explaining file access
-            response = rumps.alert(
-                title="File Access Permission",
-                message="Impetus needs file access to:\n\n"
-                       "• Save your preferences\n"
-                       "• Store application logs\n"
-                       "• Cache model information\n\n"
-                       "This is usually granted automatically.",
-                ok="Continue",
-                cancel="Skip"
-            )
-            
-            granted = response == 1  # OK button clicked
-            self.permissions['file_access'] = granted
-            self.save_permissions()
-            
-            if callback:
-                callback('file_access', granted)
-            
-            return granted
-        except Exception as e:
-            print(f"Error requesting file access permission: {e}")
-            return False
-    
-    def open_system_settings(self, pane: str = ""):
-        """Open macOS System Settings to specific pane"""
-        try:
-            if pane == "notifications":
+            except:
                 self.open_notifications_settings()
-            elif pane == "accessibility":
-                self.open_accessibility_settings()
-            elif pane == "privacy":
+                return False
+        
+        return False
+    
+    def request_file_access_permission(self) -> bool:
+        """Request file access permission"""
+        message = """Impetus needs file access to:
+
+• Save your preferences and settings
+• Access AI models in your Models folder
+• Store logs and cache files
+• Create configuration files
+
+This is required for the app to function properly."""
+        
+        response = rumps.alert(
+            title="Enable File Access",
+            message=message,
+            ok="Grant Access",
+            cancel="Skip"
+        )
+        
+        if response == 1:  # OK pressed
+            # Test file access
+            try:
+                prefs_dir = os.path.expanduser("~/Library/Preferences")
+                test_file = os.path.join(prefs_dir, "com.gerdsenai.impetus.test")
+                with open(test_file, 'w') as f:
+                    f.write("test")
+                os.remove(test_file)
+                self.permissions_status['file_access'] = True
+                return True
+            except:
                 self.open_privacy_settings()
-            else:
-                # Open general System Settings
-                subprocess.run(["open", "x-apple.systempreferences:"], check=False)
-        except Exception as e:
-            print(f"Error opening system settings: {e}")
+                return False
+        
+        return False
+    
+    def offer_accessibility_permission(self):
+        """Offer optional accessibility permission"""
+        message = """Optional: Enhanced Menu Bar Access
+
+Accessibility permission enables:
+• Smoother menu interactions
+• Better keyboard navigation
+• Enhanced user experience
+
+This is optional but recommended for the best experience."""
+        
+        response = rumps.alert(
+            title="Enhanced Access (Optional)",
+            message=message,
+            ok="Setup Accessibility",
+            cancel="Skip for Now"
+        )
+        
+        if response == 1:  # OK pressed
+            self.open_accessibility_settings()
     
     def open_notifications_settings(self):
-        """Open Notifications settings pane"""
-        try:
-            subprocess.run([
-                "open", 
-                "x-apple.systempreferences:com.apple.preference.notifications"
-            ], check=False)
-        except Exception as e:
-            print(f"Error opening notifications settings: {e}")
-    
-    def open_accessibility_settings(self):
-        """Open Accessibility settings pane"""
-        try:
-            subprocess.run([
-                "open",
-                "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
-            ], check=False)
-        except Exception as e:
-            print(f"Error opening accessibility settings: {e}")
+        """Open System Preferences to Notifications"""
+        rumps.alert(
+            title="Enable Notifications",
+            message="Please enable notifications for Impetus in System Preferences.\n\nOpening Notifications settings...",
+            ok="Continue"
+        )
+        subprocess.run(['open', 'x-apple.systempreferences:com.apple.preference.notifications'])
     
     def open_privacy_settings(self):
-        """Open Privacy & Security settings pane"""
-        try:
-            subprocess.run([
-                "open",
-                "x-apple.systempreferences:com.apple.preference.security?Privacy"
-            ], check=False)
-        except Exception as e:
-            print(f"Error opening privacy settings: {e}")
+        """Open System Preferences to Privacy & Security"""
+        rumps.alert(
+            title="Enable File Access",
+            message="Please grant file access to Impetus in Privacy & Security settings.\n\nOpening Privacy settings...",
+            ok="Continue"
+        )
+        subprocess.run(['open', 'x-apple.systempreferences:com.apple.preference.security'])
     
-    def get_permission_status(self, permission_type: str) -> Optional[bool]:
-        """Get stored permission status"""
-        return self.permissions.get(permission_type)
+    def open_accessibility_settings(self):
+        """Open System Preferences to Accessibility"""
+        rumps.alert(
+            title="Setup Accessibility",
+            message="To enable enhanced menu bar access:\n\n1. Open Privacy & Security\n2. Go to Accessibility\n3. Add Impetus to the list\n\nOpening Accessibility settings...",
+            ok="Continue"
+        )
+        subprocess.run(['open', 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'])
     
-    def has_required_permissions(self) -> bool:
-        """Check if all required permissions are granted"""
-        required = ['notifications', 'file_access']
-        return all(self.permissions.get(perm, False) for perm in required)
-    
-    def has_optional_permissions(self) -> bool:
-        """Check if optional permissions are granted"""
-        optional = ['accessibility']
-        return all(self.permissions.get(perm, False) for perm in optional)
-    
-    def get_missing_permissions(self) -> Dict[str, str]:
-        """Get list of missing permissions with descriptions"""
-        missing = {}
+    def show_permissions_status(self):
+        """Show current permissions status"""
+        self.check_permissions()
         
-        if not self.permissions.get('notifications', False):
-            missing['notifications'] = "Notifications for status updates"
+        status_text = "Current Permissions Status:\n\n"
         
-        if not self.permissions.get('file_access', False):
-            missing['file_access'] = "File access for preferences and logs"
+        # Notifications
+        status_icon = "✅" if self.permissions_status['notifications'] else "❌"
+        status_text += f"{status_icon} Notifications: {'Enabled' if self.permissions_status['notifications'] else 'Disabled'}\n"
         
-        if not self.permissions.get('accessibility', False):
-            missing['accessibility'] = "Accessibility for advanced features (optional)"
+        # File Access
+        status_icon = "✅" if self.permissions_status['file_access'] else "❌"
+        status_text += f"{status_icon} File Access: {'Enabled' if self.permissions_status['file_access'] else 'Disabled'}\n"
         
-        return missing
-    
-    def show_permissions_summary(self):
-        """Show a summary of current permissions status"""
-        status_lines = []
+        # Accessibility
+        status_icon = "✅" if self.permissions_status['accessibility'] else "⚪"
+        status_text += f"{status_icon} Accessibility: {'Enabled' if self.permissions_status['accessibility'] else 'Optional'}\n"
         
-        # Required permissions
-        notifications = "✅" if self.permissions.get('notifications', False) else "❌"
-        file_access = "✅" if self.permissions.get('file_access', False) else "❌"
-        
-        # Optional permissions
-        accessibility = "✅" if self.permissions.get('accessibility', False) else "⚠️"
-        
-        message = f"""Current Permissions Status:
-
-{notifications} Notifications - Status updates and alerts
-{file_access} File Access - Preferences and logging
-{accessibility} Accessibility - Advanced features (optional)
-
-✅ = Granted  ❌ = Denied  ⚠️ = Not set"""
+        if not all([self.permissions_status['notifications'], self.permissions_status['file_access']]):
+            status_text += "\n⚠️ Some required permissions are missing."
+        else:
+            status_text += "\n🎉 All required permissions are enabled!"
         
         rumps.alert(
             title="Permissions Status",
-            message=message,
+            message=status_text,
             ok="OK"
         )
     
-    def reset_permissions(self):
-        """Reset all permission states (for testing)"""
-        self.permissions = {}
-        self.save_permissions()
+    def setup_permissions_dialog(self):
+        """Show setup permissions dialog"""
+        message = """Setup Missing Permissions
+
+Would you like to open System Preferences to configure the required permissions?
+
+This will help ensure Impetus works properly."""
+        
+        response = rumps.alert(
+            title="Setup Permissions",
+            message=message,
+            ok="Open Settings",
+            cancel="Later"
+        )
+        
+        if response == 1:  # OK pressed
+            subprocess.run(['open', 'x-apple.systempreferences:com.apple.preference.security'])
+    
+    def has_required_permissions(self) -> bool:
+        """Check if all required permissions are granted"""
+        self.check_permissions()
+        return self.permissions_status['notifications'] and self.permissions_status['file_access']
+    
+    def get_permissions_summary(self) -> Tuple[int, int]:
+        """Get summary of granted permissions (granted, total)"""
+        self.check_permissions()
+        granted = sum([
+            self.permissions_status['notifications'],
+            self.permissions_status['file_access'],
+            self.permissions_status['accessibility']
+        ])
+        return granted, 3
+    
+    def get_missing_permissions(self) -> Dict[str, str]:
+        """Get missing permissions with descriptions"""
+        self.check_permissions()
+        missing = {}
+        
+        if not self.permissions_status['notifications']:
+            missing['notifications'] = 'Notifications for server status updates'
+        
+        if not self.permissions_status['file_access']:
+            missing['file_access'] = 'File access for preferences and models'
+        
+        if not self.permissions_status['accessibility']:
+            missing['accessibility'] = 'Enhanced menu bar interactions (optional)'
+        
+        return missing
+    
+    def request_permission(self, permission_type: str, callback=None):
+        """Request a specific permission"""
+        if permission_type == 'notifications':
+            success = self.request_notifications_permission()
+        elif permission_type == 'file_access':
+            success = self.request_file_access_permission()
+        elif permission_type == 'accessibility':
+            self.offer_accessibility_permission()
+            success = True  # Always return True since it's optional
+        else:
+            success = False
+        
+        if callback:
+            callback(permission_type, success)
+    
+    def show_permissions_summary(self):
+        """Show permissions summary dialog"""
+        self.show_permissions_status()
+    
+    @property
+    def permissions(self) -> Dict[str, bool]:
+        """Get current permissions status"""
+        return self.permissions_status.copy()
