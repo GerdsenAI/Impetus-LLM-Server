@@ -19,3 +19,22 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Third-Party Notices and Attributions
+
+This project uses open-source software. We thank the maintainers and communities of the following packages and tools (non-exhaustive):
+
+- Python and the Python Packaging ecosystem
+- Flask and related extensions
+- Gunicorn and Eventlet/Gevent
+- Pydantic
+- Requests
+- MLX (Apple) and mlx-lm
+- RUMPS (macOS menu bar)
+- Vite, React, TypeScript
+- Nginx
+- Pytest and associated plugins
+
+Each dependency remains under its own license. See individual project repositories for their license terms.

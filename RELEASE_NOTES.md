@@ -172,3 +172,9 @@ See [todo.md](todo.md) for the future roadmap including:
 For detailed deployment instructions, see [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md).
 
 For API documentation, visit `/docs` when running the server or see [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md).
+
+---
+
+Credits
+
+Impetus builds on excellent open-source software including Flask, Gunicorn, Eventlet/Gevent, Pydantic, MLX, RUMPS, Vite/React/TS, Nginx, and Pytest. See LICENSE for third‑party notices.

@@ -14,7 +14,8 @@ Markers:
 - slow: long-running/model-loading
 
 Running:
-- Quick API smoke tests: `pytest -m "not gui and not slow"`
+- Create venv (recommended): `python3 -m venv .venv && source .venv/bin/activate`
+- Quick API smoke tests: `pytest -m "not gui and not slow and not perf"`
 - Include GUI: `pytest -m gui`
 - Full suite: `pytest -m "e2e or gui"`
 
