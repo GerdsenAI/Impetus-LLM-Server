@@ -179,32 +179,49 @@ bundle_python_runtime() {
     if [[ -d ".venv" ]]; then
         print_success "Found virtual environment, bundling dependencies..."
         
-        # Create a minimal Python runtime directory structure
+        # Create proper Python runtime directory structure
         PYTHON_RUNTIME_DIR="$FRAMEWORKS_DIR/Python.framework/Versions/Current"
         mkdir -p "$PYTHON_RUNTIME_DIR/bin"
         mkdir -p "$PYTHON_RUNTIME_DIR/lib"
         
-        # Copy Python executable
-        if command -v python3 &> /dev/null; then
-            SYSTEM_PYTHON=$(command -v python3)
-            cp "$SYSTEM_PYTHON" "$PYTHON_RUNTIME_DIR/bin/python3"
-            chmod +x "$PYTHON_RUNTIME_DIR/bin/python3"
-            print_success "Bundled Python executable"
+        # Create simple symlink to system Python (PYTHONPATH will handle isolation)
+        ln -sf "$(command -v python3)" "$PYTHON_RUNTIME_DIR/bin/python3"
+        print_success "Linked to system Python (using PYTHONPATH for isolation)"
+        
+        # Find and copy the correct site-packages directory
+        VENV_SITE_PACKAGES=$(find .venv -name "site-packages" -type d | head -1)
+        if [[ -n "$VENV_SITE_PACKAGES" ]]; then
+            # Create the proper Python version directory structure
+            PYTHON_VERSION=$(python3 -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')")
+            SITE_PACKAGES_DIR="$PYTHON_RUNTIME_DIR/lib/$PYTHON_VERSION/site-packages"
+            mkdir -p "$SITE_PACKAGES_DIR"
+            
+            # Copy all site-packages content
+            cp -r "$VENV_SITE_PACKAGES"/* "$SITE_PACKAGES_DIR/"
+            print_success "Bundled Python libraries from $VENV_SITE_PACKAGES"
+            
+            # Verify Flask is bundled
+            if [[ -d "$SITE_PACKAGES_DIR/flask" ]]; then
+                print_success "Verified Flask is bundled"
+            else
+                print_warning "Flask not found in bundled packages"
+            fi
+        else
+            print_warning "No site-packages directory found in virtual environment"
         fi
         
-        # Copy virtual environment site-packages
-        if [[ -d ".venv/lib" ]]; then
-            cp -r .venv/lib/* "$PYTHON_RUNTIME_DIR/lib/"
-            print_success "Bundled Python libraries"
+        # Install dependencies from requirements.txt if site-packages copy failed
+        if [[ ! -d "$PYTHON_RUNTIME_DIR/lib/$PYTHON_VERSION/site-packages/flask" ]] && [[ -f "gerdsen_ai_server/requirements.txt" ]]; then
+            print_warning "Installing dependencies directly into bundle..."
+            PYTHONPATH="$PYTHON_RUNTIME_DIR/lib/$PYTHON_VERSION/site-packages" \
+            "$PYTHON_RUNTIME_DIR/bin/python3" -m pip install --target "$PYTHON_RUNTIME_DIR/lib/$PYTHON_VERSION/site-packages" \
+                -r gerdsen_ai_server/requirements.txt --no-deps --quiet
+            print_success "Installed dependencies into bundle"
         fi
     else
-        print_warning "No virtual environment found, using system Python"
-        
-        # Create symbolic link to system Python
-        PYTHON_RUNTIME_DIR="$FRAMEWORKS_DIR/Python.framework/Versions/Current"
-        mkdir -p "$PYTHON_RUNTIME_DIR/bin"
-        ln -sf "$(command -v python3)" "$PYTHON_RUNTIME_DIR/bin/python3"
-        print_success "Linked to system Python"
+        print_error "No virtual environment found. Please activate virtual environment and install dependencies first."
+        print_error "Run: python3 -m venv .venv && source .venv/bin/activate && pip install -r gerdsen_ai_server/requirements.txt"
+        exit 1
     fi
 }
 

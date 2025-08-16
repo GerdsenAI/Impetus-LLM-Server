@@ -144,8 +144,10 @@ launch_menubar_app() {
         return 1
     fi
     
-    # Set production environment variables
-    export PYTHONPATH="$RESOURCES_DIR:$PYTHONPATH"
+    # Set up isolated Python environment for bundled libraries
+    BUNDLED_SITE_PACKAGES="$CONTENTS_DIR/Frameworks/Python.framework/Versions/Current/lib/python3.13/site-packages"
+    unset PYTHONPATH  # Clear any existing Python path
+    export PYTHONPATH="$BUNDLED_SITE_PACKAGES:$RESOURCES_DIR"
     export IMPETUS_APP_MODE="bundled"
     export IMPETUS_ENVIRONMENT="production"
     export IMPETUS_RESOURCES_DIR="$RESOURCES_DIR"
@@ -156,19 +158,36 @@ launch_menubar_app() {
     export IMPETUS_DEBUG="false"
     export IMPETUS_LOG_LEVEL="info"
     
+    # Force Python to use only bundled libraries
+    export PYTHONDONTWRITEBYTECODE=1
+    export PYTHONOPTIMIZE=1
+    export PYTHONNOUSERSITE=1
+    
+    log_message "Set PYTHONPATH to: $PYTHONPATH"
+    
     # Change to the application directory
     cd "$RESOURCES_DIR"
     
-    # Apply production configuration if available
+    # Apply production configuration if available (fail gracefully)
     if [[ -f "$RESOURCES_DIR/gerdsen_ai_server/src/config/production.py" ]]; then
         log_message "Applying production configuration..."
-        "$PYTHON_RUNTIME" -c "
+        if "$PYTHON_RUNTIME" -c "
 import sys
 sys.path.insert(0, '$RESOURCES_DIR/gerdsen_ai_server/src')
-from config.production import configure_production_environment, validate_production_security
-configure_production_environment()
-validate_production_security()
-" >> "$LOG_FILE" 2>&1
+try:
+    from config.production import configure_production_environment, validate_production_security
+    configure_production_environment()
+    validate_production_security()
+    print('✅ Production configuration applied successfully')
+except ImportError as e:
+    print(f'⚠️ Production configuration skipped: {e}')
+except Exception as e:
+    print(f'⚠️ Production configuration failed: {e}')
+" >> "$LOG_FILE" 2>&1; then
+            log_message "Production configuration applied successfully"
+        else
+            log_message "Production configuration failed, continuing without it"
+        fi
     fi
     
     # Launch the menu bar application

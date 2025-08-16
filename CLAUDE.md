@@ -21,9 +21,10 @@ Impetus-LLM-Server is a **production-ready** local LLM server optimized for Appl
 - ✅ **Streaming & Non-streaming**: Both response modes fully functional
 - ✅ **Auto-loading**: Models load automatically when requested via API
 - ✅ **Enhanced Menu Bar App**: Native macOS app with permissions & onboarding
-- ✅ **Standalone macOS App**: Self-contained .app with embedded Python runtime
+- ✅ **Standalone macOS App**: Self-contained .app with embedded Python runtime (FIXED)
 - ✅ **Production Server**: Gunicorn with Apple Silicon optimization
 - ✅ **React Dashboard**: Beautiful Three.js frontend interface
+- ✅ **DMG Installer**: Professional drag-and-drop installer with proper Python bundling
 
 #### Technical Stack
 - **Inference**: MLX 0.28.0 + mlx-lm 0.26.3 (Apple's ML framework - latest versions)
@@ -149,9 +150,19 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 
 ### Building for Distribution
 ```bash
+# Ensure virtual environment is activated and dependencies installed
+source .venv/bin/activate
+pip install -r gerdsen_ai_server/requirements.txt
+
+# Build DMG installer (requires virtual environment)
+./installers/create_dmg.sh  # Creates professional DMG installer
+
+# Alternative: Build standalone app only
 cd installers
 ./macos_standalone_app.sh  # Creates self-contained .app
 ```
+
+**Important**: The DMG builder now requires an active virtual environment to properly bundle Python dependencies. This ensures the resulting .app is truly self-contained and doesn't depend on user's system Python installation.
 
 ## Known Issues & Solutions
 
@@ -163,6 +174,18 @@ cd installers
 
 ### Issue: Model validation errors in API
 **Solution**: Fixed in `openai_api.py` - handles both dict and Pydantic objects
+
+### Issue: DMG app launches but nothing happens (FIXED ✅)
+**Root Cause**: Bundled Python runtime was using system Homebrew paths instead of bundled dependencies
+**Solution**: 
+- Fixed `installers/create_dmg.sh` to properly bundle virtual environment site-packages
+- Updated `installers/scripts/launcher.sh` to set correct PYTHONPATH for isolation
+- Made production configuration import fail gracefully
+- App now launches successfully with 110MB self-contained installer
+
+### Issue: Flask/dependencies not found in bundled app (FIXED ✅)
+**Root Cause**: Python executable pointed to system paths, not bundled libraries
+**Solution**: Set `PYTHONPATH` to prioritize bundled site-packages over system paths
 
 ## Performance Optimization
 

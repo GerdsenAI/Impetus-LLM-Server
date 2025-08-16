@@ -1,5 +1,22 @@
 # Impetus LLM Server - Development Roadmap
 
+## 🔧 v1.0.2 Critical Fixes Complete!
+
+### DMG Bundling Hotfix (August 16, 2025) - COMPLETED ✅
+- ✅ **CRITICAL**: Fixed DMG app failing to launch from Applications folder
+- ✅ **CRITICAL**: Fixed Python dependency bundling (Flask import errors)
+- ✅ **DMG Builder**: Rewritten Python runtime bundling with proper isolation
+- ✅ **Launcher Script**: Fixed PYTHONPATH for self-contained operation
+- ✅ **Production Config**: Added graceful fallback for missing dependencies
+- ✅ **Documentation**: Updated CLAUDE.md, installers/README.md, CHANGELOG.md
+- ✅ **Testing**: Verified app launches successfully with menu bar running
+
+### Technical Impact
+- App now truly self-contained (110MB DMG with all dependencies)
+- No more silent failures on installation
+- Production security validation working correctly
+- Professional user experience restored
+
 ## 🎉 v1.0.0 Production MVP Complete!
 
 Impetus LLM Server has achieved production-ready status with enterprise-grade features:

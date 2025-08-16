@@ -1,22 +1,35 @@
 # Impetus Installer Toolkit
 
+## Quick Build
+
+**IMPORTANT**: Requires active virtual environment with dependencies installed:
+
+```bash
+source .venv/bin/activate
+pip install -r gerdsen_ai_server/requirements.txt
+./installers/create_dmg.sh  # Creates professional DMG installer
+```
+
+## Components
+
 Preferred DMG builder:
-- `create_dmg.sh` – customizable DMG builder
+- `create_dmg.sh` – Professional DMG builder with proper Python bundling ✅ FIXED
 
 Deprecated/for reference only:
 - `create_simple_dmg.sh` – older/simple builder
 
 First‑run and launcher scripts:
-- `scripts/launcher.sh`
+- `scripts/launcher.sh` – Fixed with proper PYTHONPATH isolation ✅
 - `scripts/first_run.py`
 
 Assets:
 - `assets/` – AppIcon.icns, dmg-background.png, Info.plist
 
-To build a DMG:
-```bash
-./installers/create_dmg.sh
-```
+## Recent Fixes (v1.0.2)
+
+✅ **Fixed DMG bundling**: App now launches successfully from Applications folder
+✅ **Fixed Python isolation**: Bundled dependencies work correctly  
+✅ **Fixed production config**: Graceful fallback for import errors
 # Impetus LLM Server - Installers
 
 This directory contains various installers for different deployment scenarios.

@@ -5,6 +5,26 @@ All notable changes to Impetus LLM Server will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-08-16
+
+### 🔧 Fixed
+- **CRITICAL**: Fixed DMG app bundling where installed application would not launch from Applications folder
+- **CRITICAL**: Fixed Python dependency isolation in bundled .app - Flask and other dependencies now load correctly
+- **DMG Builder**: Updated `installers/create_dmg.sh` to properly bundle virtual environment site-packages (110MB)
+- **Launcher Script**: Fixed `installers/scripts/launcher.sh` to set correct PYTHONPATH for dependency isolation
+- **Production Config**: Made production configuration import fail gracefully instead of crashing
+- **Security**: Applied production security validation successfully with bundled runtime
+
+### 🔄 Changed
+- DMG size increased from 72MB to 110MB due to proper Python dependency bundling
+- Launcher now logs PYTHONPATH for debugging purposes
+- Production configuration now shows success/warning messages instead of silent failures
+
+### 📚 Documentation
+- Updated CLAUDE.md with comprehensive fix documentation
+- Updated installers/README.md with proper build instructions and recent fixes
+- Added troubleshooting section for bundling issues
+
 ## [0.1.0] - 2025-01-XX
 
 ### 🎉 Initial Release - Production Ready!

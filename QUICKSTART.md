@@ -1,6 +1,6 @@
 # Impetus LLM Server - Quick Start Guide
 
-v1.0.0 – Get up and running with Impetus in under 60 seconds
+v1.0.2 – Get up and running with Impetus in under 60 seconds
 
 ## For End Users - Just Download and Run!
 

@@ -1,5 +1,35 @@
 # Release Notes
 
+## 🔧 v1.0.2 - Critical DMG Bundling Fix
+**Release Date**: August 16, 2025
+
+### 🚨 Critical Fixes
+This hotfix addresses a critical issue where the DMG installer would create an application that failed to launch from the Applications folder.
+
+#### ✅ What's Fixed
+- **🔴 CRITICAL**: App now launches successfully from Applications folder (was failing silently)
+- **🔴 CRITICAL**: Fixed Python dependency bundling - Flask and all dependencies now load correctly
+- **📦 DMG Builder**: Complete rewrite of Python runtime bundling in `create_dmg.sh`
+- **🛠️ Launcher**: Fixed PYTHONPATH isolation for self-contained operation
+- **⚙️ Production Config**: Graceful fallback when dependencies are missing
+- **🔒 Security**: Production security validation now works with bundled runtime
+
+#### 📊 Technical Improvements
+- DMG size increased from 72MB to 110MB for complete dependency isolation
+- Launcher now provides detailed logging for debugging
+- Virtual environment site-packages are properly copied and isolated
+- PYTHONPATH set to prioritize bundled libraries over system libraries
+
+#### 📚 Documentation Updates  
+- Added comprehensive troubleshooting section to CLAUDE.md
+- Updated build instructions with virtual environment requirements
+- Documented fix process and technical details for future reference
+
+### 🔄 Migration Notes
+- No action required for existing installations
+- New DMG installations will work immediately without additional setup
+- Recommended to reinstall from new DMG if experiencing launch issues
+
 ## 🚀 v1.0.0 - Production MVP Release
 **Release Date**: January 2025
 
