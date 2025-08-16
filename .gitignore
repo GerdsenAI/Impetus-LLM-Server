@@ -16,10 +16,21 @@ venv/
 env/
 ENV/
 .pytest_cache/
+/.cache/
+.eggs/
 *.egg-info/
 dist/
 build/
 *.egg
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
 
 # IDE
 .vscode/
@@ -51,6 +62,11 @@ build/
 build_cmake/
 dist/
 *.pkg
+*.app
+build_standalone/
+impetus-dashboard/dist/
+impetus-dashboard/.vite/
+impetus-dashboard/.eslintcache
 
 # Workspace
 *.code-workspace
@@ -60,6 +76,9 @@ impetus-dashboard/node_modules/
 gerdsen_ai_server/.clinerules/
 .clinerules/
 .claude/
+gerdsen_ai_server/server.log
+server.log
+nohup.out
 
 # Temporary files
 *~
@@ -69,3 +88,8 @@ gerdsen_ai_server/.clinerules/
 *.bak
 .smb*
 *.dmg
+
+# Environment
+.env
+.env.*
+!.env.example
