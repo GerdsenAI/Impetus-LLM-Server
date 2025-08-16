@@ -88,6 +88,8 @@ nohup.out
 *.bak
 .smb*
 *.dmg
+Impetus-*.dmg
+tests/screenshots/
 
 # Environment
 .env
