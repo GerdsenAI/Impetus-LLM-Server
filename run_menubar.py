@@ -38,30 +38,37 @@ class ImpetusMenuBar(rumps.App):
     
     def __init__(self):
         super(ImpetusMenuBar, self).__init__("🧠", title="Impetus MLX Server")
-        
+
         # Application state
         self.server_process = None
         self.server_status = "stopped"
         self.current_model = None
         self.performance_mode = "Balanced Mode"
         self.start_time = None
-        
+        # Test mode flag to disable onboarding/permission prompts in automation
+        self.test_mode = os.environ.get("IMPETUS_TEST_MODE", "0") == "1"
+
         # Preferences file
         self.preferences_file = os.path.expanduser("~/Library/Preferences/com.gerdsenai.impetus.json")
-        
-        # Initialize managers
-        self.permissions_manager = PermissionsManager()
-        self.onboarding_tour = OnboardingTour(self)
-        
+
+        # Initialize managers (skip heavy dialogs in test mode)
+        if not self.test_mode:
+            self.permissions_manager = PermissionsManager()
+            self.onboarding_tour = OnboardingTour(self)
+        else:
+            self.permissions_manager = None
+            self.onboarding_tour = None
+
         # Load preferences
         self.load_preferences()
-        
+
         # Setup menu
         self.setup_menu()
-        
-        # Check first run and handle onboarding
-        self.handle_first_run()
-        
+
+        # Check first run and handle onboarding (skip in test mode)
+        if not self.test_mode:
+            self.handle_first_run()
+
         # Start monitoring thread
         self.monitor_thread = threading.Thread(target=self.monitor_server, daemon=True)
         self.monitor_thread.start()
