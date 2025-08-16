@@ -12,13 +12,18 @@ Markers:
 - e2e: end-to-end tests hitting the running server
 - perf: performance measurements
 - slow: long-running/model-loading
+ - skip_stream: skip streaming-related tests
 
 Running:
 - Create venv (recommended): `python3 -m venv .venv && source .venv/bin/activate`
 - Quick API smoke tests: `pytest -m "not gui and not slow and not perf"`
 - Include GUI: `pytest -m gui`
 - Full suite: `pytest -m "e2e or gui"`
+ - Single test file: `pytest tests/api/test_api_smoke.py -q`
+ - With verbose logs: `pytest -vv -s`
 
 Notes:
 - GUI tests use AppleScript under `gui/` called from Python. They will prompt for Accessibility on first run.
 - Server tests start the Flask app in a subprocess and wait for `/api/health`.
+ - Menubar tests set `IMPETUS_TEST_MODE=1` to suppress onboarding dialogs.
+ - If GUI tests intermittently skip due to menu not found, re-run; timing varies by machine.

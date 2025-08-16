@@ -177,4 +177,4 @@ For API documentation, visit `/docs` when running the server or see [docs/API_DO
 
 Credits
 
-Impetus builds on excellent open-source software including Flask, Gunicorn, Eventlet/Gevent, Pydantic, MLX, RUMPS, Vite/React/TS, Nginx, and Pytest. See LICENSE for third‑party notices.
+Impetus builds on excellent open-source software including Flask, Gunicorn, Eventlet/Gevent, Pydantic, MLX, RUMPS, Vite/React/TS, Nginx, Pytest, and more. See [LICENSE](LICENSE) for third‑party notices and attributions.

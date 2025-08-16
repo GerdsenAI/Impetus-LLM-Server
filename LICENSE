@@ -27,14 +27,19 @@ Third-Party Notices and Attributions
 This project uses open-source software. We thank the maintainers and communities of the following packages and tools (non-exhaustive):
 
 - Python and the Python Packaging ecosystem
-- Flask and related extensions
-- Gunicorn and Eventlet/Gevent
-- Pydantic
-- Requests
+- Flask (and Flask-Cors) and related extensions
+- Gunicorn and Eventlet/Gevent (or alternative async workers)
+- Pydantic and pydantic-settings
+- Requests, httpx
 - MLX (Apple) and mlx-lm
-- RUMPS (macOS menu bar)
+- RUMPS (macOS menu bar app framework)
 - Vite, React, TypeScript
 - Nginx
-- Pytest and associated plugins
+- Pytest, pytest-xdist, pytest-timeout, and related plugins
+- Jinja2, Click, Typer
+- Uvicorn/Starlette (where applicable)
+- Node.js tooling (esbuild, eslint, prettier, vite plugins)
 
 Each dependency remains under its own license. See individual project repositories for their license terms.
+
+If your project uses this repository in a distribution that bundles third-party software, please ensure you comply with those projects' license requirements, including attribution and inclusion of license texts as required.

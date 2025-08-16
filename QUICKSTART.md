@@ -90,7 +90,7 @@ open http://localhost:8080/docs
 # List available models (OpenAI-compatible)
 curl -sS http://localhost:8080/v1/models | jq
 
-# Chat completion
+# Chat completion (replace YOUR_API_KEY)
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
@@ -119,6 +119,7 @@ The app stores all data in:
 ### App Won't Open
 - Right-click Impetus and select "Open" (first time only)
 - Check Console.app for errors
+ - If macOS blocks the app, go to System Settings → Privacy & Security → Security → "Open Anyway" for Impetus.
 
 ### Port Already in Use
 ```bash
@@ -133,6 +134,7 @@ kill -9 <PID>
 - Close other heavy applications
 - Try a smaller model (4-bit versions)
 - Check Activity Monitor for resource usage
+ - In the menubar app, try Performance Mode → Efficiency
 
 ### View Logs
 ```bash
