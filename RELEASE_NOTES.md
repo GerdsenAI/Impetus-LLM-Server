@@ -84,7 +84,7 @@ This release transforms Impetus LLM Server from a working prototype into a **pro
 - `/api/health/live` - Kubernetes liveness probe
 - `/api/health/ready` - Kubernetes readiness probe  
 - `/api/health/status` - Detailed health status
-- `/api/health/metrics/json` - JSON format metrics
+- `/api/metrics/json` - JSON format metrics
 - `/docs` - Interactive API documentation
 - `/api/docs/openapi.json` - OpenAPI specification
 
