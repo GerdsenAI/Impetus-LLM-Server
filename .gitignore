@@ -95,3 +95,4 @@ tests/screenshots/
 .env
 .env.*
 !.env.example
+*.dmg
