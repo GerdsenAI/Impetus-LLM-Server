@@ -68,21 +68,21 @@ echo ""
 echo -e "${BLUE}🧹 Testing File Exclusions...${NC}"
 
 # Test 4: Check DMG builder excludes test files
-if grep -q "rm -rf.*tests" create_professional_dmg.sh; then
+if grep -q "rm -rf.*tests" installers/create_dmg.sh; then
     check_result "DMG builder excludes test files" 0
 else
     check_result "DMG builder excludes test files" 1 "Tests directory may be included"
 fi
 
 # Test 5: Check DMG builder cleans artifacts
-if grep -q "find.*__pycache__.*rm" create_professional_dmg.sh; then
+if grep -q "find.*__pycache__.*rm" installers/create_dmg.sh; then
     check_result "DMG builder cleans Python artifacts" 0
 else
     check_result "DMG builder cleans Python artifacts" 1 "__pycache__ directories may be included"
 fi
 
 # Test 6: Check for log file cleanup
-if grep -q "*.log.*delete" create_professional_dmg.sh; then
+if grep -q "*.log.*delete" installers/create_dmg.sh; then
     check_result "DMG builder excludes log files" 0
 else
     check_result "DMG builder excludes log files" 1 "Log files may be included"
@@ -140,14 +140,14 @@ echo ""
 echo -e "${BLUE}📦 Testing DMG Creation...${NC}"
 
 # Test 13: Check DMG script exists and is executable
-if [[ -f "create_professional_dmg.sh" ]] && [[ -x "create_professional_dmg.sh" ]]; then
+if [[ -f "installers/create_dmg.sh" ]] && [[ -x "installers/create_dmg.sh" ]]; then
     check_result "DMG creation script is executable" 0
 else
     check_result "DMG creation script is executable" 1 "DMG script missing or not executable"
 fi
 
 # Test 14: Check production environment indicator
-if grep -q "production.*\.environment" create_professional_dmg.sh; then
+if grep -q "production.*\.environment" installers/create_dmg.sh; then
     check_result "DMG includes production environment indicator" 0
 else
     check_result "DMG includes production environment indicator" 1 "Production indicator missing"

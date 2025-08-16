@@ -5,7 +5,6 @@ Preferred DMG builder:
 
 Deprecated/for reference only:
 - `create_simple_dmg.sh` – older/simple builder
-- Root-level `create_professional_dmg.sh` – kept for backwards compatibility
 
 First‑run and launcher scripts:
 - `scripts/launcher.sh`
