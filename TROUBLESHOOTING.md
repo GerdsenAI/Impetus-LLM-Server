@@ -384,7 +384,7 @@ pkill -f "gunicorn|gerdsen_ai_server/src/main.py"
 rm -rf "${HOME}/Library/Application Support/Impetus/cache"/*
 
 # Reinstall
-cd ~/impetus-llm-server
+cd ~/Impetus-LLM-Server
 git pull
 pip install -e . --upgrade
 ```
