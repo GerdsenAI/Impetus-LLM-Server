@@ -6,21 +6,22 @@
 
 ### System Validation
 ```bash
-# Check system compatibility
-impetus validate
+# Check Python and platform
+python3 --version
+uname -a
 
 # Check health status (v1.0.0)
-curl http://localhost:8080/api/health/status
+curl -sS http://localhost:8080/api/health/status | jq .
 
 # Check detailed system metrics
-curl http://localhost:8080/api/hardware/metrics
+curl -sS http://localhost:8080/api/hardware/metrics | jq .
 ```
 
 ### Production Diagnostics (v1.0.0)
 ```bash
-# Check production server status
-systemctl status impetus  # Linux
-launchctl list | grep impetus  # macOS
+# Check production server status (service mode)
+systemctl status impetus  # Linux (if installed as a service)
+launchctl list | grep impetus  # macOS (if installed as a LaunchAgent)
 
 # Check Docker deployment
 docker-compose ps
@@ -69,7 +70,7 @@ xcode-select --install
 **Solutions**:
 1. Check if server is running:
    ```bash
-   impetus server --check
+   ps aux | grep -E "gunicorn|python .*gerdsen_ai_server/src/main.py" | grep -v grep
    ```
 
 2. Check if port is in use:
@@ -79,12 +80,20 @@ xcode-select --install
 
 3. Start server manually:
    ```bash
-   impetus-server
+   # Development
+   python gerdsen_ai_server/src/main.py
+
+   # Or production-grade locally
+   ./gerdsen_ai_server/start_production.sh
+   # or
+   python ./start_production.py
    ```
 
 4. Use different port:
    ```bash
-   IMPETUS_PORT=8081 impetus-server
+   IMPETUS_PORT=8081 python gerdsen_ai_server/src/main.py
+   # or
+   IMPETUS_PORT=8081 ./gerdsen_ai_server/start_production.sh
    ```
 
 #### "WebSocket connection failed"
@@ -92,8 +101,10 @@ xcode-select --install
 
 **Solutions**:
 1. Check CORS settings in `.env`:
-   ```
-   IMPETUS_CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+   ```bash
+   echo $IMPETUS_CORS_ORIGINS
+   # Example
+   # IMPETUS_CORS_ORIGINS=http://localhost:5173,http://localhost:3000
    ```
 
 2. Restart both server and frontend
@@ -129,8 +140,8 @@ python3 -c "import mlx; print(mlx.__version__)"
    - Restart Mac to clear memory
 
 3. Adjust memory limit in `.env`:
-   ```
-   IMPETUS_MAX_MEMORY_PERCENT=85
+   ```bash
+   export IMPETUS_MAX_MEMORY_PERCENT=85
    ```
 
 #### "Model not found"
@@ -139,7 +150,7 @@ python3 -c "import mlx; print(mlx.__version__)"
 **Solutions**:
 1. Check model location:
    ```bash
-   ls ~/.impetus/models/
+   ls "${HOME}/Library/Application Support/Impetus/models" || true
    ```
 
 2. Re-download from dashboard
@@ -156,8 +167,8 @@ python3 -c "import mlx; print(mlx.__version__)"
 
 **Solutions**:
 1. Switch to efficiency mode:
-   ```
-   IMPETUS_PERFORMANCE_MODE=efficiency
+   ```bash
+   export IMPETUS_PERFORMANCE_MODE=efficiency
    ```
 
 2. Improve cooling:
@@ -188,8 +199,8 @@ python3 -c "import mlx; print(mlx.__version__)"
 
 **Solutions**:
 1. Check performance mode:
-   ```
-   IMPETUS_PERFORMANCE_MODE=performance
+   ```bash
+   export IMPETUS_PERFORMANCE_MODE=performance
    ```
 
 2. Close other GPU-intensive apps
@@ -219,7 +230,7 @@ Another process is using the port. Solutions:
 
 2. Use different port:
    ```bash
-   IMPETUS_PORT=8081 impetus-server
+   IMPETUS_PORT=8081 python gerdsen_ai_server/src/main.py
    ```
 
 #### "API key required"
@@ -319,7 +330,7 @@ nginx -t
 ### Enable debug logging
 ```bash
 # Development mode
-IMPETUS_LOG_LEVEL=DEBUG impetus-server
+IMPETUS_LOG_LEVEL=DEBUG python gerdsen_ai_server/src/main.py
 
 # Production mode
 IMPETUS_LOG_LEVEL=DEBUG ./start_production.sh
@@ -334,7 +345,7 @@ docker-compose -f docker-compose.yml -f docker-compose.debug.yml up
 curl http://localhost:8080/api/hardware/metrics
 
 # Monitor real-time performance
-watch -n 1 'curl -s http://localhost:8080/api/health/metrics/json | jq .'
+watch -n 1 'curl -s http://localhost:8080/api/metrics/json | jq .'
 
 # Profile API requests
 curl -w "@curl-format.txt" http://localhost:8080/v1/models
@@ -367,10 +378,10 @@ print(mx.metal.is_available())
 ### Reset everything
 ```bash
 # Stop server
-pkill -f "impetus-server"
+pkill -f "gunicorn|gerdsen_ai_server/src/main.py"
 
 # Clear cache
-rm -rf ~/.impetus/cache/*
+rm -rf "${HOME}/Library/Application Support/Impetus/cache"/*
 
 # Reinstall
 cd ~/impetus-llm-server
@@ -384,12 +395,12 @@ If these solutions don't work:
 
 1. **Check logs**:
    ```bash
-   tail -f ~/.impetus/logs/impetus.log
+   tail -n 200 "${HOME}/Library/Application Support/Impetus/logs/impetus_server.log"
    ```
 
-2. **Run validation**:
+2. **Capture system info**:
    ```bash
-   impetus validate
+   sw_vers; sysctl -n machdep.cpu.brand_string; python3 --version
    ```
 
 3. **Report issue**:

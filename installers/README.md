@@ -1,3 +1,23 @@
+# Impetus Installer Toolkit
+
+Preferred DMG builder:
+- `create_dmg.sh` – customizable DMG builder
+
+Deprecated/for reference only:
+- `create_simple_dmg.sh` – older/simple builder
+- Root-level `create_professional_dmg.sh` – kept for backwards compatibility
+
+First‑run and launcher scripts:
+- `scripts/launcher.sh`
+- `scripts/first_run.py`
+
+Assets:
+- `assets/` – AppIcon.icns, dmg-background.png, Info.plist
+
+To build a DMG:
+```bash
+./installers/create_dmg.sh
+```
 # Impetus LLM Server - Installers
 
 This directory contains various installers for different deployment scenarios.
