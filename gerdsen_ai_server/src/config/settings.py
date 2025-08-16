@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class ServerSettings(BaseSettings):
     """Server configuration settings"""
-    host: str = Field(default="0.0.0.0", env="IMPETUS_HOST")
+    host: str = Field(default="127.0.0.1", env="IMPETUS_HOST")  # Secure local-only binding
     port: int = Field(default=8080, env="IMPETUS_PORT")
     debug: bool = Field(default=False, env="IMPETUS_DEBUG")
     cors_origins: list[str] = Field(

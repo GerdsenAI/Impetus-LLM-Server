@@ -5,7 +5,9 @@ Threading-compatible app factory for Python 3.13 and production WSGI.
 """
 
 from datetime import datetime
+import atexit
 import os
+import signal
 import sys
 from pathlib import Path
 from flask import Flask, jsonify
@@ -16,6 +18,35 @@ from flask_cors import CORS
 app = None
 socketio = None
 SOCKETIO_AVAILABLE = False
+
+
+def cleanup_resources():
+    """Clean up resources on shutdown"""
+    try:
+        global socketio
+        if socketio is not None:
+            print("🧹 Cleaning up SocketIO resources...")
+            socketio.stop()
+        
+        # Clean up any MLX resources
+        try:
+            import mlx.core as mx
+            if hasattr(mx, 'metal') and hasattr(mx.metal, 'clear_cache'):
+                mx.metal.clear_cache()
+                print("🧹 Cleared MLX Metal cache...")
+        except Exception:
+            pass
+        
+        print("✅ Resource cleanup completed")
+    except Exception as e:
+        print(f"⚠️ Error during cleanup: {e}")
+
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals"""
+    print(f"\n🛑 Received signal {signum}, shutting down gracefully...")
+    cleanup_resources()
+    sys.exit(0)
 
 
 def create_app():
@@ -42,9 +73,16 @@ def create_app():
     global SOCKETIO_AVAILABLE
     try:
         from flask_socketio import SocketIO
-        sio = SocketIO(flask_app, cors_allowed_origins="*", async_mode="threading")
+        # Secure CORS configuration - only allow specific origins
+        allowed_origins = [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000"
+        ]
+        sio = SocketIO(flask_app, cors_allowed_origins=allowed_origins, async_mode="threading")
         SOCKETIO_AVAILABLE = True
-        print("📡 SocketIO initialized with threading mode")
+        print("📡 SocketIO initialized with threading mode and secure CORS")
     except Exception:
         SOCKETIO_AVAILABLE = False
         print("⚠️  SocketIO not available, running Flask-only mode")
@@ -124,8 +162,14 @@ def create_app():
 # Initialize globals for importers (e.g., gunicorn wsgi:application)
 app, socketio = create_app()
 
+# Register cleanup handlers
+atexit.register(cleanup_resources)
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
-if __name__ == "__main__":
+
+def main():
+    """Main entry point for the application"""
     print("🚀 Starting Impetus LLM Server...")
     print("📡 Server will be available at: http://localhost:8080")
     print("📚 API Documentation: http://localhost:8080/docs")
@@ -133,9 +177,39 @@ if __name__ == "__main__":
     print(f"🧵 Using threading mode (Python 3.13 compatible)")
     print(f"📡 SocketIO Available: {SOCKETIO_AVAILABLE}")
 
-    try:
-        # Use Flask's built-in server with threading for local runs
-        app.run(host="0.0.0.0", port=8080, debug=False, threaded=True, use_reloader=False)
-    except Exception as e:
-        print(f"❌ Server failed to start: {e}")
-        raise
+    # Check if we should use production server
+    use_production = os.getenv('IMPETUS_ENVIRONMENT') == 'production'
+    
+    if use_production:
+        print("🏭 Starting in production mode with gunicorn...")
+        try:
+            import subprocess
+            cmd = [
+                "gunicorn",
+                "--config", "gunicorn_config.py",
+                "--bind", "127.0.0.1:8080",  # Secure local binding
+                "--workers", "4",
+                "--worker-class", "eventlet",
+                "--worker-connections", "1000",
+                "gerdsen_ai_server.src.main:app"
+            ]
+            subprocess.run(cmd)
+        except KeyboardInterrupt:
+            print("🛑 Server stopped by user")
+        except Exception as e:
+            print(f"❌ Production server failed to start: {e}")
+            raise
+    else:
+        print("🔧 Starting in development mode with Flask dev server...")
+        try:
+            # Use Flask's built-in server with threading for development only
+            app.run(host="127.0.0.1", port=8080, debug=False, threaded=True, use_reloader=False)
+        except KeyboardInterrupt:
+            print("🛑 Server stopped by user")
+        except Exception as e:
+            print(f"❌ Development server failed to start: {e}")
+            raise
+
+
+if __name__ == "__main__":
+    main()

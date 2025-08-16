@@ -7,8 +7,8 @@ import multiprocessing
 import os
 from pathlib import Path
 
-# Server socket
-bind = f"{os.getenv('IMPETUS_HOST', '0.0.0.0')}:{os.getenv('IMPETUS_PORT', '8080')}"
+# Server socket - secure local-only binding by default
+bind = f"{os.getenv('IMPETUS_HOST', '127.0.0.1')}:{os.getenv('IMPETUS_PORT', '8080')}"
 backlog = 2048
 
 # Worker processes

@@ -22,6 +22,12 @@ bp = Blueprint('openai_api', __name__)
 def verify_api_key():
     """Verify API key if configured"""
     if not settings.server.api_key:
+        # Generate a secure API key on first run
+        import secrets
+        default_key = f"impetus-{secrets.token_urlsafe(32)}"
+        settings.server.api_key = default_key
+        print(f"🔑 Generated API key: {default_key}")
+        print("💡 Save this key for future API requests!")
         return True
 
     auth_header = request.headers.get('Authorization', '')
@@ -82,13 +88,13 @@ def list_models():
 def chat_completions(validated_data: ChatCompletionRequest):
     """OpenAI-compatible chat completions endpoint"""
 
-    # Extract validated parameters
+    # Extract validated parameters with sensible defaults
     model = validated_data.model
     messages = validated_data.messages
-    temperature = validated_data.temperature
-    max_tokens = validated_data.max_tokens
+    temperature = validated_data.temperature or 0.7  # Default temperature
+    max_tokens = validated_data.max_tokens or 150    # Reasonable default to prevent excessive generation
     stream = validated_data.stream
-    top_p = validated_data.top_p
+    top_p = validated_data.top_p or 1.0              # Default top_p
 
     # KV cache parameters
     use_cache = validated_data.use_cache
@@ -120,7 +126,7 @@ def chat_completions(validated_data: ChatCompletionRequest):
 
     # Generate response
     if stream:
-        return Response(
+        response = Response(
             stream_with_context(
                 generate_chat_stream(
                     loaded_models[model],
@@ -135,6 +141,11 @@ def chat_completions(validated_data: ChatCompletionRequest):
             ),
             mimetype='text/event-stream'
         )
+        # Ensure proper SSE headers
+        response.headers['Cache-Control'] = 'no-cache'
+        response.headers['Connection'] = 'keep-alive'
+        response.headers['X-Accel-Buffering'] = 'no'  # Disable nginx buffering
+        return response
     else:
         # Non-streaming response
         response = generate_chat_completion(

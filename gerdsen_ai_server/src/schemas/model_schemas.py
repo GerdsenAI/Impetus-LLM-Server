@@ -10,12 +10,12 @@ from pydantic import BaseModel, Field, validator
 
 class ModelDownloadRequest(BaseModel):
     """Model download request schema"""
-    model_id: str = Field(..., min_length=1, max_length=255, description="HuggingFace model identifier")
+    model_identifier: str = Field(..., min_length=1, max_length=255, description="HuggingFace model identifier", alias="model_id")
     auto_load: bool | None = Field(True, description="Automatically load model after download")
     force_download: bool | None = Field(False, description="Force re-download if model exists")
 
-    @validator('model_id')
-    def validate_model_id(cls, v):
+    @validator('model_identifier')
+    def validate_model_identifier(cls, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
 
@@ -38,11 +38,11 @@ class ModelDownloadRequest(BaseModel):
 
 class ModelLoadRequest(BaseModel):
     """Model load request schema"""
-    model_id: str = Field(..., min_length=1, max_length=255, description="Model identifier to load")
+    model_identifier: str = Field(..., min_length=1, max_length=255, description="Model identifier to load", alias="model_id")
     force_reload: bool | None = Field(False, description="Force reload if already loaded")
 
-    @validator('model_id')
-    def validate_model_id(cls, v):
+    @validator('model_identifier')
+    def validate_model_identifier(cls, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
         return v.strip()
@@ -50,11 +50,11 @@ class ModelLoadRequest(BaseModel):
 
 class ModelUnloadRequest(BaseModel):
     """Model unload request schema"""
-    model_id: str = Field(..., min_length=1, max_length=255, description="Model identifier to unload")
+    model_identifier: str = Field(..., min_length=1, max_length=255, description="Model identifier to unload", alias="model_id")
     force: bool | None = Field(False, description="Force unload even if in use")
 
-    @validator('model_id')
-    def validate_model_id(cls, v):
+    @validator('model_identifier')
+    def validate_model_identifier(cls, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
         return v.strip()
@@ -99,7 +99,7 @@ class CacheSettingsRequest(BaseModel):
 
 class ModelInfo(BaseModel):
     """Model information schema"""
-    model_id: str = Field(..., description="Model identifier")
+    model_identifier: str = Field(..., description="Model identifier", alias="model_id")
     status: Literal["loading", "loaded", "unloaded", "error", "downloading"] = Field(..., description="Model status")
     size_mb: float | None = Field(None, description="Model size in megabytes")
     memory_usage_mb: float | None = Field(None, description="Current memory usage in MB")
@@ -121,7 +121,7 @@ class ModelListResponse(BaseModel):
 
 class BenchmarkResult(BaseModel):
     """Benchmark result schema"""
-    model_id: str = Field(..., description="Model identifier")
+    model_identifier: str = Field(..., description="Model identifier", alias="model_id")
     timestamp: datetime = Field(..., description="Benchmark timestamp")
     tokens_per_second: float = Field(..., description="Average tokens per second")
     first_token_latency_ms: float = Field(..., description="First token latency in milliseconds")
@@ -134,7 +134,7 @@ class BenchmarkResult(BaseModel):
 
 class WarmupResult(BaseModel):
     """Warmup result schema"""
-    model_id: str = Field(..., description="Model identifier")
+    model_identifier: str = Field(..., description="Model identifier", alias="model_id")
     timestamp: datetime = Field(..., description="Warmup timestamp")
     warmup_time_seconds: float = Field(..., description="Time taken for warmup")
     first_token_latency_ms: float = Field(..., description="First token latency after warmup")
@@ -165,7 +165,7 @@ class CacheSettings(BaseModel):
 
 class DiscoveredModel(BaseModel):
     """Discovered model schema"""
-    model_id: str = Field(..., description="Model identifier")
+    model_identifier: str = Field(..., description="Model identifier", alias="model_id")
     name: str = Field(..., description="Human-readable model name")
     description: str | None = Field(None, description="Model description")
     size_gb: float = Field(..., description="Model size in gigabytes")
@@ -197,7 +197,7 @@ class OperationResponse(BaseModel):
 
 class DownloadProgress(BaseModel):
     """Download progress schema"""
-    model_id: str = Field(..., description="Model identifier")
+    model_identifier: str = Field(..., description="Model identifier", alias="model_id")
     status: Literal["downloading", "completed", "error", "cancelled"] = Field(..., description="Download status")
     progress_percent: float = Field(..., ge=0.0, le=100.0, description="Download progress percentage")
     downloaded_mb: float = Field(..., description="Downloaded size in MB")

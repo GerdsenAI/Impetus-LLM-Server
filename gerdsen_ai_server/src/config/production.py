@@ -3,12 +3,78 @@ Production configuration and hardening for Impetus LLM Server
 """
 
 import logging
+import os
 import sys
+from pathlib import Path
 
 from flask import Flask
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from loguru import logger
+
+
+def configure_production_environment():
+    """Configure secure production environment settings"""
+    
+    # Security: Force localhost-only binding
+    os.environ.setdefault('IMPETUS_HOST', '127.0.0.1')
+    os.environ.setdefault('IMPETUS_PORT', '8080')
+    
+    # Disable debug mode explicitly
+    os.environ.setdefault('IMPETUS_DEBUG', 'false')
+    
+    # Set conservative performance defaults
+    os.environ.setdefault('IMPETUS_MAX_LOADED_MODELS', '2')
+    os.environ.setdefault('IMPETUS_MAX_TOKENS', '1024')
+    os.environ.setdefault('IMPETUS_PERFORMANCE_MODE', 'balanced')
+    
+    # Logging configuration
+    os.environ.setdefault('IMPETUS_LOG_LEVEL', 'info')
+    
+    # Security: Lock down CORS to localhost only
+    os.environ.setdefault('IMPETUS_CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173')
+    
+    # Set production cache and models directories
+    app_support = Path.home() / "Library" / "Application Support" / "Impetus"
+    os.environ.setdefault('IMPETUS_MODELS_DIR', str(app_support / "models"))
+    os.environ.setdefault('IMPETUS_CACHE_DIR', str(Path.home() / "Library" / "Caches" / "com.gerdsenai.impetus"))
+    
+    # Conservative memory settings for user machines
+    os.environ.setdefault('IMPETUS_MAX_MEMORY_GB', '8')
+    
+    # API security
+    os.environ.setdefault('IMPETUS_API_KEY', '')  # Will be auto-generated on first run
+
+
+def validate_production_security():
+    """Validate that production security settings are correct"""
+    
+    host = os.environ.get('IMPETUS_HOST', '')
+    debug = os.environ.get('IMPETUS_DEBUG', '').lower()
+    
+    security_issues = []
+    
+    # Check host binding
+    if host not in ['127.0.0.1', 'localhost']:
+        security_issues.append(f"⚠️  Insecure host binding: {host} (should be 127.0.0.1)")
+    
+    # Check debug mode
+    if debug not in ['false', '0', '']:
+        security_issues.append("⚠️  Debug mode enabled in production")
+    
+    # Check CORS origins
+    cors_origins = os.environ.get('IMPETUS_CORS_ORIGINS', '')
+    if '*' in cors_origins:
+        security_issues.append("⚠️  Wildcard CORS allowed in production")
+    
+    if security_issues:
+        print("🚨 SECURITY ISSUES DETECTED:")
+        for issue in security_issues:
+            print(f"  {issue}")
+        return False
+    else:
+        print("✅ Production security validation passed")
+        return True
 
 
 def configure_rate_limiting(app: Flask) -> Limiter:

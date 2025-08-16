@@ -96,14 +96,38 @@ class MetalMonitor:
 
         if MLX_AVAILABLE:
             try:
-                # Get Metal memory usage from MLX
-                memory_info = mx.metal.get_memory_info()
-                stats['memory_used_gb'] = memory_info['current_allocated_size'] / (1024 ** 3)
-                stats['memory_total_gb'] = memory_info['peak_allocated_size'] / (1024 ** 3)
-
-                # Also get cache info
-                cache_info = mx.metal.get_cache_memory()
-                logger.debug(f"Metal cache memory: {cache_info / (1024 ** 3):.2f} GB")
+                # Get Metal memory usage from MLX - handle different API versions
+                memory_info = None
+                if hasattr(mx, 'metal'):
+                    if hasattr(mx.metal, 'get_memory_info'):
+                        memory_info = mx.metal.get_memory_info()
+                    elif hasattr(mx.metal, 'memory_info'):
+                        memory_info = mx.metal.memory_info()
+                    elif hasattr(mx.metal, 'get_cache_memory'):
+                        # Fallback for older MLX versions
+                        cache_memory = mx.metal.get_cache_memory()
+                        memory_info = {"allocated": cache_memory, "available": 8 * 1024 * 1024 * 1024}  # 8GB default
+                
+                if memory_info:
+                    # Handle different memory info formats from different MLX versions
+                    if isinstance(memory_info, dict):
+                        if 'current_allocated_size' in memory_info:
+                            stats['memory_used_gb'] = memory_info['current_allocated_size'] / (1024 ** 3)
+                        elif 'allocated' in memory_info:
+                            stats['memory_used_gb'] = memory_info['allocated'] / (1024 ** 3)
+                        
+                        if 'peak_allocated_size' in memory_info:
+                            stats['memory_total_gb'] = memory_info['peak_allocated_size'] / (1024 ** 3)
+                        elif 'available' in memory_info:
+                            stats['memory_total_gb'] = memory_info['available'] / (1024 ** 3)
+                    
+                    # Also get cache info if available
+                    if hasattr(mx.metal, 'get_cache_memory'):
+                        try:
+                            cache_info = mx.metal.get_cache_memory()
+                            logger.debug(f"Metal cache memory: {cache_info / (1024 ** 3):.2f} GB")
+                        except Exception:
+                            pass
             except Exception as e:
                 logger.debug(f"Failed to get MLX memory info: {e}")
 
