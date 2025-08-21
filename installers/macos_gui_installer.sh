@@ -197,7 +197,7 @@ if [[ $(uname -m) != "arm64" ]]; then
 fi
 
 # Check macOS version
-MIN_VERSION="13.0"
+MIN_VERSION="14.0"
 CURRENT_VERSION=$(sw_vers -productVersion)
 if [[ "$(printf '%s\n' "$MIN_VERSION" "$CURRENT_VERSION" | sort -V | head -n1)" != "$MIN_VERSION" ]]; then
     echo "Error: macOS $MIN_VERSION or later is required (found $CURRENT_VERSION)"
