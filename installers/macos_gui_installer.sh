@@ -127,7 +127,7 @@ prepare_payload() {
     <key>NSRequiresAquaSystemAppearance</key>
     <false/>
     <key>LSMinimumSystemVersion</key>
-    <string>13.0</string>
+    <string>14.0</string>
 </dict>
 </plist>
 EOF
@@ -197,7 +197,7 @@ if [[ $(uname -m) != "arm64" ]]; then
 fi
 
 # Check macOS version
-MIN_VERSION="13.0"
+MIN_VERSION="14.0"
 CURRENT_VERSION=$(sw_vers -productVersion)
 if [[ "$(printf '%s\n' "$MIN_VERSION" "$CURRENT_VERSION" | sort -V | head -n1)" != "$MIN_VERSION" ]]; then
     echo "Error: macOS $MIN_VERSION or later is required (found $CURRENT_VERSION)"
@@ -384,7 +384,7 @@ create_distribution_xml() {
     <options customize="never" require-scripts="false" hostArchitectures="arm64"/>
     <volume-check>
         <allowed-os-versions>
-            <os-version min="13.0"/>
+            <os-version min="14.0"/>
         </allowed-os-versions>
     </volume-check>
     
@@ -472,7 +472,7 @@ For more information, visit:
 https://github.com/GerdsenAI/Impetus-LLM-Server
 
 Requirements:
-- macOS 13.0+ on Apple Silicon (M1/M2/M3/M4)
+- macOS 14.0+ on Apple Silicon (M1/M2/M3/M4)
 - Python 3.11+ (auto-installed if missing)
 - 8GB+ RAM, 10GB+ disk space
 EOF

@@ -17,6 +17,11 @@ try:
 except ImportError:
     MLX_AVAILABLE = False
     logger.warning("MLX not available for KV cache")
+    # Create a dummy mx for type annotations
+    class _DummyMLX:
+        class array:
+            pass
+    mx = _DummyMLX()
 
 
 @dataclass
