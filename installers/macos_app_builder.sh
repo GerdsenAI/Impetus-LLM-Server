@@ -297,7 +297,7 @@ create_info_plist() {
     <key>NSRequiresAquaSystemAppearance</key>
     <false/>
     <key>LSMinimumSystemVersion</key>
-    <string>13.0</string>
+    <string>14.0</string>
     <key>LSArchitecturePriority</key>
     <array>
         <string>arm64</string>

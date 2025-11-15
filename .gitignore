@@ -51,6 +51,7 @@ build/
 build_cmake/
 dist/
 *.pkg
+*.tsbuildinfo
 
 # Workspace
 *.code-workspace

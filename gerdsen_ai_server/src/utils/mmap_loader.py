@@ -22,6 +22,11 @@ try:
 except ImportError:
     MLX_AVAILABLE = False
     logger.warning("MLX not available for memory mapping")
+    # Create a dummy mx for type annotations
+    class _DummyMLX:
+        class array:
+            pass
+    mx = _DummyMLX()
 
 
 @dataclass

@@ -1,245 +1,141 @@
 #!/usr/bin/env python3
 """
-Impetus LLM Server - Main Application Entry Point
-High-performance LLM server optimized for Apple Silicon
+Impetus LLM Server - Main Server File
+Threading-compatible app factory for Python 3.13 and production WSGI.
 """
 
-import signal
+from datetime import datetime
+import os
 import sys
 from pathlib import Path
-
 from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_socketio import SocketIO
-from loguru import logger
-
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.config.settings import settings
-from src.routes import hardware, health, models, openai_api, websocket
-from src.utils.error_recovery import error_recovery_service
-from src.utils.hardware_detector import detect_hardware
-from src.utils.openapi_generator import create_swagger_ui_route
-
-# Initialize Flask app
-app = Flask(__name__)
-app.config['SECRET_KEY'] = settings.server.api_key or 'impetus-default-secret-key'
-
-# Configure CORS
-CORS(app, origins=settings.server.cors_origins)
-
-# Initialize SocketIO
-socketio = SocketIO(
-    app,
-    cors_allowed_origins=settings.server.cors_origins,
-    ping_interval=settings.server.websocket_ping_interval,
-    ping_timeout=settings.server.websocket_ping_timeout,
-    logger=settings.server.debug,
-    engineio_logger=settings.server.debug,
-    async_mode='eventlet'
-)
-
-# Global state
-app_state = {
-    'hardware_info': None,
-    'loaded_models': {},
-    'active_sessions': {},
-    'metrics': {
-        'requests_total': 0,
-        'tokens_generated': 0,
-        'average_latency_ms': 0
-    }
-}
 
 
-def register_blueprints():
-    """Register all API blueprints"""
-    app.register_blueprint(health.bp, url_prefix='/api')
-    app.register_blueprint(hardware.bp, url_prefix='/api/hardware')
-    app.register_blueprint(models.bp, url_prefix='/api/models')
-    app.register_blueprint(openai_api.bp, url_prefix='/v1')
-
-    # Register WebSocket handlers
-    websocket.register_handlers(socketio, app_state)
-
-    logger.info("All blueprints registered successfully")
-
-
-def initialize_hardware():
-    """Detect and initialize hardware capabilities"""
-    try:
-        hardware_info = detect_hardware()
-        app_state['hardware_info'] = hardware_info
-
-        logger.info(f"Hardware detected: {hardware_info['chip_type']} "
-                   f"with {hardware_info['total_memory_gb']:.1f}GB RAM")
-
-        # Set performance mode based on hardware
-        if hardware_info['performance_cores'] >= 8:
-            logger.info("High-performance hardware detected, enabling performance mode")
-            settings.hardware.performance_mode = "performance"
-
-        # Start Metal GPU monitoring if on macOS
-        import platform
-        if platform.system() == 'Darwin':
-            from src.utils.metal_monitor import metal_monitor
-            metal_monitor.start_monitoring(interval_seconds=2.0)
-            logger.info("Started Metal GPU monitoring")
-
-    except Exception as e:
-        logger.error(f"Failed to detect hardware: {e}")
-        app_state['hardware_info'] = {
-            'chip_type': 'Unknown',
-            'total_memory_gb': 8.0,
-            'available_memory_gb': 4.0,
-            'performance_cores': 4,
-            'efficiency_cores': 4
-        }
-
-
-def setup_api_documentation():
-    """Setup OpenAPI documentation and Swagger UI"""
-    try:
-        # Create Swagger UI routes
-        create_swagger_ui_route(app)
-        logger.info("OpenAPI documentation initialized at /docs")
-    except Exception as e:
-        logger.warning(f"Failed to setup API documentation: {e}")
-
-
-def handle_shutdown(signum, frame):
-    """Graceful shutdown handler"""
-    logger.info("Received shutdown signal, cleaning up...")
-
-    # Stop Metal monitoring
-    import platform
-    if platform.system() == 'Darwin':
-        try:
-            from src.utils.metal_monitor import metal_monitor
-            metal_monitor.stop_monitoring()
-            logger.info("Stopped Metal GPU monitoring")
-        except Exception as e:
-            logger.error(f"Error stopping Metal monitoring: {e}")
-
-    # Shutdown warmup service
-    try:
-        from src.services.model_warmup import model_warmup_service
-        model_warmup_service.shutdown()
-        logger.info("Shutdown warmup service")
-    except Exception as e:
-        logger.error(f"Error shutting down warmup service: {e}")
-
-    # Unload all models
-    for model_id in list(app_state['loaded_models'].keys()):
-        try:
-            app_state['loaded_models'][model_id].unload()
-            logger.info(f"Unloaded model: {model_id}")
-        except Exception as e:
-            logger.error(f"Error unloading model {model_id}: {e}")
-
-    sys.exit(0)
-
-
-@app.errorhandler(404)
-def not_found(error):
-    return jsonify({'error': 'Endpoint not found'}), 404
-
-
-@app.errorhandler(500)
-def internal_error(error):
-    logger.error(f"Internal server error: {error}")
-    return jsonify({'error': 'Internal server error'}), 500
+# Exposed globals filled by create_app()
+app = None
+socketio = None
+SOCKETIO_AVAILABLE = False
 
 
 def create_app():
-    """Application factory"""
-    # Store app_state in Flask config
-    app.config['app_state'] = app_state
+    """Application factory that registers blueprints and initializes app state.
 
-    # Apply production configuration if in production
-    if settings.environment == "production":
-        from src.config.production import apply_production_config
-        app_state['limiter'] = apply_production_config(app, socketio)
-
-    # Initialize error recovery service
-    error_recovery_service.set_app_state(app_state)
-
-    # Initialize hardware detection
-    initialize_hardware()
-
-    # Register blueprints
-    register_blueprints()
-
-    # Setup OpenAPI documentation
-    setup_api_documentation()
-
-    # Register signal handlers
-    signal.signal(signal.SIGINT, handle_shutdown)
-    signal.signal(signal.SIGTERM, handle_shutdown)
-
-    logger.info(f"Impetus LLM Server v{settings.version} initialized")
-    logger.info(f"Environment: {settings.environment}")
-    logger.info(f"Server will run on {settings.server.host}:{settings.server.port}")
-
-    # Print welcome message
-    console_msg = f"""
-    ╔══════════════════════════════════════════════════════════════╗
-    ║                  Impetus LLM Server v{settings.version}                  ║
-    ║          High-Performance LLM for Apple Silicon              ║
-    ╚══════════════════════════════════════════════════════════════╝
-    
-    🚀 Starting server on http://{settings.server.host}:{settings.server.port}
-    📊 Dashboard: http://localhost:5173
-    📖 API Docs: http://localhost:{settings.server.port}/docs
-    
-    💡 Quick Commands:
-       • List models: GET /api/models/list
-       • Check health: GET /api/health/status
-       • Run validation: impetus validate
+    Returns:
+        tuple[Flask, Any]: (app, socketio_instance or None)
     """
-    print(console_msg)
+    from importlib import import_module
 
-    return app, socketio
-
-
-def main():
-    """Main entry point"""
-    # Check for CLI usage
-    if len(sys.argv) > 1 and not sys.argv[0].endswith('main.py'):
-        # Called via CLI
-        from src.cli import main as cli_main
-        cli_main()
-        return
-
-    # Normal server startup
-    app, socketio = create_app()
-
+    # Make sure the repository root is on sys.path when running as a script
     try:
-        if settings.environment == "production":
-            # Production mode with eventlet
-            logger.info("Starting production server with eventlet...")
-            socketio.run(
-                app,
-                host=settings.server.host,
-                port=settings.server.port,
-                debug=False,
-                use_reloader=False
-            )
-        else:
-            # Development mode
-            logger.info("Starting development server...")
-            socketio.run(
-                app,
-                host=settings.server.host,
-                port=settings.server.port,
-                debug=settings.server.debug,
-                use_reloader=True
-            )
-    except Exception as e:
-        logger.error(f"Failed to start server: {e}")
-        sys.exit(1)
+        repo_root = Path(__file__).resolve().parents[2]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+    except Exception:
+        pass
+
+    flask_app = Flask(__name__)
+    CORS(flask_app)
+
+    # Initialize SocketIO in threading mode for Python 3.13 compatibility
+    sio = None
+    global SOCKETIO_AVAILABLE
+    try:
+        from flask_socketio import SocketIO
+        sio = SocketIO(flask_app, cors_allowed_origins="*", async_mode="threading")
+        SOCKETIO_AVAILABLE = True
+        print("📡 SocketIO initialized with threading mode")
+    except Exception:
+        SOCKETIO_AVAILABLE = False
+        print("⚠️  SocketIO not available, running Flask-only mode")
+
+    # App state shared across blueprints
+    flask_app.config["app_state"] = {
+        "start_time": datetime.now(),
+        "status": "running",
+        "loaded_models": {},
+        "metrics": {},
+        "socketio": sio,
+    }
+
+    # Lightweight index and docs
+    @flask_app.route("/")
+    def index():
+        start_time = flask_app.config["app_state"]["start_time"]
+        uptime = (datetime.now() - start_time).total_seconds()
+        return jsonify({
+            "name": "Impetus LLM Server",
+            "version": "1.0.2",
+            "status": "running",
+            "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+            "socketio_available": SOCKETIO_AVAILABLE,
+            "uptime_seconds": uptime,
+        })
+
+    @flask_app.route("/docs")
+    @flask_app.route("/api/docs")
+    def api_docs():
+        return (
+            """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Impetus LLM Server API</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 40px; }
+                    .container { max-width: 800px; margin: 0 auto; }
+                    .endpoint { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+                    .method { color: #007bff; font-weight: bold; margin-right: 10px; }
+                    .status { background: #d4edda; padding: 10px; border-radius: 5px; margin: 20px 0; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🧠 Impetus LLM Server API</h1>
+                    <p>High-performance local LLM server optimized for Apple Silicon</p>
+                    <div class="status">
+                        See <code>/api/health</code>, <code>/api/status</code>, <code>/api/metrics</code>, and OpenAI-compatible <code>/v1/*</code>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+        )
+
+    # Register blueprints if available
+    def _maybe_register(module_path: str, attr: str, prefix: str):
+        try:
+            mod = import_module(module_path)
+            bp = getattr(mod, attr)
+            flask_app.register_blueprint(bp, url_prefix=prefix)
+            print(f"✅ Registered {module_path} at {prefix}")
+        except Exception as e:
+            print(f"ℹ️ Skipped registering {module_path}: {e}")
+
+    # Use absolute import paths to work both as script and package
+    _maybe_register("gerdsen_ai_server.src.routes.health", "bp", "/api")
+    _maybe_register("gerdsen_ai_server.src.routes.models", "bp", "/api/models")
+    _maybe_register("gerdsen_ai_server.src.routes.hardware", "bp", "/api/hardware")
+    _maybe_register("gerdsen_ai_server.src.routes.openai_api", "bp", "/v1")
+
+    return flask_app, sio
+
+
+# Initialize globals for importers (e.g., gunicorn wsgi:application)
+app, socketio = create_app()
 
 
 if __name__ == "__main__":
-    main()
+    print("🚀 Starting Impetus LLM Server...")
+    print("📡 Server will be available at: http://localhost:8080")
+    print("📚 API Documentation: http://localhost:8080/docs")
+    print(f"🐍 Python Version: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+    print(f"🧵 Using threading mode (Python 3.13 compatible)")
+    print(f"📡 SocketIO Available: {SOCKETIO_AVAILABLE}")
+
+    try:
+        # Use Flask's built-in server with threading for local runs
+        app.run(host="0.0.0.0", port=8080, debug=False, threaded=True, use_reloader=False)
+    except Exception as e:
+        print(f"❌ Server failed to start: {e}")
+        raise

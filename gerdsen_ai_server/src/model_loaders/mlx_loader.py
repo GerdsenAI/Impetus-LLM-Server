@@ -51,8 +51,10 @@ class MLXModel(BaseModel):
             logger.info(f"Loading MLX model: {self.model_id}")
 
             use_mmap = kwargs.get('use_mmap', settings.model.use_mmap if hasattr(settings.model, 'use_mmap') else True)
+            logger.info(f"use_mmap: {use_mmap}, model_path exists: {self.model_path.exists()}")
 
             # Try memory-mapped loading first if enabled and path exists
+            model_loaded = False
             if use_mmap and self.model_path.exists() and self.model_path.is_dir():
                 try:
                     logger.info("Attempting memory-mapped loading")
@@ -74,14 +76,14 @@ class MLXModel(BaseModel):
 
                     mmap_time = (time.time() - start_time) * 1000
                     logger.info(f"Memory-mapped loading completed in {mmap_time:.1f}ms")
+                    model_loaded = True
 
                 except Exception as e:
                     logger.warning(f"Memory-mapped loading failed, falling back to regular loading: {e}")
-                    # Fall back to regular loading
-                    use_mmap = False
 
-            if not use_mmap:
+            if not model_loaded:
                 # Regular loading
+                logger.info("Using regular loading (not mmap)")
                 if self.model_path.exists():
                     # Load from local path
                     self.model_instance, self.tokenizer_instance = load(
@@ -93,6 +95,7 @@ class MLXModel(BaseModel):
                     )
                 else:
                     # Load from HuggingFace Hub
+                    logger.info(f"Loading from HuggingFace Hub: {self.model_id}")
                     self.model_instance, self.tokenizer_instance = load(
                         self.model_id,
                         tokenizer_config=kwargs.get('tokenizer_config', {}),
@@ -100,6 +103,7 @@ class MLXModel(BaseModel):
                         adapter_path=kwargs.get('adapter_path'),
                         lazy=kwargs.get('lazy', True)
                     )
+                    logger.info(f"After load: model={type(self.model_instance)}, tokenizer={type(self.tokenizer_instance)}")
 
             # Load config if available
             config_path = self.model_path / "config.json" if self.model_path.exists() else None
@@ -111,6 +115,10 @@ class MLXModel(BaseModel):
             # Try to get model config from the model instance if not loaded from file
             if not self.model_config and hasattr(self.model_instance, 'config'):
                 self.model_config = self.model_instance.config
+
+            # Validate that model and tokenizer were actually loaded
+            if self.model_instance is None or self.tokenizer_instance is None:
+                raise ModelLoadError(f"Failed to load model or tokenizer: model={self.model_instance}, tokenizer={self.tokenizer_instance}")
 
             self.loaded = True
             logger.info(f"Successfully loaded MLX model: {self.model_id}")
@@ -188,9 +196,6 @@ class MLXModel(BaseModel):
                 self.tokenizer_instance,
                 prompt=prompt,
                 max_tokens=max_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                repetition_penalty=repetition_penalty,
                 verbose=False
             )
 
@@ -245,9 +250,6 @@ class MLXModel(BaseModel):
                     self.tokenizer_instance,
                     prompt=prompt,
                     max_tokens=current_max,
-                    temperature=temperature,
-                    top_p=top_p,
-                    repetition_penalty=repetition_penalty,
                     verbose=False
                 )
 
