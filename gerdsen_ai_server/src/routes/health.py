@@ -168,6 +168,7 @@ def detailed_status():
 
         # Model health
         loaded_models = app_state.get('loaded_models', {})
+        model_inference_counts = app_state.get('model_inference_counts', {})
         model_health_list = []
 
         for model_id in loaded_models:
@@ -177,7 +178,7 @@ def detailed_status():
                 model_id=model_id,
                 load_status='loaded',
                 last_check=datetime.now(),
-                inference_count=0  # TODO: Track this
+                inference_count=model_inference_counts.get(model_id, 0)
             ))
 
         # MLX health
