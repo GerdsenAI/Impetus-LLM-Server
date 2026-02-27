@@ -193,7 +193,7 @@ cat > "$CONTENTS_DIR/Info.plist" << EOF
     <key>CFBundleExecutable</key>
     <string>Impetus</string>
     <key>LSMinimumSystemVersion</key>
-    <string>13.0</string>
+    <string>14.0</string>
     <key>NSHighResolutionCapable</key>
     <true/>
 </dict>
@@ -232,7 +232,7 @@ Installation:
 3. On first run, it will install Python dependencies
 
 Requirements:
-- macOS 13.0+ on Apple Silicon
+- macOS 14.0+ on Apple Silicon
 - Python 3.11+ (install from python.org or Homebrew)
 - 8GB+ RAM recommended
 

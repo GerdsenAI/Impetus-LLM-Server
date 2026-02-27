@@ -375,7 +375,7 @@ create_info_plist() {
     <key>NSRequiresAquaSystemAppearance</key>
     <false/>
     <key>LSMinimumSystemVersion</key>
-    <string>13.0</string>
+    <string>14.0</string>
     <key>LSArchitecturePriority</key>
     <array>
         <string>arm64</string>
@@ -530,7 +530,7 @@ Features:
 - 50-110 tokens/sec inference speed
 
 System Requirements:
-- macOS 13.0 or later
+- macOS 14.0 or later (Sonoma+)
 - Apple Silicon Mac (M1/M2/M3/M4)
 - 8GB RAM (16GB recommended)
 - 10GB free disk space

@@ -76,7 +76,7 @@ python run_menubar.py
 
 ## 📋 System Requirements
 
-- **macOS** 13.0 or later
+- **macOS** 14.0 or later (Sonoma+)
 - **Apple Silicon** (M1, M2, M3, or M4 series)
 - **8GB RAM** minimum (16GB recommended)
 - **10GB disk space** for models
