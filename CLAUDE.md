@@ -2,247 +2,158 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Core Development Philosophy
-
-This project emphasizes systematic problem-solving through:
-1. **Socratic Method**: Question assumptions and seek evidence before implementing
-2. **OODA Loop**: Observe → Orient → Decide → Act in iterative cycles
-3. **Evidence-Based Decisions**: Measure, don't guess - especially for performance
-
 ## Project Overview
 
-Impetus-LLM-Server is a **production-ready** local LLM server optimized for Apple Silicon, featuring MLX integration for high-performance inference.
+Impetus-LLM-Server is a local LLM inference server optimized for Apple Silicon, providing an OpenAI-compatible API powered by MLX. It includes a native macOS menu bar app, a React+Three.js dashboard, and production deployment tooling.
 
-### Current Status: v1.0.2 - Enhanced Menu Bar App Complete ✅
+**Requirements**: macOS 14.0+ (Sonoma), Apple Silicon (M1+), Python 3.11+, 8GB RAM (16GB recommended)
 
-#### Working Features
-- ✅ **MLX Model Support**: Successfully loads and runs MLX models from HuggingFace (MLX 0.28.0)
-- ✅ **OpenAI API Compatibility**: Full `/v1/chat/completions` endpoint support
-- ✅ **Streaming & Non-streaming**: Both response modes fully functional
-- ✅ **Auto-loading**: Models load automatically when requested via API
-- ✅ **Enhanced Menu Bar App**: Native macOS app with permissions & onboarding
-- ✅ **Standalone macOS App**: Self-contained .app with embedded Python runtime (FIXED)
-- ✅ **Production Server**: Gunicorn with Apple Silicon optimization
-- ✅ **React Dashboard**: Beautiful Three.js frontend interface
-- ✅ **DMG Installer**: Professional drag-and-drop installer with proper Python bundling
+## Development Commands
 
-#### Technical Stack
-- **Inference**: MLX 0.28.0 + mlx-lm 0.26.3 (Apple's ML framework - latest versions)
-- **Server**: Flask + Gunicorn + eventlet (WebSocket support)
-- **Models**: Support for Mistral, Llama, Phi, Qwen (4-bit and 8-bit quantized)
-- **API**: OpenAI-compatible endpoints for seamless integration
-- **Frontend**: React + Three.js dashboard
-- **Menu Bar**: rumps + PyObjC 11.1 (native macOS integration)
+### Backend (Python/Flask)
 
-## Menu Bar Application - Production Ready ✅
-
-Native macOS menu bar application with professional UX:
-
-### Features
-- 🧠 **Status Indicators**: Visual status (idle/running/error/loading)
-- 🚀 **Server Control**: Start/stop server from menu bar
-- 🤖 **Model Management**: Load and switch between AI models
-- ⚡ **Performance Modes**: Efficiency/Balanced/Performance settings
-- 📊 **System Monitoring**: CPU, memory, uptime statistics
-- 🔗 **Quick Access**: Dashboard and API documentation links
-- 🔔 **Notifications**: macOS native notifications for status updates
-
-### Enhanced UX Features (NEW)
-- 🎯 **First-Run Onboarding**: Interactive tour for new users
-- 🔐 **Permission Management**: Proper macOS permissions handling
-- ❓ **Help System**: Built-in help with guided tour
-- 📱 **Professional Dialogs**: Native macOS alert styling
-- 🛠 **Error Handling**: Graceful degradation and recovery
-
-### Files
-- `run_menubar_enhanced.py` - Enhanced app with onboarding (recommended)
-- `run_menubar.py` - Basic version
-- `gerdsen_ai_server/src/menubar/` - Core modules
-  - `permissions_manager.py` - macOS permissions handling
-  - `onboarding.py` - First-run tour system
-  - `config.py` - Configuration constants
-
-## Dependencies & Requirements
-
-### Core Dependencies (Updated to Latest Versions)
 ```bash
-# MLX and ML (Latest Versions)
-mlx==0.28.0              # Apple's ML framework (latest)
-mlx-lm==0.26.3           # MLX language model support (latest)
-mlx-metal==0.28.0        # MLX Metal backend (latest)
-sentencepiece==0.2.0     # Required for tokenizers
-
-# Menu Bar App Dependencies
-rumps==0.4.0             # macOS menu bar framework
-pyobjc-core==11.1        # Python-Objective-C bridge (latest)
-pyobjc-framework-Cocoa==11.1  # Cocoa framework bindings (latest)
-psutil==7.0.0            # System monitoring (latest)
-transformers>=4.52.1     # HuggingFace transformers
-huggingface-hub>=0.34.0  # Model downloading
-
-# Web Framework
-flask>=3.1.0
-flask-cors>=6.0.0
-flask-socketio>=5.5.0
-eventlet>=0.40.0         # WebSocket support
-gunicorn                 # Production server
-
-# Utilities
-pydantic>=2.11.0         # Data validation
-loguru>=0.7.0            # Logging
-psutil>=7.0.0            # System monitoring
-```
-
-### System Requirements
-- macOS 13.0+ (Ventura or later)
-- Apple Silicon (M1/M2/M3/M4)
-- Python 3.11+
-- 8GB RAM minimum (16GB recommended)
-
-## Project Structure
-
-```
-gerdsen_ai_server/
-├── src/
-│   ├── main.py                    # Flask application entry
-│   ├── model_loaders/
-│   │   └── mlx_loader.py          # MLX model loading/inference
-│   ├── routes/
-│   │   └── openai_api.py          # OpenAI-compatible endpoints
-│   ├── menubar/                   # [NEW] Menu bar app
-│   │   ├── app.py                 # Menu bar application
-│   │   └── server_manager.py      # Server lifecycle
-│   └── config/
-│       └── settings.py            # Configuration management
-├── installers/
-│   ├── macos_standalone_app.sh    # Creates .app bundle
-│   └── production_installer.sh    # Server deployment
-└── impetus-dashboard/              # React frontend
-```
-
-## Development Workflow
-
-### Setting Up Development Environment
-```bash
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install dependencies
+# Setup
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r gerdsen_ai_server/requirements.txt
-pip install sentencepiece eventlet  # Additional required packages
+pip install -r gerdsen_ai_server/requirements_dev.txt
 
-# Run development server
-cd gerdsen_ai_server
-python src/main.py
+# Run dev server (port 8080)
+cd gerdsen_ai_server && python src/main.py
+
+# Run production server (Gunicorn + eventlet)
+python start_production.py
+
+# Run menu bar app
+python run_menubar.py
 ```
 
-### Testing MLX Inference
+### Frontend (React/Vite)
+
 ```bash
-# Test via API
-curl -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "mlx-community/Mistral-7B-Instruct-v0.3-4bit",
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
+cd impetus-dashboard
+npm install
+npm run dev       # Dev server on port 5173, proxies to :8080
+npm run build     # TypeScript + Vite production build
+npm run lint      # ESLint
+```
+
+### Testing
+
+```bash
+cd gerdsen_ai_server
+
+# All tests
+pytest tests/ -v
+
+# Single test file
+pytest tests/test_api_models.py -v
+
+# With coverage (matches CI)
+pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
+
+# By marker
+pytest -m "not slow" -v
+pytest -m integration -v
+```
+
+Test markers: `integration`, `unit`, `slow`
+
+### Linting & Type Checking
+
+```bash
+cd gerdsen_ai_server
+
+# Lint (ruff) - line length 120, targets py311
+ruff check src/ tests/ --output-format=github
+
+# Type check
+mypy src/ --ignore-missing-imports
+
+# Format
+black src/ tests/        # line length 120
+isort src/ tests/
 ```
 
 ### Building for Distribution
+
 ```bash
-# Ensure virtual environment is activated and dependencies installed
+# DMG installer (requires active venv)
 source .venv/bin/activate
-pip install -r gerdsen_ai_server/requirements.txt
+./installers/create_dmg.sh
 
-# Build DMG installer (requires virtual environment)
-./installers/create_dmg.sh  # Creates professional DMG installer
-
-# Alternative: Build standalone app only
-cd installers
-./macos_standalone_app.sh  # Creates self-contained .app
+# Standalone .app (self-contained, no system Python needed)
+cd installers && ./macos_standalone_app.sh
 ```
 
-**Important**: The DMG builder now requires an active virtual environment to properly bundle Python dependencies. This ensures the resulting .app is truly self-contained and doesn't depend on user's system Python installation.
+## Architecture
 
-## Known Issues & Solutions
+### Request Flow
 
-### Issue: MLX model loading fails silently
-**Solution**: Ensure `sentencepiece` is installed for tokenizer support
+```
+Client (curl/SDK/Dashboard) → Flask App (main.py:create_app)
+  → openai_api.py blueprint (/v1/chat/completions, /v1/models)
+    → Pydantic schema validation (schemas/openai_schemas.py)
+      → MLXLoader (model_loaders/mlx_loader.py)
+        → MLX inference on Apple Silicon GPU
+          → Streaming SSE or JSON response
+```
 
-### Issue: WebSocket connections fail
-**Solution**: Install `eventlet` for proper WebSocket handling
+### Key Components
 
-### Issue: Model validation errors in API
-**Solution**: Fixed in `openai_api.py` - handles both dict and Pydantic objects
+- **`gerdsen_ai_server/src/main.py`** — Flask app factory (`create_app()`). Registers all blueprints, initializes SocketIO (threading mode for Python 3.13 compat), manages app state (`loaded_models`, `metrics`).
 
-### Issue: DMG app launches but nothing happens (FIXED ✅)
-**Root Cause**: Bundled Python runtime was using system Homebrew paths instead of bundled dependencies
-**Solution**: 
-- Fixed `installers/create_dmg.sh` to properly bundle virtual environment site-packages
-- Updated `installers/scripts/launcher.sh` to set correct PYTHONPATH for isolation
-- Made production configuration import fail gracefully
-- App now launches successfully with 110MB self-contained installer
+- **`gerdsen_ai_server/src/routes/openai_api.py`** — Primary API surface. OpenAI-compatible `/v1/chat/completions` with streaming support and `/v1/models` listing. Handles both dict and Pydantic request objects.
 
-### Issue: Flask/dependencies not found in bundled app (FIXED ✅)
-**Root Cause**: Python executable pointed to system paths, not bundled libraries
-**Solution**: Set `PYTHONPATH` to prioritize bundled site-packages over system paths
+- **`gerdsen_ai_server/src/model_loaders/mlx_loader.py`** — MLX model loading and inference. Memory-mapped loading, auto-downloads from HuggingFace, supports 4-bit/8-bit quantized models (Mistral, Llama, Phi, Qwen).
 
-## Performance Optimization
+- **`gerdsen_ai_server/src/config/settings.py`** — Pydantic settings classes (`ServerSettings`, `ModelSettings`, `InferenceSettings`, `HardwareSettings`). All overridable via `IMPETUS_` prefixed env vars.
 
-### MLX-Specific Optimizations
-- Memory-mapped model loading for faster startup
-- Lazy model loading to reduce initial memory usage
-- KV cache support (infrastructure in place, implementation pending)
-- Batch inference support for multiple requests
+- **`gerdsen_ai_server/src/menubar/`** — Native macOS menu bar app using rumps + PyObjC. `server_manager.py` manages server process lifecycle, `permissions_manager.py` handles macOS permissions, `onboarding.py` provides first-run tour.
 
-### Server Optimizations
-- Gunicorn with eventlet workers for concurrent requests
-- Auto-detection of Apple Silicon capabilities
-- Performance mode selection based on hardware
+- **`impetus-dashboard/`** — React 18 + Vite frontend with Three.js 3D visualization, Socket.IO real-time updates, and Recharts metrics. Vite proxies `/api`, `/v1`, `/socket.io` to backend port 8080.
 
-## Testing Guidelines
+- **`gerdsen_ai_server/src/services/`** — Background services: `model_discovery.py` (HuggingFace search), `download_manager.py` (model downloads), `benchmark_service.py` (perf testing).
 
-### Essential Tests Before Commit
-1. Model loading from HuggingFace
-2. Basic inference via API
-3. Streaming response functionality
-4. Dashboard connectivity
-5. Menu bar app launch (when implemented)
+- **`gerdsen_ai_server/src/inference/`** — KV cache management for multi-turn conversations (`kv_cache_manager.py`, `mlx_kv_generation.py`).
 
-### Performance Benchmarks
-- Target: 50-110 tokens/sec on Apple Silicon
-- Measure with different model sizes (3B, 7B, 13B)
-- Monitor memory usage during inference
+### Additional Route Blueprints
 
-## Future Enhancements
+All registered in `create_app()`:
+- `routes/models.py` — Model management (load/unload/list)
+- `routes/health.py` — Health endpoints (`/api/health/live`, `/api/health/ready`, `/api/health/status`)
+- `routes/hardware.py` — Hardware info (`/api/hardware/info`)
+- `routes/websocket.py` — Socket.IO real-time handlers
 
-### High Priority
-- [ ] Complete menu bar application
-- [ ] Implement true KV cache for multi-turn conversations
-- [ ] Add temperature/top_p sampling to MLX generation
-- [ ] Support for vision models (LLaVA, etc.)
+### Production Entry Points
 
-### Medium Priority
-- [ ] Model quantization tools
-- [ ] Fine-tuning support via MLX
-- [ ] Batch inference optimization
-- [ ] Plugin system for custom models
+| Entry | Use |
+|-------|-----|
+| `gerdsen_ai_server/src/main.py` | Flask dev server |
+| `gerdsen_ai_server/wsgi.py` | Gunicorn WSGI target (`wsgi:application`) |
+| `start_production.py` | Production launcher script |
+| `run_menubar.py` | Menu bar app (starts server internally) |
 
-### Low Priority
-- [ ] Windows/Linux support
-- [ ] Cloud sync for models
-- [ ] Model marketplace integration
+## CI/CD
 
-## Contributing Guidelines
+GitHub Actions (`.github/workflows/ci.yml`):
+- **Backend**: ruff + mypy + pytest on Python 3.11/3.12, macOS runner
+- **Frontend**: pnpm install + eslint + tsc + vite build, Ubuntu runner
+- **Security**: Trivy vulnerability scanner
+- **Integration**: Starts server, tests health/API endpoints (main branch + PRs)
 
-1. **Test on Apple Silicon**: All changes must be tested on M1/M2/M3/M4
-2. **Preserve API Compatibility**: Don't break OpenAI API compatibility
-3. **Document Changes**: Update this file with significant changes
-4. **Performance First**: Measure impact of changes on inference speed
-5. **User Experience**: Prioritize simplicity for end users
+## Key Conventions
 
-## Contact & Support
+- **API Compatibility**: All API changes must maintain OpenAI API compatibility. The `/v1/chat/completions` endpoint is the primary contract.
+- **MLX-Only Inference**: This project uses Apple's MLX framework exclusively — no PyTorch/ONNX. MLX imports are guarded for non-macOS environments.
+- **Pydantic Schemas**: All API request/response models live in `gerdsen_ai_server/src/schemas/`. Route handlers must handle both dict and Pydantic model inputs.
+- **Environment Variables**: Server config uses `IMPETUS_` prefix (e.g., `IMPETUS_HOST`, `IMPETUS_PORT`).
+- **Ruff Config**: Line length 120, target py311. Rules: E, F, W, I, N, UP, B, A, C4, PT, SIM, RUF. Ignores: E501, B008, RUF012. Defined in `pyproject.toml`.
+- **Installers require macOS 14.0+** (Sonoma). All installer scripts in `installers/` enforce this minimum.
 
-- GitHub Issues: Report bugs and feature requests
-- Documentation: See `/docs` folder for detailed guides
-- API Reference: http://localhost:8080/docs when server is running
+## Known Gotchas
+
+- `sentencepiece` must be installed for tokenizer support — MLX model loading fails silently without it
+- `eventlet` is required for WebSocket/Socket.IO — falls back to threading mode without it
+- DMG/standalone app builds require an active virtual environment to properly bundle site-packages
+- The bundled app's `launcher.sh` sets `PYTHONPATH` to isolate from system Homebrew paths
