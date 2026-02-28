@@ -393,6 +393,54 @@ class ModelWarmupService:
         except Exception as e:
             logger.debug(f"Could not emit warmup event: {e}")
 
+    def warmup_embedding_model(self, model_name: str) -> WarmupStatus:
+        """Warm up an embedding model by running sample embeddings.
+
+        Loads the model via the compute dispatcher and runs a few test
+        embeddings to pre-compile any kernels and warm caches.
+        """
+        status = WarmupStatus(model_id=f"emb:{model_name}")
+        start_time = time.time()
+
+        try:
+            from ..model_loaders.compute_dispatcher import compute_dispatcher
+
+            # Load the model (triggers download + conversion if needed)
+            compute_dispatcher.load_embedding_model(model_name)
+
+            sample_texts = [
+                "Hello",
+                "The quick brown fox jumps over the lazy dog.",
+                "Warm-up embedding to pre-compile Core ML or MLX kernels.",
+                "Apple Silicon Neural Engine acceleration test.",
+                "This is the fifth and final warm-up text for the embedding model.",
+            ]
+
+            for i, text in enumerate(sample_texts):
+                compute_dispatcher.embed([text], model_name)
+                logger.debug(f"Embedding warmup {i+1}/{len(sample_texts)} complete")
+
+            elapsed = (time.time() - start_time) * 1000
+            status.warmup_time_ms = elapsed
+            status.is_warmed = True
+            status.last_warmup = time.time()
+            status.warmup_prompts_used = len(sample_texts)
+
+            device = compute_dispatcher.get_active_device()
+            logger.info(
+                f"Embedding model '{model_name}' warmed up in {elapsed:.1f}ms "
+                f"(device={device})"
+            )
+
+            self.warmup_status[status.model_id] = status
+
+        except Exception as e:
+            logger.error(f"Embedding warmup failed for '{model_name}': {e}")
+            status.error = str(e)
+            status.warmup_time_ms = (time.time() - start_time) * 1000
+
+        return status
+
     def shutdown(self):
         """Shutdown warmup service"""
         logger.info("Shutting down warmup service")

@@ -18,8 +18,8 @@ if [ -f ".env" ]; then
     export $(cat .env | grep -v '^#' | xargs)
 fi
 
-# Set default values if not provided
-export IMPETUS_HOST=${IMPETUS_HOST:-0.0.0.0}
+# Set default values if not provided - using secure localhost binding by default
+export IMPETUS_HOST=${IMPETUS_HOST:-127.0.0.1}
 export IMPETUS_PORT=${IMPETUS_PORT:-8080}
 export IMPETUS_WORKERS=${IMPETUS_WORKERS:-auto}
 export IMPETUS_LOG_LEVEL=${IMPETUS_LOG_LEVEL:-info}

@@ -1,5 +1,35 @@
 # Release Notes
 
+## 🔧 v1.0.2 - Critical DMG Bundling Fix
+**Release Date**: August 16, 2025
+
+### 🚨 Critical Fixes
+This hotfix addresses a critical issue where the DMG installer would create an application that failed to launch from the Applications folder.
+
+#### ✅ What's Fixed
+- **🔴 CRITICAL**: App now launches successfully from Applications folder (was failing silently)
+- **🔴 CRITICAL**: Fixed Python dependency bundling - Flask and all dependencies now load correctly
+- **📦 DMG Builder**: Complete rewrite of Python runtime bundling in `create_dmg.sh`
+- **🛠️ Launcher**: Fixed PYTHONPATH isolation for self-contained operation
+- **⚙️ Production Config**: Graceful fallback when dependencies are missing
+- **🔒 Security**: Production security validation now works with bundled runtime
+
+#### 📊 Technical Improvements
+- DMG size increased from 72MB to 110MB for complete dependency isolation
+- Launcher now provides detailed logging for debugging
+- Virtual environment site-packages are properly copied and isolated
+- PYTHONPATH set to prioritize bundled libraries over system libraries
+
+#### 📚 Documentation Updates  
+- Added comprehensive troubleshooting section to CLAUDE.md
+- Updated build instructions with virtual environment requirements
+- Documented fix process and technical details for future reference
+
+### 🔄 Migration Notes
+- No action required for existing installations
+- New DMG installations will work immediately without additional setup
+- Recommended to reinstall from new DMG if experiencing launch issues
+
 ## 🚀 v1.0.0 - Production MVP Release
 **Release Date**: January 2025
 
@@ -84,7 +114,7 @@ This release transforms Impetus LLM Server from a working prototype into a **pro
 - `/api/health/live` - Kubernetes liveness probe
 - `/api/health/ready` - Kubernetes readiness probe  
 - `/api/health/status` - Detailed health status
-- `/api/health/metrics/json` - JSON format metrics
+- `/api/metrics/json` - JSON format metrics
 - `/docs` - Interactive API documentation
 - `/api/docs/openapi.json` - OpenAPI specification
 
@@ -172,3 +202,9 @@ See [todo.md](todo.md) for the future roadmap including:
 For detailed deployment instructions, see [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md).
 
 For API documentation, visit `/docs` when running the server or see [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md).
+
+---
+
+Credits
+
+Impetus builds on excellent open-source software including Flask, Gunicorn, Eventlet/Gevent, Pydantic, MLX, RUMPS, Vite/React/TS, Nginx, Pytest, and more. See [LICENSE](LICENSE) for third‑party notices and attributions.

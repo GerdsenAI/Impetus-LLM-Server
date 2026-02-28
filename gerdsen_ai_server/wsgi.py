@@ -2,6 +2,7 @@
 WSGI entry point for Gunicorn
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -19,4 +20,7 @@ application = app
 if __name__ == "__main__":
     # This won't be called when running under Gunicorn
     # but allows for testing the WSGI entry point directly
-    socketio.run(app, host='0.0.0.0', port=8080, debug=False)
+    # Use secure localhost binding for production
+    host = os.environ.get('IMPETUS_HOST', '127.0.0.1')
+    port = int(os.environ.get('IMPETUS_PORT', '8080'))
+    socketio.run(app, host=host, port=port, debug=False)

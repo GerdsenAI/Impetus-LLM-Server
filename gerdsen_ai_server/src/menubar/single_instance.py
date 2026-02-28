@@ -16,7 +16,7 @@ from typing import Optional, List, Dict
 
 class SingleInstance:
     """Manages single instance locking for the menu bar application"""
-    
+
     def __init__(self, app_id: str = "impetus_menubar"):
         """
         Initialize single instance manager
@@ -30,7 +30,7 @@ class SingleInstance:
         self.pid_file_path = self.lock_dir / f".{app_id}.pid"
         self.lock_file = None
         self.acquired = False
-        
+
     def acquire(self) -> bool:
         """
         Try to acquire the single instance lock
@@ -42,29 +42,29 @@ class SingleInstance:
             # Try to create and lock the file
             self.lock_file = open(self.lock_file_path, 'w')
             fcntl.lockf(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            
+
             # Write our PID
             self.lock_file.write(str(os.getpid()))
             self.lock_file.flush()
-            
+
             # Also write PID to separate file for easy reading
             self.pid_file_path.write_text(str(os.getpid()))
-            
+
             # Register cleanup
             atexit.register(self.release)
             signal.signal(signal.SIGTERM, self._signal_handler)
             signal.signal(signal.SIGINT, self._signal_handler)
-            
+
             self.acquired = True
             return True
-            
+
         except IOError:
             # Lock failed - another instance is running
             if self.lock_file:
                 self.lock_file.close()
                 self.lock_file = None
             return False
-    
+
     def release(self):
         """Release the lock and clean up"""
         if self.lock_file and self.acquired:
@@ -73,26 +73,26 @@ class SingleInstance:
                 self.lock_file.close()
             except:
                 pass
-            
+
             # Clean up lock files
             try:
                 self.lock_file_path.unlink()
             except:
                 pass
-            
+
             try:
                 self.pid_file_path.unlink()
             except:
                 pass
-            
+
             self.acquired = False
             self.lock_file = None
-    
+
     def _signal_handler(self, signum, frame):
         """Handle termination signals"""
         self.release()
         sys.exit(0)
-    
+
     def get_existing_pid(self) -> Optional[int]:
         """
         Get PID of existing instance if running
@@ -115,7 +115,7 @@ class SingleInstance:
         except:
             pass
         return None
-    
+
     def force_acquire(self) -> bool:
         """
         Force acquire lock by killing existing instance
@@ -124,13 +124,13 @@ class SingleInstance:
             True if lock acquired after forcing, False otherwise
         """
         existing_pid = self.get_existing_pid()
-        
+
         if existing_pid:
             try:
                 # Try graceful termination first
                 os.kill(existing_pid, signal.SIGTERM)
                 time.sleep(1)
-                
+
                 # Check if still running
                 if psutil.pid_exists(existing_pid):
                     # Force kill
@@ -138,18 +138,18 @@ class SingleInstance:
                     time.sleep(0.5)
             except:
                 pass
-        
+
         # Clean up stale lock files
         try:
             self.lock_file_path.unlink()
         except:
             pass
-        
+
         try:
             self.pid_file_path.unlink()
         except:
             pass
-        
+
         # Try to acquire lock
         return self.acquire()
 
@@ -162,7 +162,7 @@ def find_menubar_processes() -> List[Dict]:
         List of process info dictionaries
     """
     menubar_processes = []
-    
+
     for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
         try:
             info = proc.info
@@ -177,7 +177,7 @@ def find_menubar_processes() -> List[Dict]:
                     })
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
-    
+
     return menubar_processes
 
 
@@ -193,7 +193,7 @@ def kill_all_menubar_processes(except_pid: Optional[int] = None) -> int:
     """
     killed = 0
     processes = find_menubar_processes()
-    
+
     for proc_info in processes:
         if proc_info['pid'] != except_pid and proc_info['pid'] != os.getpid():
             try:
@@ -202,10 +202,10 @@ def kill_all_menubar_processes(except_pid: Optional[int] = None) -> int:
                 killed += 1
             except:
                 pass
-    
+
     if killed > 0:
         time.sleep(1)  # Give processes time to terminate
-    
+
     return killed
 
 

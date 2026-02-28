@@ -43,6 +43,12 @@ class ChatCompletionRequest(BaseModel):
     use_cache: bool | None = Field(True, description="Whether to use KV cache")
     repetition_penalty: float | None = Field(1.0, ge=0.1, le=2.0, description="Repetition penalty")
 
+    # RAG extensions
+    use_rag: bool | None = Field(False, description="Enable automatic RAG context retrieval")
+    rag_collection: str | None = Field(None, description="Collection to search for RAG context")
+    rag_n_results: int | None = Field(5, ge=1, le=20, description="Number of RAG context documents")
+    context_documents: list[str] | None = Field(None, description="Pre-retrieved context documents")
+
     @validator('model')
     def validate_model(cls, v):
         if not v.strip():
@@ -198,6 +204,90 @@ class ChatCompletionStreamResponse(BaseModel):
     created: int = Field(..., description="Unix timestamp")
     model: str = Field(..., description="Model used for completion")
     choices: list[ChatCompletionStreamChoice] = Field(..., description="List of completion choices")
+
+
+# ── Embedding schemas ──────────────────────────────────────────────
+
+
+class EmbeddingRequest(BaseModel):
+    """OpenAI-compatible embedding request"""
+    input: str | list[str] = Field(..., description="Text(s) to embed")
+    model: str = Field(default="all-MiniLM-L6-v2", description="Embedding model name")
+    encoding_format: Literal["float", "base64"] = Field(default="float", description="Output encoding format")
+    dimensions: int | None = Field(None, ge=1, description="Optional dimension truncation")
+
+
+class EmbeddingData(BaseModel):
+    """Single embedding object"""
+    object: Literal["embedding"] = Field("embedding")
+    embedding: list[float] = Field(..., description="The embedding vector")
+    index: int = Field(..., ge=0, description="Index of the input text")
+
+
+class EmbeddingUsage(BaseModel):
+    """Token usage for embedding request"""
+    prompt_tokens: int = Field(..., ge=0)
+    total_tokens: int = Field(..., ge=0)
+
+
+class EmbeddingResponse(BaseModel):
+    """OpenAI-compatible embedding response"""
+    object: Literal["list"] = Field("list")
+    data: list[EmbeddingData] = Field(..., description="List of embeddings")
+    model: str = Field(..., description="Model used")
+    usage: EmbeddingUsage = Field(..., description="Token usage")
+
+
+# ── Error schema ───────────────────────────────────────────────────
+
+
+# ── Document / RAG schemas ─────────────────────────────────────────
+
+
+class DocumentIngestRequest(BaseModel):
+    """Request to ingest a text document into the vector store."""
+    text: str = Field(..., min_length=1, max_length=500000, description="Text to ingest")
+    source: str = Field(default="unknown", max_length=512, description="Source identifier (e.g. filename)")
+    collection: str | None = Field(None, max_length=128, description="Target collection name")
+    metadata: dict[str, Any] | None = Field(None, description="Additional metadata for all chunks")
+    chunk_size: int | None = Field(None, ge=64, le=8192, description="Override default chunk size")
+    chunk_overlap: int | None = Field(None, ge=0, le=1024, description="Override default chunk overlap")
+
+
+class DocumentIngestResponse(BaseModel):
+    """Response from document ingestion."""
+    status: str = Field(..., description="Ingestion status")
+    chunks_stored: int = Field(..., ge=0, description="Number of chunks stored")
+    collection: str = Field(..., description="Collection name")
+    source: str = Field(..., description="Source identifier")
+    document_ids: list[str] = Field(default_factory=list, description="Stored chunk IDs")
+
+
+class DocumentSearchRequest(BaseModel):
+    """Request to search the vector store."""
+    query: str = Field(..., min_length=1, max_length=10000, description="Search query")
+    n_results: int = Field(5, ge=1, le=50, description="Number of results to return")
+    collection: str | None = Field(None, max_length=128, description="Collection to search")
+    where: dict[str, Any] | None = Field(None, description="Optional metadata filter")
+
+
+class DocumentSearchResponse(BaseModel):
+    """Response from document search."""
+    documents: list[str] = Field(default_factory=list, description="Matched document texts")
+    metadatas: list[dict[str, Any]] = Field(default_factory=list, description="Document metadata")
+    distances: list[float] = Field(default_factory=list, description="Similarity distances")
+    count: int = Field(..., ge=0, description="Number of results")
+    query: str = Field(..., description="Original query")
+
+
+class CollectionInfoResponse(BaseModel):
+    """Information about a vector store collection."""
+    name: str = Field(..., description="Collection name")
+    count: int = Field(..., ge=0, description="Document count")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Collection metadata")
+
+
+# ── Error schema ───────────────────────────────────────────────────
 
 
 class ErrorResponse(BaseModel):

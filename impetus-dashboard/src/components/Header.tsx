@@ -1,4 +1,3 @@
-import React from 'react'
 import { Activity } from 'lucide-react'
 import ConnectionStatus from './ConnectionStatus'
 
@@ -7,7 +6,7 @@ interface HeaderProps {
   wsEndpoint?: string
 }
 
-export const Header: React.FC<HeaderProps> = ({ connected, wsEndpoint = 'ws://localhost:8080' }) => {
+export const Header: React.FC<HeaderProps> = ({ wsEndpoint = 'ws://localhost:8080' }) => {
   return (
     <header className="header">
       <div className="header-content">

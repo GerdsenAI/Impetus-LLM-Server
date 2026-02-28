@@ -1,6 +1,6 @@
 # Impetus LLM Server - Quick Start Guide
 
-**v1.0.0** - Get up and running with Impetus in under 60 seconds!
+v1.0.2 – Get up and running with Impetus in under 60 seconds
 
 ## For End Users - Just Download and Run!
 
@@ -51,17 +51,21 @@ cd installers
 # Your app is ready in build_standalone/Impetus.app
 ```
 
-### Development Mode
+### Development Mode (backend only)
 
 ```bash
-# Set up development environment
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r gerdsen_ai_server/requirements.txt
+# Install developer requirements
+pip install -r gerdsen_ai_server/requirements_dev.txt
 
-# Run in development
-cd gerdsen_ai_server
-python src/main.py
+# Run the Flask dev server (development only)
+python gerdsen_ai_server/src/main.py
+
+# Or run production-grade locally (recommended)
+./gerdsen_ai_server/start_production.sh
+# or
+python ./start_production.py
 ```
 
 ### Docker Deployment
@@ -79,10 +83,14 @@ docker-compose up -d
 
 ### Test the API
 ```bash
-# List available models
-curl http://localhost:8080/v1/models
+# Health and docs
+curl -sS http://localhost:8080/api/health/status | jq
+open http://localhost:8080/docs
 
-# Chat completion
+# List available models (OpenAI-compatible)
+curl -sS http://localhost:8080/v1/models | jq
+
+# Chat completion (replace YOUR_API_KEY)
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
@@ -111,6 +119,7 @@ The app stores all data in:
 ### App Won't Open
 - Right-click Impetus and select "Open" (first time only)
 - Check Console.app for errors
+ - If macOS blocks the app, go to System Settings → Privacy & Security → Security → "Open Anyway" for Impetus.
 
 ### Port Already in Use
 ```bash
@@ -125,10 +134,11 @@ kill -9 <PID>
 - Close other heavy applications
 - Try a smaller model (4-bit versions)
 - Check Activity Monitor for resource usage
+ - In the menubar app, try Performance Mode → Efficiency
 
 ### View Logs
 ```bash
-cat ~/Library/Application\ Support/Impetus/logs/impetus.log
+tail -n 200 "${HOME}/Library/Application Support/Impetus/logs/impetus_server.log"
 ```
 
 ## Recommended Models
