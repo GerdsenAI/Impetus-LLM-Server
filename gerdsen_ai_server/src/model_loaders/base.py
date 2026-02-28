@@ -4,7 +4,7 @@ Base model loader interface
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 class BaseModelLoader(ABC):
@@ -38,7 +38,7 @@ class BaseModelLoader(ABC):
         """Check if a model is currently loaded"""
         return model_id in self.loaded_models
 
-    def get_loaded_model(self, model_id: str) -> Optional['BaseModel']:
+    def get_loaded_model(self, model_id: str) -> "BaseModel | None":
         """Get a loaded model instance"""
         return self.loaded_models.get(model_id)
 
