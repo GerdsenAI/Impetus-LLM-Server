@@ -61,7 +61,7 @@ class TestPerformanceRegression:
         ]
         mock_file.fileno.return_value = 0
 
-        with patch('mmap.mmap') as mock_mmap, \
+        with patch('mmap.mmap'), \
              patch('builtins.open', return_value=MagicMock(__enter__=MagicMock(return_value=mock_file), __exit__=MagicMock(return_value=False))), \
              patch('pathlib.Path.stat') as mock_stat:
             mock_stat.return_value = MagicMock(st_size=1024*1024*100)  # 100MB

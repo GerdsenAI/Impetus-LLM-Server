@@ -199,7 +199,7 @@ class TestIntegration:
         socketio_client.emit('subscribe', {'room': 'metrics'})
 
         # In test environment, SocketIO events may not fire reliably
-        received = socketio_client.get_received()
+        socketio_client.get_received()
         # Just verify the connection and emit don't raise errors
         # The subscription confirmation may not arrive in test mode
 
