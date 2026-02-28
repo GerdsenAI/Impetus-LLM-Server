@@ -178,7 +178,7 @@ def _validate_converted_model(
         })
 
         # Check output exists and has reasonable shape
-        output_key = list(prediction.keys())[0]
+        output_key = next(iter(prediction))
         output = prediction[output_key]
         logger.info(f"Validation passed — output shape: {output.shape}, output key: {output_key}")
 

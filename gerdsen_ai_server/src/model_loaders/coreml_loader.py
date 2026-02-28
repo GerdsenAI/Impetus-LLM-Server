@@ -92,7 +92,7 @@ class CoreMLEmbeddingModel(BaseEmbeddingModel):
             })
 
             # Get the last hidden state (first output key)
-            output_key = list(prediction.keys())[0]
+            output_key = next(iter(prediction))
             hidden_state = prediction[output_key]  # (1, seq_len, hidden_dim)
 
             # Mean pooling over non-padding tokens

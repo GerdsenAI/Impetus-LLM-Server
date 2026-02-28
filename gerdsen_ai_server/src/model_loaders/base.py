@@ -159,7 +159,7 @@ class BaseEmbeddingModelLoader(ABC):
     def list_available_models(self) -> list[dict[str, Any]]:
         """List all available embedding models"""
 
-    def get_loaded_model(self, name: str) -> Optional[BaseEmbeddingModel]:
+    def get_loaded_model(self, name: str) -> BaseEmbeddingModel | None:
         """Get a loaded embedding model by name"""
         return self._loaded_models.get(name)
 
