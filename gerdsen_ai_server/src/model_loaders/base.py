@@ -99,6 +99,75 @@ class BaseModel(ABC):
         return f"{self.__class__.__name__}(model_id='{self.model_id}', loaded={self.loaded})"
 
 
+class BaseEmbeddingModel(ABC):
+    """Abstract base class for embedding models"""
+
+    def __init__(self, model_name: str, model_path: str | Path, dimensions: int, max_tokens: int, device: str):
+        self.model_name = model_name
+        self.model_path = Path(model_path) if isinstance(model_path, str) else model_path
+        self.dimensions = dimensions
+        self.max_tokens = max_tokens
+        self.device = device
+        self._loaded = False
+
+    @property
+    def is_loaded(self) -> bool:
+        return self._loaded
+
+    @abstractmethod
+    def load(self) -> None:
+        """Load the embedding model into memory"""
+
+    @abstractmethod
+    def unload(self) -> None:
+        """Unload the embedding model from memory"""
+
+    @abstractmethod
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        """Generate embeddings for a list of texts"""
+
+    def get_info(self) -> dict[str, Any]:
+        """Get embedding model metadata"""
+        return {
+            'model_name': self.model_name,
+            'model_path': str(self.model_path),
+            'dimensions': self.dimensions,
+            'max_tokens': self.max_tokens,
+            'device': self.device,
+            'loaded': self._loaded,
+        }
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(model_name='{self.model_name}', device='{self.device}', loaded={self._loaded})"
+
+
+class BaseEmbeddingModelLoader(ABC):
+    """Abstract base class for embedding model loaders"""
+
+    def __init__(self):
+        self._loaded_models: dict[str, BaseEmbeddingModel] = {}
+
+    @abstractmethod
+    def load_model(self, name: str) -> BaseEmbeddingModel:
+        """Load an embedding model by short name"""
+
+    @abstractmethod
+    def unload_model(self, name: str) -> None:
+        """Unload an embedding model"""
+
+    @abstractmethod
+    def list_available_models(self) -> list[dict[str, Any]]:
+        """List all available embedding models"""
+
+    def get_loaded_model(self, name: str) -> Optional[BaseEmbeddingModel]:
+        """Get a loaded embedding model by name"""
+        return self._loaded_models.get(name)
+
+    def is_model_loaded(self, name: str) -> bool:
+        """Check if an embedding model is loaded"""
+        return name in self._loaded_models and self._loaded_models[name].is_loaded
+
+
 class ModelLoadError(Exception):
     """Exception raised when model loading fails"""
     pass
@@ -111,4 +180,9 @@ class ModelNotFoundError(Exception):
 
 class InferenceError(Exception):
     """Exception raised during inference"""
+    pass
+
+
+class EmbeddingError(Exception):
+    """Exception raised during embedding operations"""
     pass
