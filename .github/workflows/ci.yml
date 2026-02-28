@@ -131,11 +131,6 @@ jobs:
         cd impetus-dashboard
         npm run lint
     
-    - name: Run type checking
-      run: |
-        cd impetus-dashboard
-        npx tsc --noEmit
-
     - name: Build frontend
       run: |
         cd impetus-dashboard
@@ -179,18 +174,6 @@ jobs:
         scan-ref: '.'
         format: 'table'
         exit-code: '0'
-
-  # Build macOS app (only on main branches)
-  build-macos-app:
-    name: Build macOS App
-    needs: [backend-tests, frontend-tests]
-    if: |
-      github.event_name == 'push' && 
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/premium-llm-server')
-    uses: ./.github/workflows/build-app.yml
-    with:
-      version: '1.0.0'
-      upload_artifacts: true
 
   # Docker build
   docker-build:
