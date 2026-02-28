@@ -26,6 +26,9 @@ try:
 except ImportError as e:
     logger.warning(f"MLX not available: {e}")
     MLX_AVAILABLE = False
+    mx = None
+    generate = None
+    load = None
 
 
 class MLXModel(BaseModel):

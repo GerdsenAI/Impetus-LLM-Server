@@ -17,6 +17,8 @@ try:
     MLX_AVAILABLE = True
 except ImportError:
     MLX_AVAILABLE = False
+    mx = None
+    generate = None
     logger.warning("MLX not available for model warmup")
 
 from ..config.settings import settings

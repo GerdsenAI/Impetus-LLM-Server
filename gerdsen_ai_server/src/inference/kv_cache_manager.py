@@ -306,7 +306,7 @@ class KVCacheManager:
             self._evict_lru_cache()
 
         # Check conversation limit
-        while len(self.caches) > self.max_conversations:
+        while len(self.caches) >= self.max_conversations:
             self._evict_lru_cache()
 
     def _evict_lru_cache(self):
