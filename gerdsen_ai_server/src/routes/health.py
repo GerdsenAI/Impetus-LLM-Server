@@ -89,7 +89,7 @@ def health_check():
         }, 503)
 
 
-@bp.route('/ready', methods=['GET'])
+@bp.route('/health/ready', methods=['GET'])
 def readiness_check():
     """Readiness probe - checks if service is ready to handle requests"""
     try:
@@ -139,7 +139,7 @@ def readiness_check():
         }, 503)
 
 
-@bp.route('/status', methods=['GET'])
+@bp.route('/health/status', methods=['GET'])
 def detailed_status():
     """Detailed health status with component information"""
     try:
@@ -235,7 +235,7 @@ def detailed_status():
         }, 500)
 
 
-@bp.route('/live', methods=['GET'])
+@bp.route('/health/live', methods=['GET'])
 def liveness_check():
     """Kubernetes liveness probe - simpler than /health"""
     try:
