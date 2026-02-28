@@ -2,7 +2,6 @@
 Configuration for the Impetus Menu Bar Application
 """
 
-import os
 from pathlib import Path
 
 # Application Info

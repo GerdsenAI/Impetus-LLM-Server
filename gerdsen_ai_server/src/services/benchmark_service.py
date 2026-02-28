@@ -153,7 +153,7 @@ Now, please explain the differences between lists and tuples in Python, when to 
             """)
 
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_model_timestamp 
+                CREATE INDEX IF NOT EXISTS idx_model_timestamp
                 ON benchmarks(model_id, timestamp DESC)
             """)
 
@@ -261,7 +261,7 @@ Now, please explain the differences between lists and tuples in Python, when to 
 
             # Use streaming to measure first token latency
             if hasattr(model, 'generate_stream'):
-                for i, token in enumerate(model.generate_stream(
+                for i, _token in enumerate(model.generate_stream(
                     prompt,
                     max_tokens=max_tokens,
                     temperature=0.7
@@ -323,7 +323,7 @@ Now, please explain the differences between lists and tuples in Python, when to 
             for result in results:
                 data = asdict(result)
                 conn.execute("""
-                    INSERT OR REPLACE INTO benchmarks 
+                    INSERT OR REPLACE INTO benchmarks
                     (model_id, prompt_length, output_tokens, time_to_first_token_ms,
                      total_time_ms, tokens_per_second, memory_used_gb, gpu_utilization_avg,
                      gpu_memory_used_gb, temperature_celsius, timestamp, chip_type)
@@ -343,10 +343,10 @@ Now, please explain the differences between lists and tuples in Python, when to 
 
             # Get unique benchmark runs
             runs = conn.execute("""
-                SELECT DISTINCT timestamp, chip_type 
-                FROM benchmarks 
-                WHERE model_id = ? 
-                ORDER BY timestamp DESC 
+                SELECT DISTINCT timestamp, chip_type
+                FROM benchmarks
+                WHERE model_id = ?
+                ORDER BY timestamp DESC
                 LIMIT ?
             """, (model_id, limit)).fetchall()
 
@@ -354,7 +354,7 @@ Now, please explain the differences between lists and tuples in Python, when to 
             for run in runs:
                 # Get all results for this run
                 results = conn.execute("""
-                    SELECT * FROM benchmarks 
+                    SELECT * FROM benchmarks
                     WHERE model_id = ? AND timestamp = ?
                     ORDER BY prompt_length
                 """, (model_id, run['timestamp'])).fetchall()
@@ -379,7 +379,7 @@ Now, please explain the differences between lists and tuples in Python, when to 
             conn.row_factory = sqlite3.Row
 
             results = conn.execute("""
-                SELECT 
+                SELECT
                     chip_type,
                     AVG(tokens_per_second) as avg_tps,
                     MAX(tokens_per_second) as max_tps,
@@ -489,7 +489,7 @@ Now, please explain the differences between lists and tuples in Python, when to 
             conn.row_factory = sqlite3.Row
 
             results = conn.execute("""
-                SELECT 
+                SELECT
                     model_id,
                     chip_type,
                     AVG(tokens_per_second) as avg_tps,

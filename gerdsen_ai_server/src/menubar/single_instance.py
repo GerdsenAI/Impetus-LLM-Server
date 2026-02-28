@@ -4,15 +4,17 @@ Single Instance Manager for Impetus Menu Bar Apps
 Prevents multiple instances from running simultaneously
 """
 
-import os
-import sys
-import fcntl
 import atexit
+import contextlib
+import fcntl
+import os
 import signal
-import psutil
+import sys
 import time
 from pathlib import Path
-from typing import Optional, List, Dict
+
+import psutil
+
 
 class SingleInstance:
     """Manages single instance locking for the menu bar application"""
@@ -20,7 +22,7 @@ class SingleInstance:
     def __init__(self, app_id: str = "impetus_menubar"):
         """
         Initialize single instance manager
-        
+
         Args:
             app_id: Unique identifier for this application
         """
@@ -34,13 +36,13 @@ class SingleInstance:
     def acquire(self) -> bool:
         """
         Try to acquire the single instance lock
-        
+
         Returns:
             True if lock acquired, False if another instance is running
         """
         try:
             # Try to create and lock the file
-            self.lock_file = open(self.lock_file_path, 'w')
+            self.lock_file = open(self.lock_file_path, 'w')  # noqa: SIM115
             fcntl.lockf(self.lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
             # Write our PID
@@ -58,7 +60,7 @@ class SingleInstance:
             self.acquired = True
             return True
 
-        except IOError:
+        except OSError:
             # Lock failed - another instance is running
             if self.lock_file:
                 self.lock_file.close()
@@ -71,19 +73,15 @@ class SingleInstance:
             try:
                 fcntl.lockf(self.lock_file, fcntl.LOCK_UN)
                 self.lock_file.close()
-            except:
+            except Exception:
                 pass
 
             # Clean up lock files
-            try:
+            with contextlib.suppress(BaseException):
                 self.lock_file_path.unlink()
-            except:
-                pass
 
-            try:
+            with contextlib.suppress(BaseException):
                 self.pid_file_path.unlink()
-            except:
-                pass
 
             self.acquired = False
             self.lock_file = None
@@ -93,10 +91,10 @@ class SingleInstance:
         self.release()
         sys.exit(0)
 
-    def get_existing_pid(self) -> Optional[int]:
+    def get_existing_pid(self) -> int | None:
         """
         Get PID of existing instance if running
-        
+
         Returns:
             PID of existing instance or None
         """
@@ -110,16 +108,16 @@ class SingleInstance:
                         # Check if it's actually a Python process
                         if 'python' in proc.name().lower():
                             return pid
-                    except:
+                    except Exception:
                         pass
-        except:
+        except Exception:
             pass
         return None
 
     def force_acquire(self) -> bool:
         """
         Force acquire lock by killing existing instance
-        
+
         Returns:
             True if lock acquired after forcing, False otherwise
         """
@@ -136,28 +134,24 @@ class SingleInstance:
                     # Force kill
                     os.kill(existing_pid, signal.SIGKILL)
                     time.sleep(0.5)
-            except:
+            except Exception:
                 pass
 
         # Clean up stale lock files
-        try:
+        with contextlib.suppress(BaseException):
             self.lock_file_path.unlink()
-        except:
-            pass
 
-        try:
+        with contextlib.suppress(BaseException):
             self.pid_file_path.unlink()
-        except:
-            pass
 
         # Try to acquire lock
         return self.acquire()
 
 
-def find_menubar_processes() -> List[Dict]:
+def find_menubar_processes() -> list[dict]:
     """
     Find all running Impetus menu bar processes
-    
+
     Returns:
         List of process info dictionaries
     """
@@ -166,9 +160,7 @@ def find_menubar_processes() -> List[Dict]:
     for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
         try:
             info = proc.info
-            if info['cmdline'] and any('menubar' in str(arg) for arg in info['cmdline']):
-                # Check if it's a Python process running our menu bar apps
-                if any('run_menubar' in str(arg) for arg in info['cmdline']):
+            if info['cmdline'] and any('menubar' in str(arg) for arg in info['cmdline']) and any('run_menubar' in str(arg) for arg in info['cmdline']):
                     menubar_processes.append({
                         'pid': info['pid'],
                         'name': info['name'],
@@ -181,13 +173,13 @@ def find_menubar_processes() -> List[Dict]:
     return menubar_processes
 
 
-def kill_all_menubar_processes(except_pid: Optional[int] = None) -> int:
+def kill_all_menubar_processes(except_pid: int | None = None) -> int:
     """
     Kill all menu bar processes except the specified one
-    
+
     Args:
         except_pid: PID to exclude from killing
-        
+
     Returns:
         Number of processes killed
     """
@@ -200,7 +192,7 @@ def kill_all_menubar_processes(except_pid: Optional[int] = None) -> int:
                 proc = psutil.Process(proc_info['pid'])
                 proc.terminate()
                 killed += 1
-            except:
+            except Exception:
                 pass
 
     if killed > 0:
@@ -212,10 +204,10 @@ def kill_all_menubar_processes(except_pid: Optional[int] = None) -> int:
 def kill_menubar_process(pid: int) -> bool:
     """
     Kill a specific menu bar process by PID
-    
+
     Args:
         pid: Process ID to kill
-        
+
     Returns:
         True if process was killed, False otherwise
     """
@@ -226,5 +218,5 @@ def kill_menubar_process(pid: int) -> bool:
         if proc.is_running():
             proc.kill()
         return True
-    except:
+    except Exception:
         return False

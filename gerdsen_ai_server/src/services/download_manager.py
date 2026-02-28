@@ -16,7 +16,7 @@ from typing import Any
 from loguru import logger
 
 try:
-    from huggingface_hub import hf_hub_download, snapshot_download
+    from huggingface_hub import snapshot_download
     from huggingface_hub.utils import HfHubHTTPError
     HF_HUB_AVAILABLE = True
 except ImportError:
@@ -76,7 +76,7 @@ class DownloadManager:
 
         # Enable HF_TRANSFER for faster downloads if available
         try:
-            import hf_transfer
+            import hf_transfer  # noqa: F401
             os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
             logger.info("HF Transfer enabled for faster downloads")
         except ImportError:
@@ -230,9 +230,7 @@ class DownloadManager:
     def cleanup_failed_downloads(self):
         """Clean up incomplete downloads"""
         for item in self.downloads_dir.iterdir():
-            if item.is_dir():
-                # Check if it's an incomplete download
-                if not (item / "config.json").exists():
+            if item.is_dir() and not (item / "config.json").exists():
                     logger.info(f"Cleaning up incomplete download: {item}")
                     shutil.rmtree(item)
 

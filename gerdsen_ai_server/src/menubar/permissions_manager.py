@@ -4,10 +4,11 @@ Permissions Manager for Impetus LLM Server
 Handles macOS permission requests and guides users to system settings
 """
 
-import rumps
-import subprocess
 import os
-from typing import Dict, Tuple, Optional
+import subprocess
+
+import rumps
+
 
 class PermissionsManager:
     """Manages macOS permissions for the Impetus LLM Server"""
@@ -20,7 +21,7 @@ class PermissionsManager:
         }
         self.check_permissions()
 
-    def check_permissions(self) -> Dict[str, bool]:
+    def check_permissions(self) -> dict[str, bool]:
         """Check current permission status"""
         # Check notifications permission
         try:
@@ -29,7 +30,7 @@ class PermissionsManager:
                 'tell application "System Events" to display notification "Permission Test" with title "Impetus"'
             ], capture_output=True, text=True, timeout=5)
             self.permissions_status['notifications'] = (result.returncode == 0)
-        except:
+        except Exception:
             self.permissions_status['notifications'] = False
 
         # Check file access (test write to Documents)
@@ -39,7 +40,7 @@ class PermissionsManager:
                 f.write("test")
             os.remove(test_file)
             self.permissions_status['file_access'] = True
-        except:
+        except Exception:
             self.permissions_status['file_access'] = False
 
         # Accessibility is optional - assume false for now
@@ -91,7 +92,7 @@ Let's set these up quickly..."""
         message = """Impetus would like to send you notifications about:
 
 • Server start/stop status
-• Model loading progress  
+• Model loading progress
 • Error alerts
 • System updates
 
@@ -113,7 +114,7 @@ This helps you stay informed about your LLM server."""
                 ], timeout=5)
                 self.permissions_status['notifications'] = True
                 return True
-            except:
+            except Exception:
                 self.open_notifications_settings()
                 return False
 
@@ -147,7 +148,7 @@ This is required for the app to function properly."""
                 os.remove(test_file)
                 self.permissions_status['file_access'] = True
                 return True
-            except:
+            except Exception:
                 self.open_privacy_settings()
                 return False
 
@@ -253,7 +254,7 @@ This will help ensure Impetus works properly."""
         self.check_permissions()
         return self.permissions_status['notifications'] and self.permissions_status['file_access']
 
-    def get_permissions_summary(self) -> Tuple[int, int]:
+    def get_permissions_summary(self) -> tuple[int, int]:
         """Get summary of granted permissions (granted, total)"""
         self.check_permissions()
         granted = sum([
@@ -263,7 +264,7 @@ This will help ensure Impetus works properly."""
         ])
         return granted, 3
 
-    def get_missing_permissions(self) -> Dict[str, str]:
+    def get_missing_permissions(self) -> dict[str, str]:
         """Get missing permissions with descriptions"""
         self.check_permissions()
         missing = {}
@@ -299,6 +300,6 @@ This will help ensure Impetus works properly."""
         self.show_permissions_status()
 
     @property
-    def permissions(self) -> Dict[str, bool]:
+    def permissions(self) -> dict[str, bool]:
         """Get current permissions status"""
         return self.permissions_status.copy()

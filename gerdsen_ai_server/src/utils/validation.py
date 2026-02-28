@@ -15,11 +15,11 @@ T = TypeVar('T', bound=BaseModel)
 def validate_json(schema: type[T], required: bool = True) -> T | dict:
     """
     Decorator to validate JSON request body using Pydantic schema
-    
+
     Args:
         schema: Pydantic model class to validate against
         required: Whether JSON body is required
-    
+
     Returns:
         Decorator function
     """
@@ -38,11 +38,7 @@ def validate_json(schema: type[T], required: bool = True) -> T | dict:
                     }), 400
 
                 # If JSON is not required and not provided, pass None
-                if not required and json_data is None:
-                    validated_data = None
-                else:
-                    # Validate using Pydantic schema
-                    validated_data = schema(**json_data)
+                validated_data = None if not required and json_data is None else schema(**json_data)
 
                 # Add validated data to kwargs
                 kwargs['validated_data'] = validated_data
@@ -79,10 +75,10 @@ def validate_json(schema: type[T], required: bool = True) -> T | dict:
 def validate_query_params(schema: type[T]) -> T | dict:
     """
     Decorator to validate query parameters using Pydantic schema
-    
+
     Args:
         schema: Pydantic model class to validate against
-    
+
     Returns:
         Decorator function
     """
@@ -101,14 +97,14 @@ def validate_query_params(schema: type[T]) -> T | dict:
                         field_type = field_info.type_
 
                         # Handle common type conversions
-                        if field_type == bool:
+                        if field_type is bool:
                             query_data[field_name] = value.lower() in ('true', '1', 'yes', 'on')
-                        elif field_type == int:
+                        elif field_type is int:
                             query_data[field_name] = int(value)
-                        elif field_type == float:
+                        elif field_type is float:
                             query_data[field_name] = float(value)
                         # Lists from comma-separated strings
-                        elif hasattr(field_type, '__origin__') and field_type.__origin__ == list:
+                        elif hasattr(field_type, '__origin__') and field_type.__origin__ is list:
                             query_data[field_name] = value.split(',') if value else []
 
                 # Validate using Pydantic schema
@@ -157,10 +153,10 @@ def validate_query_params(schema: type[T]) -> T | dict:
 def validate_path_params(**param_schemas):
     """
     Decorator to validate path parameters using Pydantic field validators
-    
+
     Args:
         **param_schemas: Dict of parameter name to validation function
-    
+
     Returns:
         Decorator function
     """
@@ -211,11 +207,11 @@ def validate_path_params(**param_schemas):
 def create_response(data: BaseModel | dict | list, status_code: int = 200) -> tuple:
     """
     Create a JSON response from Pydantic model or dict
-    
+
     Args:
         data: Data to serialize
         status_code: HTTP status code
-    
+
     Returns:
         Tuple of (response, status_code)
     """
@@ -236,13 +232,13 @@ def create_response(data: BaseModel | dict | list, status_code: int = 200) -> tu
 def validate_model_id(model_id: str) -> str:
     """
     Validate model ID format
-    
+
     Args:
         model_id: Model identifier to validate
-    
+
     Returns:
         Validated model ID
-    
+
     Raises:
         ValueError: If model ID is invalid
     """
@@ -276,13 +272,13 @@ def validate_model_id(model_id: str) -> str:
 def validate_conversation_id(conversation_id: str) -> str:
     """
     Validate conversation ID format
-    
+
     Args:
         conversation_id: Conversation identifier to validate
-    
+
     Returns:
         Validated conversation ID
-    
+
     Raises:
         ValueError: If conversation ID is invalid
     """

@@ -175,7 +175,7 @@ class MetalMonitor:
                 thermal_level = int(output)
                 # Rough conversion: 0 = 40°C, 100 = 100°C
                 return 40 + (thermal_level * 0.6)
-            except:
+            except Exception:
                 pass
         return None
 

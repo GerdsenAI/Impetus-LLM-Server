@@ -25,7 +25,7 @@ class TestIntegration:
     @pytest.fixture
     def client(self, app):
         """Create test client"""
-        flask_app, socketio = app
+        flask_app, _socketio = app
         return flask_app.test_client()
 
     @pytest.fixture
@@ -183,7 +183,7 @@ class TestIntegration:
 
         # Should have received metrics
         received = socketio_client.get_received()
-        metrics_msgs = [msg for msg in received if msg['name'] == 'metrics_update']
+        [msg for msg in received if msg['name'] == 'metrics_update']
         # In test environment, background threads might not run
         # assert len(metrics_msgs) > 0
 

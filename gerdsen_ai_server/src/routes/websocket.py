@@ -6,6 +6,7 @@ import threading
 import time
 
 import psutil
+from flask import request
 from flask_socketio import emit, join_room, leave_room
 from loguru import logger
 
@@ -208,7 +209,7 @@ def gather_metrics(app_state):
                 'memory_used_gb': metal_metrics.memory_used_gb,
                 'memory_bandwidth_percent': metal_metrics.memory_bandwidth_utilization
             }
-        except:
+        except Exception:
             pass
 
     metrics = {
@@ -253,7 +254,3 @@ def gather_hardware_status(app_state):
     }
 
     return status
-
-
-# Import request context for WebSocket handlers
-from flask import request

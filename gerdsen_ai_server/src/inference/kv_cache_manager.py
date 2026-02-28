@@ -11,7 +11,6 @@ import numpy as np
 from loguru import logger
 
 try:
-    import mlx
     import mlx.core as mx
     MLX_AVAILABLE = True
 except ImportError:
@@ -19,8 +18,9 @@ except ImportError:
     logger.warning("MLX not available for KV cache")
     # Create a dummy mx for type annotations
     class _DummyMLX:
-        class array:
+        class Array:
             pass
+        array = Array
     mx = _DummyMLX()
 
 
@@ -59,7 +59,7 @@ class KVCacheManager:
     def __init__(self, max_memory_gb: float = 2.0, max_conversations: int = 10):
         """
         Initialize KV cache manager
-        
+
         Args:
             max_memory_gb: Maximum memory to use for caching (GB)
             max_conversations: Maximum number of concurrent conversations
@@ -89,7 +89,7 @@ class KVCacheManager:
     def get_cache(self, model_id: str, conversation_id: str) -> CacheEntry | None:
         """
         Get cache entry for conversation
-        
+
         Returns:
             CacheEntry if exists, None otherwise
         """
@@ -114,7 +114,7 @@ class KVCacheManager:
                     initial_length: int = 0) -> CacheEntry:
         """
         Create new cache entry
-        
+
         Args:
             model_id: Model identifier
             conversation_id: Conversation identifier
@@ -122,7 +122,7 @@ class KVCacheManager:
             num_heads: Number of attention heads
             head_dim: Dimension of each attention head
             initial_length: Initial sequence length
-            
+
         Returns:
             New CacheEntry
         """
@@ -179,14 +179,14 @@ class KVCacheManager:
                     truncate_length: int | None = None) -> CacheEntry:
         """
         Update existing cache with new key-value pairs
-        
+
         Args:
             model_id: Model identifier
             conversation_id: Conversation identifier
             new_keys: New key tensors to append
             new_values: New value tensors to append
             truncate_length: Optional max sequence length (for sliding window)
-            
+
         Returns:
             Updated CacheEntry
         """
@@ -206,7 +206,7 @@ class KVCacheManager:
         updated_keys = []
         updated_values = []
 
-        for layer_idx, (old_k, old_v, new_k, new_v) in enumerate(
+        for _layer_idx, (old_k, old_v, new_k, new_v) in enumerate(
             zip(cache.keys, cache.values, new_keys, new_values, strict=False)
         ):
             # Concatenate along sequence dimension (axis=2)
@@ -243,7 +243,7 @@ class KVCacheManager:
     def clear_cache(self, model_id: str, conversation_id: str) -> bool:
         """
         Clear cache for specific conversation
-        
+
         Returns:
             True if cache was cleared, False if not found
         """
@@ -267,11 +267,11 @@ class KVCacheManager:
     def clear_model_caches(self, model_id: str) -> int:
         """
         Clear all caches for a specific model
-        
+
         Returns:
             Number of caches cleared
         """
-        keys_to_remove = [k for k in self.caches.keys() if k.startswith(f"{model_id}:")]
+        keys_to_remove = [k for k in self.caches if k.startswith(f"{model_id}:")]
 
         cleared = 0
         for key in keys_to_remove:

@@ -294,7 +294,7 @@ class TestMLXModelLoader:
     def test_loader_init_without_mlx(self):
         """Test loader initialization without MLX"""
         with patch('src.model_loaders.mlx_loader.logger.warning') as mock_warning:
-            loader = MLXModelLoader()
+            MLXModelLoader()
             mock_warning.assert_called_once()
             assert "MLX is not available" in mock_warning.call_args[0][0]
 
