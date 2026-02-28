@@ -85,7 +85,7 @@ jobs:
     - name: Run type checking
       run: |
         cd gerdsen_ai_server
-        mypy src/ --ignore-missing-imports --explicit-package-bases
+        mypy src/
     
     - name: Run tests
       run: |
