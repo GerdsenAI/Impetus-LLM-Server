@@ -5,6 +5,7 @@ pytest==8.3.2
 pytest-cov==5.0.0
 pytest-asyncio==0.25.3
 pytest-mock==3.14.0
+pytest-dependency==0.6.0
 
 # Code quality and linting (ruff replaces black + isort)
 ruff==0.15.4
