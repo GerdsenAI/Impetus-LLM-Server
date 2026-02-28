@@ -39,6 +39,7 @@ class ModelSettings(BaseSettings):
     # Model loading settings
     load_in_4bit: bool = Field(default=True, env="IMPETUS_LOAD_IN_4BIT")
     max_memory_gb: float | None = Field(default=None, env="IMPETUS_MAX_MEMORY_GB")
+    require_model_for_ready: bool = Field(default=False, env="IMPETUS_REQUIRE_MODEL_FOR_READY")
 
     @field_validator("models_dir", "cache_dir", mode="before")
     @classmethod
