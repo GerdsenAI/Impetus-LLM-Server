@@ -5,15 +5,16 @@ Pydantic schemas for hardware monitoring endpoints
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class PerformanceModeRequest(BaseModel):
     """Performance mode request schema"""
     mode: Literal["efficiency", "balanced", "performance"] = Field(..., description="Performance mode to set")
 
-    @validator('mode')
-    def validate_mode(self, v):
+    @classmethod
+    @field_validator('mode')
+    def validate_mode(cls, v):
         valid_modes = ["efficiency", "balanced", "performance"]
         if v not in valid_modes:
             raise ValueError(f"Mode must be one of: {', '.join(valid_modes)}")
