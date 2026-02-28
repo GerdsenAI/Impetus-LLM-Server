@@ -149,6 +149,11 @@ def chat_completions(validated_data: ChatCompletionRequest):
     metrics = app_state.get('metrics', {})
     metrics['requests_total'] = metrics.get('requests_total', 0) + 1
 
+    # Track per-model inference counts
+    if 'model_inference_counts' not in app_state:
+        app_state['model_inference_counts'] = {}
+    app_state['model_inference_counts'][model] = app_state['model_inference_counts'].get(model, 0) + 1
+
     # Generate response
     if stream:
         response = Response(

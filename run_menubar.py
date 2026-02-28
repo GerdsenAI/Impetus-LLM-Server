@@ -299,7 +299,7 @@ class ImpetusMenuBar(rumps.App):
         def start_server_thread():
             try:
                 # Change to project directory and start server
-                project_dir = "/Volumes/M2 Raid0/GerdsenAI_Repositories/Impetus-LLM-Server"
+                project_dir = os.path.dirname(os.path.abspath(__file__))
                 if os.path.exists(project_dir):
                     os.chdir(project_dir)
                 
@@ -810,7 +810,7 @@ Advanced preferences coming soon!"""
 def main():
     """Main entry point"""
     # Ensure we're in the right directory
-    project_dir = "/Volumes/M2 Raid0/GerdsenAI_Repositories/Impetus-LLM-Server"
+    project_dir = os.path.dirname(os.path.abspath(__file__))
     if os.path.exists(project_dir):
         os.chdir(project_dir)
     

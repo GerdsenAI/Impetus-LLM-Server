@@ -14,6 +14,10 @@ interface AppState {
   hardwareInfo: any
   metrics: any
   loadedModels: string[]
+  notification: {
+    message: string
+    type: 'info' | 'warning' | 'error'
+  } | null
 }
 
 function App() {
@@ -22,7 +26,8 @@ function App() {
     connected: false,
     hardwareInfo: null,
     metrics: null,
-    loadedModels: []
+    loadedModels: [],
+    notification: null
   })
 
   useEffect(() => {
@@ -60,7 +65,17 @@ function App() {
 
     newSocket.on('thermal_warning', (data) => {
       console.warn('Thermal warning:', data)
-      // TODO: Show notification to user
+      setState(prev => ({
+        ...prev,
+        notification: {
+          message: `Thermal Warning: ${data.message || 'System temperature is high'}`,
+          type: 'warning'
+        }
+      }))
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        setState(prev => ({ ...prev, notification: null }))
+      }, 5000)
     })
 
     setSocket(newSocket)
@@ -73,7 +88,19 @@ function App() {
   return (
     <div className="app">
       <Header connected={state.connected} />
-      
+
+      {state.notification && (
+        <div className={`notification notification-${state.notification.type}`}>
+          {state.notification.message}
+          <button
+            className="notification-close"
+            onClick={() => setState(prev => ({ ...prev, notification: null }))}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <div className="dashboard">
         <div className="dashboard-grid">
           <div className="card">

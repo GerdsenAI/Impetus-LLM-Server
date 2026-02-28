@@ -67,6 +67,7 @@ build_standalone/
 impetus-dashboard/dist/
 impetus-dashboard/.vite/
 impetus-dashboard/.eslintcache
+*.tsbuildinfo
 
 # Workspace
 *.code-workspace
