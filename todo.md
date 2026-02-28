@@ -1,145 +1,124 @@
-# Impetus LLM Server - Development Roadmap
+# Impetus LLM Server — v2.0 Modernization Roadmap
 
-## 🔧 v1.0.2 Critical Fixes Complete!
+## Completed
 
-### DMG Bundling Hotfix (August 16, 2025) - COMPLETED ✅
-- ✅ **CRITICAL**: Fixed DMG app failing to launch from Applications folder
-- ✅ **CRITICAL**: Fixed Python dependency bundling (Flask import errors)
-- ✅ **DMG Builder**: Rewritten Python runtime bundling with proper isolation
-- ✅ **Launcher Script**: Fixed PYTHONPATH for self-contained operation
-- ✅ **Production Config**: Added graceful fallback for missing dependencies
-- ✅ **Documentation**: Updated CLAUDE.md, installers/README.md, CHANGELOG.md
-- ✅ **Testing**: Verified app launches successfully with menu bar running
+### v1.0.2 — Production MVP (August 2025)
+- [x] Flask + MLX inference engine (230+ tok/s on Apple Silicon)
+- [x] OpenAI-compatible API with streaming SSE (/v1/chat/completions)
+- [x] React 18 + Three.js dashboard with real-time monitoring
+- [x] CI/CD pipeline (GitHub Actions: ruff, mypy, pytest, Trivy)
+- [x] Gunicorn production server with health checks
+- [x] macOS menu bar app (rumps + PyObjC) + DMG installer
+- [x] 84+ tests passing
 
-### Technical Impact
-- App now truly self-contained (110MB DMG with all dependencies)
-- No more silent failures on installation
-- Production security validation working correctly
-- Professional user experience restored
-
-## 🎉 v1.0.0 Production MVP Complete!
-
-Impetus LLM Server has achieved production-ready status with enterprise-grade features:
-
-### Core Features (v0.1.0)
-- ✅ High-performance MLX inference on Apple Silicon
-- ✅ OpenAI-compatible API with streaming
-- ✅ React dashboard with real-time monitoring
-- ✅ One-click model downloads
-- ✅ Comprehensive benchmarking
-- ✅ Production packaging and hardening
-- ✅ 84 test cases passing
-- ✅ Complete documentation suite
-
-### Production Features (v1.0.0) - COMPLETED ✅
-- ✅ **Gunicorn Production Server** - Replaced Flask dev server with production WSGI
-- ✅ **CI/CD Pipeline** - Complete GitHub Actions workflows for testing, building, and deployment
-- ✅ **API Hardening** - Comprehensive Pydantic validation for all endpoints
-- ✅ **Health & Monitoring** - Production health checks and Prometheus metrics
-- ✅ **OpenAPI Documentation** - Auto-generated interactive API documentation
-- ✅ **Production Deployment** - Docker, Kubernetes, and enterprise deployment guides
-
-## 🚀 Production MVP Sprint (v1.0.0) - COMPLETED
-
-### ✅ All Critical Tasks Complete
-
-#### 1. Production Server Configuration ✅
-- ✅ **Replace Flask dev server with Gunicorn**
-  - ✅ Create gunicorn_config.py with worker configuration
-  - ✅ Optimize worker count for Apple Silicon
-  - ✅ Configure proper request timeouts
-  - ✅ Add graceful shutdown handling
-  - ✅ Production startup scripts and service files
-
-#### 2. CI/CD Pipeline ✅
-- ✅ **GitHub Actions workflow**
-  - ✅ Run tests on push/PR
-  - ✅ Code quality checks (ruff, mypy, eslint)
-  - ✅ Build and test Docker images
-  - ✅ Automated release process
-  - ✅ Security scanning with Trivy
-  - ✅ Performance testing workflow
-
-#### 3. API Hardening ✅
-- ✅ **Input validation for all endpoints**
-  - ✅ Pydantic models for request/response schemas
-  - ✅ Sanitize user inputs
-  - ✅ Validate model IDs and parameters
-  - ✅ Add request size limits
-  - ✅ Comprehensive error handling
-
-#### 4. Health & Monitoring ✅
-- ✅ **Production health checks**
-  - ✅ /api/health/live endpoint for liveness probe
-  - ✅ /api/health/ready endpoint for readiness probe
-  - ✅ Enhanced Prometheus metrics endpoint
-  - ✅ Resource usage monitoring
-  - ✅ Kubernetes probe configuration
-
-#### 5. Documentation ✅
-- ✅ **OpenAPI/Swagger documentation**
-  - ✅ Auto-generate from Flask routes
-  - ✅ Interactive API explorer at /docs
-  - ✅ Example requests/responses
-  - ✅ Authentication documentation
-  - ✅ Comprehensive API documentation
-
-#### 6. Deployment Guide ✅
-- ✅ **Production deployment documentation**
-  - ✅ nginx reverse proxy configuration
-  - ✅ SSL/TLS setup guide
-  - ✅ Docker Compose example
-  - ✅ Kubernetes manifests
-  - ✅ Backup and recovery procedures
-  - ✅ Security hardening guidelines
-
-### ✅ Success Criteria Met
-- ✅ Passes all existing tests
-- ✅ Handles 100+ concurrent requests
-- ✅ Zero downtime deployments
-- ✅ Complete API documentation
-- ✅ Production deployment guide
-- ✅ CI/CD pipeline functional
-
-## 🔮 Future Roadmap (v1.1+)
-
-### Planned Features
-- [ ] **Multi-Model Support** - Load and serve multiple models simultaneously
-- [ ] **Model Quantization** - On-the-fly quantization for memory optimization
-- [ ] **Advanced Caching** - Distributed cache with Redis clustering
-- [ ] **Model Routing** - Intelligent routing based on model capabilities
-- [ ] **Fine-tuning API** - API endpoints for model fine-tuning
-- [ ] **Enterprise Auth** - LDAP, SAML, and OAuth2 integration
-- [ ] **Advanced Metrics** - Custom metrics and alerting
-- [ ] **Model Marketplace** - Curated model marketplace integration
-
-### Performance Targets (v1.1)
-- **Inference Speed**: 100-150 tokens/sec (10-40% improvement)
-- **Model Loading**: < 3 seconds for 7B models
-- **Memory Efficiency**: 40-50% reduction with advanced quantization
-- **Concurrent Users**: 1000+ concurrent requests
-- **Uptime**: 99.9% availability
-
-## 📊 Performance Metrics (Achieved v1.0.0)
-
-### Core Performance
-- **Startup Time**: < 5 seconds
-- **Model Loading**: < 5 seconds for 7B models
-- **Inference Speed**: 50-110 tokens/sec (chip dependent)
-- **First Token Latency**: < 200ms (warmed)
-- **Memory Usage**: < 500MB base + model size
-- **API Latency**: < 50ms overhead
-- **GPU Utilization**: > 80% during inference
-
-### Production Metrics
-- **Concurrent Requests**: 100+ handled efficiently
-- **Health Check Response**: < 10ms
-- **API Documentation**: 100% endpoint coverage
-- **Test Coverage**: 84+ comprehensive test cases
-- **Security**: Full input validation and authentication
-- **Deployment**: Zero-downtime rolling updates
+### chore/modernize — Research Phase (February 2026)
+- [x] Architecture Blueprint (6-facet research, 14 documents, PDF)
+- [x] Framework ecosystem analysis (FastAPI, Litestar, Quart, Starlette)
+- [x] Vector DB & RAG evaluation (ChromaDB, Qdrant, LanceDB)
+- [x] Compute architecture analysis (MLX GPU, Core ML ANE, M5 neural accelerators)
+- [x] Frontend modernization research (Zustand, TanStack, Tailwind v4)
+- [x] Community health & viability assessment
+- [x] Research consolidated in docs/research/
+- [x] Repository cleanup and organization
 
 ---
 
-**Status**: Production Ready v1.0.0 ✅  
-**Last Updated**: January 2025 - Production MVP Sprint Completed
+## Priority — Ship First
+
+### Phase 1: Embeddings + Vector Store (Weeks 1-2)
+- [ ] Implement /v1/embeddings endpoint (MLX GPU, ~20ms latency)
+- [ ] Integrate ChromaDB v1.5+ as local embedded vector store
+- [ ] Add document ingestion endpoint (POST /v1/documents)
+- [ ] Add similarity search endpoint
+- [ ] Embedding model: nomic-embed-text-v1.5 (137M params, 261MB)
+- [ ] Memory profiling on M1 8GB (budget: ~6.2GB total)
+- [ ] Unit + integration tests for each new endpoint
+
+### Phase 2: RAG Pipeline + Chat UI (Weeks 3-4)
+- [ ] Naive RAG: query ChromaDB → inject context → generate
+- [ ] Add context_documents support to /v1/chat/completions
+- [ ] Simple chat interface component in dashboard
+- [ ] Document upload UI in dashboard
+- [ ] E2E RAG flow test (upload → embed → query → response)
+
+### Phase 3: Quality Hardening (Weeks 5-6)
+- [ ] Fix: remove continue-on-error on linting/type checking in CI
+- [ ] Fix: request.json mutation bug in openai_api.py completions()
+- [ ] Increase test coverage to 80% backend
+- [ ] Add Playwright E2E tests for dashboard
+- [ ] Performance regression benchmarks vs v1.0.2
+
+### Phase 4: Polish + v2.0 Release (Weeks 7-8)
+- [ ] DMG/standalone app packaging with ChromaDB bundled
+- [ ] Test ChromaDB in sandboxed macOS app (file permissions)
+- [ ] Update CLAUDE.md, README, API documentation
+- [ ] Changelog, release notes, migration guide (v1.x → v2.0)
+- [ ] Security scan (Trivy, zero critical vulns)
+- [ ] Tag v2.0.0 release
+
+---
+
+## Deferred — Build When Triggered
+
+### Core ML ANE Embeddings
+> **Trigger:** Profiling shows embedding latency is a bottleneck, or batch embedding workloads exceed acceptable time.
+- [ ] Convert embedding model to Core ML via coremltools v9
+- [ ] Build ComputeDispatcher (route embeddings → ANE, LLM → GPU)
+- [ ] Hardware detection (M1/M2/M3/M4/M5 capabilities)
+- [ ] Benchmark: target 3-5ms ANE vs 20-30ms GPU
+- [ ] Graceful fallback to GPU when ANE unavailable
+- Research: docs/research/research_findings_npu_gpu_cpu_compute_architecture.md
+
+### FastAPI Migration
+> **Trigger:** Flask blocks a specific feature (e.g., true async inference, HTTP/2, or WebSocket scaling beyond Socket.IO).
+- [ ] Migrate routes from Flask Blueprints to FastAPI APIRouter
+- [ ] Replace Gunicorn + eventlet with Uvicorn ASGI
+- [ ] Async streaming SSE for /v1/chat/completions
+- [ ] Rewrite SocketIO integration
+- [ ] Update menubar app server launcher
+- [ ] Update CI, DMG packaging, all tests
+- Research: docs/research/research_framework_ecosystem.md
+
+### Frontend Modernization
+> **Trigger:** Dashboard exceeds ~4,000 lines, or complex multi-page navigation is needed.
+- [ ] Zustand v5 for state management
+- [ ] TanStack Query v5 for server state + caching
+- [ ] TanStack Router v1 for type-safe routing
+- [ ] Tailwind CSS v4 migration
+- [ ] Eliminate `any` types across frontend codebase
+- Research: docs/research/frontend_modernization_research.md
+
+### Advanced RAG
+> **Trigger:** Naive RAG validates user demand and retrieval quality needs improvement.
+- [ ] Hybrid search (BM25 + dense vector)
+- [ ] Cross-encoder reranking
+- [ ] Agentic RAG with multi-retriever patterns
+- [ ] Qdrant migration (when vectors exceed 50M)
+- Research: docs/research/VECTOR_DB_RAG_RESEARCH.md
+
+### Observability & Monitoring
+> **Trigger:** Deployed as multi-user service, or debugging production issues requires deeper instrumentation.
+- [ ] OpenTelemetry instrumentation
+- [ ] Prometheus metrics export
+- [ ] Distributed tracing
+- Research: docs/research/Impetus-LLM-Server-Architecture-Blueprint.md
+
+---
+
+## Research Reference
+
+All research documents: `docs/research/`
+- **Impetus-LLM-Server-Architecture-Blueprint.md** — Comprehensive blueprint + PDF
+- **QUICK_REFERENCE_CARD.md** — One-page decision summary
+- **research_framework_ecosystem.md** — Framework comparison (FastAPI, Litestar, Quart)
+- **VECTOR_DB_RAG_RESEARCH.md** — Vector DB evaluation (ChromaDB, Qdrant, LanceDB)
+- **research_findings_npu_gpu_cpu_compute_architecture.md** — Compute deep-dive (MLX, ANE, M5)
+- **frontend_modernization_research.md** — Frontend stack analysis
+- **community-health-viability-research.md** — Ecosystem health assessment
+- **COMPUTE_ARCHITECTURE_DATA_TABLES.md** — Hardware reference tables
+- **RESEARCH_SUMMARY_COMPUTE_ARCHITECTURE.md** — Compute exec summary
+
+---
+
+**Status:** v2.0 development planned | v1.0.2 production stable
+**Last Updated:** February 2026
