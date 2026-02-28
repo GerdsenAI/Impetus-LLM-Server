@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Download, Upload, Trash2, Play, Loader } from 'lucide-react'
+import { Download, Trash2, Play } from 'lucide-react'
 import { Socket } from 'socket.io-client'
 
 interface ModelManagerProps {
@@ -16,7 +16,7 @@ interface Model {
   path: string
 }
 
-export const ModelManager: React.FC<ModelManagerProps> = ({ loadedModels, socket }) => {
+export const ModelManager: React.FC<ModelManagerProps> = ({ loadedModels }) => {
   const [models, setModels] = useState<Model[]>([])
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -31,8 +31,8 @@ export const ModelManager: React.FC<ModelManagerProps> = ({ loadedModels, socket
       const response = await fetch('/api/models/list')
       const data = await response.json()
       setModels(data.models || [])
-    } catch (err) {
-      console.error('Failed to fetch models:', err)
+    } catch (e) {
+      console.error('Failed to fetch models:', e)
       setError('Failed to fetch models')
     }
   }
@@ -59,7 +59,7 @@ export const ModelManager: React.FC<ModelManagerProps> = ({ loadedModels, socket
       } else {
         setError(data.error || 'Failed to load model')
       }
-    } catch (err) {
+    } catch {
       setError('Network error while loading model')
     } finally {
       setLoading(null)
@@ -88,7 +88,7 @@ export const ModelManager: React.FC<ModelManagerProps> = ({ loadedModels, socket
       } else {
         setError(data.error || 'Failed to unload model')
       }
-    } catch (err) {
+    } catch {
       setError('Network error while unloading model')
     } finally {
       setLoading(null)

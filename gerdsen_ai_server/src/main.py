@@ -27,7 +27,7 @@ def cleanup_resources():
         if socketio is not None:
             print("🧹 Cleaning up SocketIO resources...")
             socketio.stop()
-        
+
         # Clean up any MLX resources
         try:
             import mlx.core as mx
@@ -36,7 +36,7 @@ def cleanup_resources():
                 print("🧹 Cleared MLX Metal cache...")
         except Exception:
             pass
-        
+
         print("✅ Resource cleanup completed")
     except Exception as e:
         print(f"⚠️ Error during cleanup: {e}")
@@ -87,13 +87,27 @@ def create_app():
         SOCKETIO_AVAILABLE = False
         print("⚠️  SocketIO not available, running Flask-only mode")
 
+    # Initialise hybrid compute dispatcher (ANE + GPU)
+    try:
+        from gerdsen_ai_server.src.model_loaders.compute_dispatcher import compute_dispatcher
+        compute_caps = compute_dispatcher.get_capabilities()
+        print(f"🧮 Compute dispatcher: device={compute_caps['active_device']}, "
+              f"ANE={'yes' if compute_caps['ane_available'] else 'no'}, "
+              f"MLX={'yes' if compute_caps['mlx_installed'] else 'no'}")
+    except Exception as e:
+        compute_caps = {}
+        print(f"ℹ️ Compute dispatcher not initialised: {e}")
+
     # App state shared across blueprints
     flask_app.config["app_state"] = {
         "start_time": datetime.now(),
         "status": "running",
         "loaded_models": {},
+        "embedding_models": {},
         "metrics": {},
         "socketio": sio,
+        "compute_capabilities": compute_caps,
+        "vector_store_collections": {},
     }
 
     # Lightweight index and docs
@@ -155,6 +169,7 @@ def create_app():
     _maybe_register("gerdsen_ai_server.src.routes.models", "bp", "/api/models")
     _maybe_register("gerdsen_ai_server.src.routes.hardware", "bp", "/api/hardware")
     _maybe_register("gerdsen_ai_server.src.routes.openai_api", "bp", "/v1")
+    _maybe_register("gerdsen_ai_server.src.routes.documents", "bp", "/api/documents")
 
     return flask_app, sio
 
@@ -179,7 +194,7 @@ def main():
 
     # Check if we should use production server
     use_production = os.getenv('IMPETUS_ENVIRONMENT') == 'production'
-    
+
     if use_production:
         print("🏭 Starting in production mode with gunicorn...")
         try:

@@ -13,6 +13,8 @@ from loguru import logger
 from ..config.settings import settings
 from ..schemas.openai_schemas import (
     ChatCompletionRequest,
+    ChatMessage,
+    EmbeddingRequest,
 )
 from ..utils.validation import validate_json
 
@@ -100,6 +102,29 @@ def chat_completions(validated_data: ChatCompletionRequest):
     use_cache = validated_data.use_cache
     conversation_id = validated_data.conversation_id or validated_data.user or f'chat-{uuid.uuid4().hex[:8]}'
 
+    # RAG context injection
+    rag_sources = None
+    if validated_data.use_rag:
+        from ..services.rag_pipeline import build_rag_context
+
+        user_query = messages[-1].content if messages else ""
+        context_str, rag_sources = build_rag_context(
+            query=user_query,
+            n_results=validated_data.rag_n_results or 5,
+            collection_name=validated_data.rag_collection,
+        )
+        if context_str:
+            from ..schemas.openai_schemas import ChatMessage
+
+            messages = [ChatMessage(role="system", content=context_str), *messages]
+    elif validated_data.context_documents:
+        from ..schemas.openai_schemas import ChatMessage
+
+        context_str = "\n\n".join(
+            f"[{i + 1}] {doc}" for i, doc in enumerate(validated_data.context_documents)
+        )
+        messages = [ChatMessage(role="system", content=f"Use this context:\n\n{context_str}"), *messages]
+
     # Get model from app state
     app_state = current_app.config.get('app_state', {})
     loaded_models = app_state.get('loaded_models', {})
@@ -158,6 +183,8 @@ def chat_completions(validated_data: ChatCompletionRequest):
             use_cache,
             conversation_id
         )
+        if rag_sources:
+            response["rag_sources"] = rag_sources
         return jsonify(response)
 
 
@@ -404,44 +431,77 @@ def convert_messages_to_prompt(messages) -> str:
 @bp.route('/completions', methods=['POST'])
 def completions():
     """OpenAI-compatible completions endpoint"""
-    data = request.get_json()
+    data = request.get_json() or {}
 
-    # Extract parameters
-    model = data.get('model', settings.model.default_model)
-    prompt = data.get('prompt', '')
-    temperature = data.get('temperature', settings.inference.temperature)
-    max_tokens = data.get('max_tokens', settings.inference.max_tokens)
-
-    # Convert to chat format and use chat completions
-    messages = [{'role': 'user', 'content': prompt}]
-
-    # Reuse chat completions logic
-    request.json['messages'] = messages
-    return chat_completions()
+    validated = ChatCompletionRequest(
+        model=data.get('model', settings.model.default_model),
+        messages=[ChatMessage(role='user', content=data.get('prompt', ''))],
+        temperature=data.get('temperature', settings.inference.temperature),
+        max_tokens=data.get('max_tokens', settings.inference.max_tokens),
+        stream=data.get('stream', False),
+    )
+    return chat_completions(validated)
 
 
 @bp.route('/embeddings', methods=['POST'])
-def embeddings():
-    """OpenAI-compatible embeddings endpoint"""
-    data = request.get_json()
+@validate_json(EmbeddingRequest)
+def embeddings(validated_data: EmbeddingRequest):
+    """OpenAI-compatible embeddings endpoint powered by hybrid ANE/GPU compute"""
+    from ..model_loaders.compute_dispatcher import compute_dispatcher
 
-    # Extract parameters
-    model_name = data.get('model', 'text-embedding-ada-002')
-    input_text = data.get('input', '')
+    # Normalise input to list
+    texts = validated_data.input if isinstance(validated_data.input, list) else [validated_data.input]
+    model_name = validated_data.model
 
-    if isinstance(input_text, str):
-        inputs = [input_text]
+    try:
+        vectors = compute_dispatcher.embed(texts, model_name)
+    except Exception as e:
+        error_msg = str(e)
+        if "Unknown embedding model" in error_msg:
+            return jsonify({
+                'error': {'message': error_msg, 'type': 'invalid_request_error', 'code': 'model_not_found'}
+            }), 404
+        if "No embedding backend" in error_msg:
+            return jsonify({
+                'error': {'message': error_msg, 'type': 'server_error', 'code': 'no_backend'}
+            }), 503
+        logger.error(f"Embedding error: {e}")
+        return jsonify({
+            'error': {'message': f'Embedding inference failed: {error_msg}', 'type': 'server_error'}
+        }), 500
+
+    # Optional dimension truncation
+    if validated_data.dimensions is not None:
+        dim = validated_data.dimensions
+        vectors = [v[:dim] for v in vectors]
+
+    # Optional base64 encoding
+    if validated_data.encoding_format == "base64":
+        import base64
+        import struct
+        encoded_vectors = []
+        for v in vectors:
+            raw = struct.pack(f'{len(v)}f', *v)
+            encoded_vectors.append(base64.b64encode(raw).decode('ascii'))
+        data_list = [
+            {'object': 'embedding', 'embedding': enc, 'index': i}
+            for i, enc in enumerate(encoded_vectors)
+        ]
     else:
-        inputs = input_text
+        data_list = [
+            {'object': 'embedding', 'embedding': v, 'index': i}
+            for i, v in enumerate(vectors)
+        ]
 
-    # For now, MLX models don't have built-in embedding generation
-    # This would need a separate embedding model or extraction from hidden states
-    # Return a proper error message
+    # Approximate token count
+    total_tokens = sum(len(t.split()) for t in texts)
 
     return jsonify({
-        'error': {
-            'message': 'Embeddings endpoint not yet implemented. Please use a dedicated embedding model.',
-            'type': 'not_implemented',
-            'code': 501
+        'object': 'list',
+        'data': data_list,
+        'model': model_name,
+        'usage': {
+            'prompt_tokens': total_tokens,
+            'total_tokens': total_tokens,
         }
-    }), 501
+    })

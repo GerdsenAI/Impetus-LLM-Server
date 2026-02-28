@@ -2,27 +2,24 @@
 # Optimized for production deployment
 
 # Build stage for frontend
-FROM node:18-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
-# Install pnpm
-RUN npm install -g pnpm
-
 # Copy package files
-COPY impetus-dashboard/package.json impetus-dashboard/pnpm-lock.yaml ./
+COPY impetus-dashboard/package.json impetus-dashboard/package-lock.json ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN npm ci
 
 # Copy source code
 COPY impetus-dashboard/ ./
 
 # Build frontend
-RUN pnpm build
+RUN npm run build
 
 # Main application stage
-FROM python:3.11-slim AS production
+FROM python:3.13-slim AS production
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \

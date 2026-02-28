@@ -83,6 +83,57 @@ class HardwareSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="IMPETUS_")
 
 
+class ComputeSettings(BaseSettings):
+    """Compute routing configuration for hybrid ANE/GPU inference"""
+    enable_ane: bool = Field(default=True, env="IMPETUS_ENABLE_ANE")
+    enable_metal: bool = Field(default=True, env="IMPETUS_ENABLE_METAL")
+    preferred_embedding_device: Literal["auto", "ane", "gpu", "cpu"] = Field(
+        default="auto", env="IMPETUS_PREFERRED_EMBEDDING_DEVICE"
+    )
+    default_embedding_model: str = Field(
+        default="all-MiniLM-L6-v2", env="IMPETUS_DEFAULT_EMBEDDING_MODEL"
+    )
+    ane_max_model_size_mb: int = Field(default=500, env="IMPETUS_ANE_MAX_MODEL_SIZE_MB")
+    ane_quantization: Literal["float16", "int8", "palettized"] = Field(
+        default="float16", env="IMPETUS_ANE_QUANTIZATION"
+    )
+    embedding_cache_dir: Path = Field(
+        default=Path.home() / ".impetus" / "models" / "embeddings",
+        env="IMPETUS_EMBEDDING_CACHE_DIR"
+    )
+    max_batch_size_embedding: int = Field(default=32, env="IMPETUS_MAX_BATCH_SIZE_EMBEDDING")
+
+    @validator("embedding_cache_dir", pre=True)
+    def create_embedding_cache_dir(cls, v):
+        path = Path(v)
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    model_config = SettingsConfigDict(env_prefix="IMPETUS_")
+
+
+class VectorStoreSettings(BaseSettings):
+    """Vector store configuration for RAG pipeline"""
+    enabled: bool = Field(default=True, env="IMPETUS_VECTORSTORE_ENABLED")
+    persist_directory: Path = Field(
+        default=Path.home() / ".impetus" / "vectorstore",
+        env="IMPETUS_VECTORSTORE_DIR"
+    )
+    default_collection: str = Field(default="documents", env="IMPETUS_VECTORSTORE_DEFAULT_COLLECTION")
+    embedding_model: str = Field(default="all-MiniLM-L6-v2", env="IMPETUS_VECTORSTORE_EMBEDDING_MODEL")
+    chunk_size: int = Field(default=512, env="IMPETUS_CHUNK_SIZE")
+    chunk_overlap: int = Field(default=50, env="IMPETUS_CHUNK_OVERLAP")
+    max_results: int = Field(default=5, env="IMPETUS_VECTORSTORE_MAX_RESULTS")
+
+    @validator("persist_directory", pre=True)
+    def create_persist_directory(cls, v):
+        path = Path(v)
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    model_config = SettingsConfigDict(env_prefix="IMPETUS_")
+
+
 class Settings(BaseSettings):
     """Main application settings"""
     app_name: str = "Impetus LLM Server"
@@ -93,6 +144,8 @@ class Settings(BaseSettings):
     model: ModelSettings = Field(default_factory=ModelSettings)
     inference: InferenceSettings = Field(default_factory=InferenceSettings)
     hardware: HardwareSettings = Field(default_factory=HardwareSettings)
+    compute: ComputeSettings = Field(default_factory=ComputeSettings)
+    vectorstore: VectorStoreSettings = Field(default_factory=VectorStoreSettings)
 
     # Logging
     log_level: str = Field(default="INFO", env="IMPETUS_LOG_LEVEL")

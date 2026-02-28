@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Badge, Button, Space, Tooltip } from 'antd';
-import { WifiOutlined, DisconnectOutlined, ReloadOutlined } from '@ant-design/icons';
+import { useState, useEffect } from 'react';
+import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
 
 interface ConnectionStatusProps {
-  wsEndpoint: string;
+  wsEndpoint?: string;
   onReconnect?: () => void;
 }
 
-const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ wsEndpoint, onReconnect }) => {
+const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ onReconnect }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [lastError, setLastError] = useState<string>('');
 
   useEffect(() => {
-    // Check WebSocket connection status
     const checkConnection = async () => {
       try {
         const response = await fetch('/api/health/status');
@@ -32,25 +30,19 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ wsEndpoint, onRecon
       }
     };
 
-    // Initial check
     checkConnection();
-
-    // Set up periodic checks
     const interval = setInterval(checkConnection, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
   const handleReconnect = async () => {
     setIsConnecting(true);
     setRetryCount(prev => prev + 1);
-    
+
     try {
       if (onReconnect) {
         await onReconnect();
       }
-      
-      // Force a connection check
       const response = await fetch('/api/health/status');
       if (response.ok) {
         setIsConnected(true);
@@ -66,33 +58,40 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ wsEndpoint, onRecon
 
   if (isConnected) {
     return (
-      <Tooltip title="Connected to server">
-        <Badge status="success" text="Connected" />
-      </Tooltip>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#52c41a' }}>
+        <Wifi size={14} /> Connected
+      </span>
     );
   }
 
   return (
-    <Space>
-      <Tooltip title={lastError || 'Not connected to server'}>
-        <Badge status="error" text="Disconnected" />
-      </Tooltip>
-      
-      <Button
-        size="small"
-        icon={<ReloadOutlined spin={isConnecting} />}
-        onClick={handleReconnect}
-        loading={isConnecting}
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+      <span
+        title={lastError || 'Not connected to server'}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#ff4d4f' }}
       >
+        <WifiOff size={14} /> Disconnected
+      </span>
+
+      <button
+        onClick={handleReconnect}
+        disabled={isConnecting}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '4px',
+          padding: '2px 8px', fontSize: '12px', borderRadius: '4px',
+          border: '1px solid #d9d9d9', background: '#fff', cursor: 'pointer',
+        }}
+      >
+        <RefreshCw size={12} className={isConnecting ? 'spin' : ''} />
         Reconnect
-      </Button>
-      
+      </button>
+
       {retryCount > 0 && (
         <span style={{ fontSize: '12px', color: '#999' }}>
           Retry #{retryCount}
         </span>
       )}
-    </Space>
+    </span>
   );
 };
 

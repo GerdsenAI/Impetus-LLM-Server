@@ -16,7 +16,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
-  NODE_VERSION: '18'
+  NODE_VERSION: '22'
 
 jobs:
   # Quick checks that run on every push
@@ -52,7 +52,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     
     steps:
     - uses: actions/checkout@v4
@@ -81,13 +81,11 @@ jobs:
       run: |
         cd gerdsen_ai_server
         ruff check src/ tests/ --output-format=github
-      continue-on-error: true
-    
+
     - name: Run type checking
       run: |
         cd gerdsen_ai_server
         mypy src/ --ignore-missing-imports
-      continue-on-error: true
     
     - name: Run tests
       run: |
@@ -115,44 +113,33 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
     
-    - name: Install pnpm
-      uses: pnpm/action-setup@v3
-      with:
-        version: 8
-    
-    - name: Get pnpm store directory
-      shell: bash
-      run: |
-        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-    
-    - name: Setup pnpm cache
+    - name: Cache npm dependencies
       uses: actions/cache@v4
       with:
-        path: ${{ env.STORE_PATH }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        path: ~/.npm
+        key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-pnpm-store-
-    
+          ${{ runner.os }}-npm-
+
     - name: Install dependencies
       run: |
         cd impetus-dashboard
-        pnpm install
+        npm ci
     
     - name: Run linting
       run: |
         cd impetus-dashboard
-        pnpm lint
-      continue-on-error: true
+        npm run lint
     
     - name: Run type checking
       run: |
         cd impetus-dashboard
-        pnpm tsc --noEmit
-    
+        npx tsc --noEmit
+
     - name: Build frontend
       run: |
         cd impetus-dashboard
-        pnpm build
+        npm run build
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4

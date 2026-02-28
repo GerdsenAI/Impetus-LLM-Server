@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Download, Search, Filter, Cpu, Zap, HardDrive, Check, X, Loader } from 'lucide-react'
+import { Download, Search, Filter, Cpu, Zap, HardDrive, Check } from 'lucide-react'
 import { Socket } from 'socket.io-client'
 
 interface ModelBrowserProps {

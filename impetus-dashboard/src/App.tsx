@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { HardwareMonitor } from './components/HardwareMonitor'
 import { ModelManager } from './components/ModelManager'
 import { ModelBrowser } from './components/ModelBrowser'
 import { PerformanceMetrics } from './components/PerformanceMetrics'
+import { DocumentUpload } from './components/DocumentUpload'
+import { ChatInterface } from './components/ChatInterface'
 import { Header } from './components/Header'
 import './App.css'
 
@@ -95,7 +97,18 @@ function App() {
           </div>
           
           <div className="card full-width">
-            <ModelBrowser 
+            <ModelBrowser
+              socket={socket}
+            />
+          </div>
+
+          <div className="card full-width">
+            <DocumentUpload />
+          </div>
+
+          <div className="card full-width">
+            <ChatInterface
+              loadedModels={state.loadedModels}
               socket={socket}
             />
           </div>

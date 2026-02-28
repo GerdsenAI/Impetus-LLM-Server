@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Cpu, Zap, Thermometer, Memory } from 'lucide-react'
+import { Cpu, Zap, Thermometer, HardDrive } from 'lucide-react'
 import { Socket } from 'socket.io-client'
 
 interface HardwareMonitorProps {
@@ -61,7 +61,7 @@ export const HardwareMonitor: React.FC<HardwareMonitorProps> = ({ hardwareInfo, 
         </div>
 
         <div className="info-row">
-          <Memory className="info-icon" />
+          <HardDrive className="info-icon" />
           <div className="info-content">
             <div className="info-label">Memory</div>
             <div className="info-value">

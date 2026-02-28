@@ -225,6 +225,28 @@ def set_performance_mode():
     })
 
 
+@bp.route('/compute/capabilities', methods=['GET'])
+def compute_capabilities():
+    """Get hybrid compute capabilities (ANE + GPU status, loaded embedding models)"""
+    try:
+        from ..model_loaders.compute_dispatcher import compute_dispatcher
+
+        capabilities = compute_dispatcher.get_capabilities()
+
+        # Augment with memory info
+        memory = psutil.virtual_memory()
+        capabilities['memory'] = {
+            'total_gb': round(memory.total / (1024 ** 3), 1),
+            'available_gb': round(memory.available / (1024 ** 3), 1),
+            'percent_used': memory.percent,
+        }
+
+        return jsonify(capabilities)
+    except Exception as e:
+        logger.error(f"Error getting compute capabilities: {e}")
+        return jsonify({'error': 'Failed to get compute capabilities'}), 500
+
+
 @bp.route('/gpu/metrics', methods=['GET'])
 def gpu_metrics():
     """Get detailed GPU/Metal metrics"""

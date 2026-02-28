@@ -14,15 +14,15 @@ from .compute_dispatcher import ComputeDispatcher, compute_dispatcher
 from .embedding_converter import EMBEDDING_MODEL_REGISTRY
 
 __all__ = [
-    "BaseModel",
-    "BaseModelLoader",
+    "EMBEDDING_MODEL_REGISTRY",
     "BaseEmbeddingModel",
     "BaseEmbeddingModelLoader",
+    "BaseModel",
+    "BaseModelLoader",
+    "ComputeDispatcher",
     "EmbeddingError",
     "InferenceError",
     "ModelLoadError",
     "ModelNotFoundError",
-    "ComputeDispatcher",
     "compute_dispatcher",
-    "EMBEDDING_MODEL_REGISTRY",
 ]

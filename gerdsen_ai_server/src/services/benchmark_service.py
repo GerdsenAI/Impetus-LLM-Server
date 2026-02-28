@@ -71,6 +71,19 @@ class BenchmarkSuite:
         return statistics.mean(r.memory_used_gb for r in self.results)
 
 
+@dataclass
+class EmbeddingBenchmarkResult:
+    """Single embedding benchmark result"""
+    model_name: str
+    device: str
+    texts_count: int
+    dimensions: int
+    total_time_ms: float
+    per_text_ms: float
+    tokens_per_second: float
+    timestamp: str
+
+
 class BenchmarkService:
     """Service for benchmarking model performance"""
 
@@ -145,8 +158,22 @@ Now, please explain the differences between lists and tuples in Python, when to 
             """)
 
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_chip_model 
+                CREATE INDEX IF NOT EXISTS idx_chip_model
                 ON benchmarks(chip_type, model_id)
+            """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS embedding_benchmarks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    model_name TEXT NOT NULL,
+                    device TEXT NOT NULL,
+                    texts_count INTEGER NOT NULL,
+                    dimensions INTEGER NOT NULL,
+                    total_time_ms REAL NOT NULL,
+                    per_text_ms REAL NOT NULL,
+                    tokens_per_second REAL NOT NULL,
+                    timestamp TEXT NOT NULL
+                )
             """)
 
     def benchmark_model(self, model, model_id: str, chip_type: str,
@@ -377,6 +404,84 @@ Now, please explain the differences between lists and tuples in Python, when to 
                 }
                 for row in results
             }
+
+    def benchmark_embedding_model(
+        self,
+        model_name: str,
+        sample_texts: list[str] | None = None,
+        iterations: int = 10,
+    ) -> EmbeddingBenchmarkResult:
+        """Benchmark an embedding model via the compute dispatcher.
+
+        Args:
+            model_name: Short embedding model name.
+            sample_texts: Texts to embed. Defaults to a built-in set.
+            iterations: Number of iterations to average over.
+
+        Returns:
+            EmbeddingBenchmarkResult with timing data.
+        """
+        from ..model_loaders.compute_dispatcher import compute_dispatcher
+
+        if sample_texts is None:
+            sample_texts = [
+                "Hello world",
+                "The quick brown fox jumps over the lazy dog.",
+                "Machine learning on Apple Silicon provides excellent performance.",
+                "Embeddings are useful for semantic search and retrieval augmented generation.",
+            ]
+
+        logger.info(f"Benchmarking embedding model '{model_name}' ({iterations} iterations)")
+
+        # Warmup run
+        compute_dispatcher.embed(sample_texts[:1], model_name)
+
+        # Timed runs
+        times: list[float] = []
+        for _ in range(iterations):
+            start = time.perf_counter()
+            vectors = compute_dispatcher.embed(sample_texts, model_name)
+            elapsed_ms = (time.perf_counter() - start) * 1000
+            times.append(elapsed_ms)
+
+        avg_total = statistics.mean(times)
+        avg_per_text = avg_total / len(sample_texts)
+        total_tokens = sum(len(t.split()) for t in sample_texts)
+        tps = (total_tokens / (avg_total / 1000)) if avg_total > 0 else 0
+        dimensions = len(vectors[0]) if vectors else 0
+        device = compute_dispatcher.get_active_device()
+        timestamp = datetime.utcnow().isoformat()
+
+        result = EmbeddingBenchmarkResult(
+            model_name=model_name,
+            device=device,
+            texts_count=len(sample_texts),
+            dimensions=dimensions,
+            total_time_ms=round(avg_total, 2),
+            per_text_ms=round(avg_per_text, 2),
+            tokens_per_second=round(tps, 1),
+            timestamp=timestamp,
+        )
+
+        # Store
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                """INSERT INTO embedding_benchmarks
+                   (model_name, device, texts_count, dimensions, total_time_ms,
+                    per_text_ms, tokens_per_second, timestamp)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    result.model_name, result.device, result.texts_count,
+                    result.dimensions, result.total_time_ms, result.per_text_ms,
+                    result.tokens_per_second, result.timestamp,
+                ),
+            )
+
+        logger.info(
+            f"Embedding benchmark: {avg_per_text:.2f}ms/text, "
+            f"{tps:.0f} tok/s, device={device}"
+        )
+        return result
 
     def get_all_models_summary(self) -> list[dict]:
         """Get summary of all benchmarked models"""

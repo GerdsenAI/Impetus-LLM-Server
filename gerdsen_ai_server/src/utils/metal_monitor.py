@@ -107,7 +107,7 @@ class MetalMonitor:
                         # Fallback for older MLX versions
                         cache_memory = mx.metal.get_cache_memory()
                         memory_info = {"allocated": cache_memory, "available": 8 * 1024 * 1024 * 1024}  # 8GB default
-                
+
                 if memory_info:
                     # Handle different memory info formats from different MLX versions
                     if isinstance(memory_info, dict):
@@ -115,12 +115,12 @@ class MetalMonitor:
                             stats['memory_used_gb'] = memory_info['current_allocated_size'] / (1024 ** 3)
                         elif 'allocated' in memory_info:
                             stats['memory_used_gb'] = memory_info['allocated'] / (1024 ** 3)
-                        
+
                         if 'peak_allocated_size' in memory_info:
                             stats['memory_total_gb'] = memory_info['peak_allocated_size'] / (1024 ** 3)
                         elif 'available' in memory_info:
                             stats['memory_total_gb'] = memory_info['available'] / (1024 ** 3)
-                    
+
                     # Also get cache info if available
                     if hasattr(mx.metal, 'get_cache_memory'):
                         try:
