@@ -4,6 +4,7 @@ Performance regression tests to ensure optimization targets are met
 
 import gc
 import statistics
+import struct
 import time
 from unittest.mock import MagicMock, patch
 
@@ -51,7 +52,18 @@ class TestPerformanceRegression:
         loader = MemoryMappedLoader()
 
         # Mock file operations for speed
-        with patch('mmap.mmap'), patch('builtins.open'), patch('pathlib.Path.stat') as mock_stat:
+        mock_file = MagicMock()
+        # _load_safetensors reads 8 bytes for header size, then header JSON
+        header_size = 2  # tiny header
+        mock_file.read.side_effect = [
+            struct.pack('<Q', header_size),  # 8-byte header size
+            b'{}',  # empty JSON header
+        ]
+        mock_file.fileno.return_value = 0
+
+        with patch('mmap.mmap') as mock_mmap, \
+             patch('builtins.open', return_value=MagicMock(__enter__=MagicMock(return_value=mock_file), __exit__=MagicMock(return_value=False))), \
+             patch('pathlib.Path.stat') as mock_stat:
             mock_stat.return_value = MagicMock(st_size=1024*1024*100)  # 100MB
 
             start = time.time()
@@ -64,12 +76,12 @@ class TestPerformanceRegression:
 
     @patch('src.services.model_warmup.MLX_AVAILABLE', True)
     @patch('src.services.model_warmup.generate')
-    def test_warmup_time_regression(self, mock_generate):
+    @patch('src.services.model_warmup.mx')
+    def test_warmup_time_regression(self, mock_mx, mock_generate, mock_model):
         """Test model warmup doesn't exceed baseline"""
         from src.services.model_warmup import ModelWarmupService
 
         service = ModelWarmupService()
-        mock_model = self.mock_model()
 
         # Mock fast generation
         mock_generate.return_value = "Response"
@@ -192,6 +204,8 @@ class TestPerformanceRegression:
             tokens_per_second=66.7,  # 100 tokens / 1.5s
             memory_used_gb=4.5,
             gpu_utilization_avg=85.0,
+            gpu_memory_used_gb=3.2,
+            temperature_celsius=55.0,
             chip_type="M2",
             timestamp="2024-01-01T00:00:00"
         )

@@ -172,9 +172,6 @@ class TestMLXModel:
             mlx_model.tokenizer_instance,
             prompt="Test prompt",
             max_tokens=50,
-            temperature=0.8,
-            top_p=0.95,
-            repetition_penalty=1.1,
             verbose=False
         )
 
