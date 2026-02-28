@@ -4,10 +4,10 @@ Onboarding Tour System for Impetus LLM Server
 Provides guided introduction to application features
 """
 
-import rumps
-import time
 import threading
-from typing import List, Dict, Callable, Optional
+
+import rumps
+
 
 class OnboardingTour:
     """Manages the onboarding tour for new users"""
@@ -18,7 +18,7 @@ class OnboardingTour:
         self.tour_active = False
         self.tour_steps = self._create_tour_steps()
 
-    def _create_tour_steps(self) -> List[Dict]:
+    def _create_tour_steps(self) -> list[dict]:
         """Create the tour steps"""
         return [
             {
@@ -29,7 +29,7 @@ Your personal AI assistant is now running locally on your Mac, powered by Apple 
 
 Impetus provides:
 • High-performance local LLM inference
-• Multiple AI models at your fingertips  
+• Multiple AI models at your fingertips
 • Privacy-first approach (everything stays local)
 • Native macOS integration
 
@@ -43,7 +43,7 @@ Let's take a quick tour to get you started!''',
 
 Icon states:
 🧠 Server stopped
-🟢 Server running  
+🟢 Server running
 🟡 Loading/processing
 🔴 Error state
 
@@ -82,7 +82,7 @@ Or load your own custom models! All models are optimized for Apple Silicon with 
                 'message': '''Optimize performance for your needs:
 
 • Efficiency Mode - Best battery life
-• Balanced Mode - Good performance & efficiency  
+• Balanced Mode - Good performance & efficiency
 • Performance Mode - Maximum speed
 
 Your choice is automatically saved and will persist between app restarts.''',

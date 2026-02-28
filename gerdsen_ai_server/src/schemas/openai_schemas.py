@@ -6,7 +6,7 @@ import time
 import uuid
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class ChatMessage(BaseModel):
@@ -15,7 +15,8 @@ class ChatMessage(BaseModel):
     content: str = Field(..., min_length=1, max_length=100000, description="The content of the message")
     name: str | None = Field(None, min_length=1, max_length=64, description="An optional name for the participant")
 
-    @validator('content')
+    @classmethod
+    @field_validator('content')
     def validate_content(cls, v):
         if not v.strip():
             raise ValueError("Message content cannot be empty or only whitespace")
@@ -49,13 +50,15 @@ class ChatCompletionRequest(BaseModel):
     rag_n_results: int | None = Field(5, ge=1, le=20, description="Number of RAG context documents")
     context_documents: list[str] | None = Field(None, description="Pre-retrieved context documents")
 
-    @validator('model')
+    @classmethod
+    @field_validator('model')
     def validate_model(cls, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
         return v.strip()
 
-    @validator('messages')
+    @classmethod
+    @field_validator('messages')
     def validate_messages(cls, v):
         if not v:
             raise ValueError("Messages list cannot be empty")
@@ -67,7 +70,8 @@ class ChatCompletionRequest(BaseModel):
 
         return v
 
-    @validator('stop')
+    @classmethod
+    @field_validator('stop')
     def validate_stop(cls, v):
         if isinstance(v, str):
             return [v]
@@ -98,7 +102,8 @@ class CompletionRequest(BaseModel):
     logit_bias: dict[str, float] | None = Field(None, description="Modify likelihood of specified tokens")
     user: str | None = Field(None, max_length=255, description="Unique identifier for the end-user")
 
-    @validator('prompt')
+    @classmethod
+    @field_validator('prompt')
     def validate_prompt(cls, v):
         if isinstance(v, str):
             if not v.strip():

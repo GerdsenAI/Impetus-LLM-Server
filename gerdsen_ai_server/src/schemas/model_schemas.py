@@ -5,7 +5,7 @@ Pydantic schemas for model management endpoints
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class ModelDownloadRequest(BaseModel):
@@ -14,7 +14,8 @@ class ModelDownloadRequest(BaseModel):
     auto_load: bool | None = Field(True, description="Automatically load model after download")
     force_download: bool | None = Field(False, description="Force re-download if model exists")
 
-    @validator('model_identifier')
+    @classmethod
+    @field_validator('model_identifier')
     def validate_model_identifier(cls, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
@@ -41,7 +42,8 @@ class ModelLoadRequest(BaseModel):
     model_identifier: str = Field(..., min_length=1, max_length=255, description="Model identifier to load", alias="model_id")
     force_reload: bool | None = Field(False, description="Force reload if already loaded")
 
-    @validator('model_identifier')
+    @classmethod
+    @field_validator('model_identifier')
     def validate_model_identifier(cls, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
@@ -53,7 +55,8 @@ class ModelUnloadRequest(BaseModel):
     model_identifier: str = Field(..., min_length=1, max_length=255, description="Model identifier to unload", alias="model_id")
     force: bool | None = Field(False, description="Force unload even if in use")
 
-    @validator('model_identifier')
+    @classmethod
+    @field_validator('model_identifier')
     def validate_model_identifier(cls, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
@@ -78,7 +81,8 @@ class WarmupRequest(BaseModel):
     )
     max_tokens: int | None = Field(50, ge=10, le=500, description="Maximum tokens for warmup")
 
-    @validator('sample_prompts')
+    @classmethod
+    @field_validator('sample_prompts')
     def validate_prompts(cls, v):
         if v is not None:
             for prompt in v:

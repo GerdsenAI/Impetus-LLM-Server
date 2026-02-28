@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -39,8 +39,10 @@ class ModelSettings(BaseSettings):
     # Model loading settings
     load_in_4bit: bool = Field(default=True, env="IMPETUS_LOAD_IN_4BIT")
     max_memory_gb: float | None = Field(default=None, env="IMPETUS_MAX_MEMORY_GB")
+    require_model_for_ready: bool = Field(default=False, env="IMPETUS_REQUIRE_MODEL_FOR_READY")
 
-    @validator("models_dir", "cache_dir", pre=True)
+    @field_validator("models_dir", "cache_dir", mode="before")
+    @classmethod
     def create_directories(cls, v):
         path = Path(v)
         path.mkdir(parents=True, exist_ok=True)
@@ -103,7 +105,8 @@ class ComputeSettings(BaseSettings):
     )
     max_batch_size_embedding: int = Field(default=32, env="IMPETUS_MAX_BATCH_SIZE_EMBEDDING")
 
-    @validator("embedding_cache_dir", pre=True)
+    @field_validator("embedding_cache_dir", mode="before")
+    @classmethod
     def create_embedding_cache_dir(cls, v):
         path = Path(v)
         path.mkdir(parents=True, exist_ok=True)
@@ -125,7 +128,8 @@ class VectorStoreSettings(BaseSettings):
     chunk_overlap: int = Field(default=50, env="IMPETUS_CHUNK_OVERLAP")
     max_results: int = Field(default=5, env="IMPETUS_VECTORSTORE_MAX_RESULTS")
 
-    @validator("persist_directory", pre=True)
+    @field_validator("persist_directory", mode="before")
+    @classmethod
     def create_persist_directory(cls, v):
         path = Path(v)
         path.mkdir(parents=True, exist_ok=True)

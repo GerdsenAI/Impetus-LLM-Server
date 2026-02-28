@@ -16,7 +16,6 @@ import numpy as np
 from loguru import logger
 
 try:
-    import mlx
     import mlx.core as mx
     MLX_AVAILABLE = True
 except ImportError:
@@ -24,8 +23,9 @@ except ImportError:
     logger.warning("MLX not available for memory mapping")
     # Create a dummy mx for type annotations
     class _DummyMLX:
-        class array:
+        class Array:
             pass
+        array = Array
     mx = _DummyMLX()
 
 
@@ -44,7 +44,7 @@ class MemoryMappedLoader:
     """
     Handles memory-mapped loading of model files for faster access
     and reduced memory footprint.
-    
+
     Supports safetensors and numpy formats with lazy loading.
     """
 
@@ -62,11 +62,11 @@ class MemoryMappedLoader:
     def load_model_mmap(self, model_path: Path, read_only: bool = True) -> dict[str, Any]:
         """
         Load a model using memory mapping.
-        
+
         Args:
             model_path: Path to model directory or file
             read_only: Whether to open in read-only mode
-            
+
         Returns:
             Dictionary of loaded tensors/weights
         """
@@ -302,7 +302,7 @@ class MemoryMappedLoader:
 
         # Benchmark mmap loading
         start = time.time()
-        mmap_weights = self.load_model_mmap(model_path)
+        self.load_model_mmap(model_path)
         mmap_time = (time.time() - start) * 1000
         results["mmap_load_ms"] = mmap_time
 

@@ -2,39 +2,46 @@
 Server lifecycle management for the Impetus Menu Bar Application
 """
 
-import subprocess
-import time
-import threading
-import requests
 import os
+import subprocess
 import sys
-from pathlib import Path
-from typing import Optional, Callable
+import threading
+import time
+from collections.abc import Callable
+
+import requests
 from loguru import logger
 
 from .config import (
-    SERVER_MAIN, SERVER_DIR, API_BASE_URL, HEALTH_ENDPOINT,
-    SERVER_STARTUP_TIMEOUT, SERVER_SHUTDOWN_TIMEOUT,
-    CONFIG_DIR, LOGS_DIR, MODELS_DIR, CACHE_DIR
+    API_BASE_URL,
+    CACHE_DIR,
+    CONFIG_DIR,
+    HEALTH_ENDPOINT,
+    LOGS_DIR,
+    MODELS_DIR,
+    SERVER_DIR,
+    SERVER_MAIN,
+    SERVER_SHUTDOWN_TIMEOUT,
+    SERVER_STARTUP_TIMEOUT,
 )
 
 
 class ServerManager:
     """Manages the Flask server process lifecycle"""
 
-    def __init__(self, status_callback: Optional[Callable[[str], None]] = None):
+    def __init__(self, status_callback: Callable[[str], None] | None = None):
         """
         Initialize the server manager
-        
+
         Args:
             status_callback: Function to call with status updates ('starting', 'running', 'stopped', 'error')
         """
-        self.process: Optional[subprocess.Popen] = None
+        self.process: subprocess.Popen | None = None
         self.status_callback = status_callback
         self.is_running = False
-        self.health_check_thread: Optional[threading.Thread] = None
+        self.health_check_thread: threading.Thread | None = None
         self.stop_health_check = threading.Event()
-        self.current_model: Optional[str] = None
+        self.current_model: str | None = None
 
         # Ensure directories exist
         for directory in [CONFIG_DIR, LOGS_DIR, MODELS_DIR, CACHE_DIR]:
@@ -43,7 +50,7 @@ class ServerManager:
     def start_server(self) -> bool:
         """
         Start the Flask server process
-        
+
         Returns:
             True if server started successfully, False otherwise
         """
@@ -105,7 +112,7 @@ class ServerManager:
     def stop_server(self) -> bool:
         """
         Stop the Flask server process
-        
+
         Returns:
             True if server stopped successfully, False otherwise
         """
@@ -145,7 +152,7 @@ class ServerManager:
     def restart_server(self) -> bool:
         """
         Restart the Flask server
-        
+
         Returns:
             True if server restarted successfully, False otherwise
         """
@@ -157,20 +164,20 @@ class ServerManager:
     def check_health(self) -> bool:
         """
         Check if the server is healthy
-        
+
         Returns:
             True if server is healthy, False otherwise
         """
         try:
             response = requests.get(HEALTH_ENDPOINT, timeout=2)
             return response.status_code == 200
-        except:
+        except Exception:
             return False
 
     def get_loaded_models(self) -> list:
         """
         Get list of loaded models from the server
-        
+
         Returns:
             List of loaded model IDs
         """
@@ -179,17 +186,17 @@ class ServerManager:
             if response.status_code == 200:
                 data = response.json()
                 return [model["id"] for model in data.get("data", [])]
-        except:
+        except Exception:
             pass
         return []
 
     def load_model(self, model_id: str) -> bool:
         """
         Load a model on the server
-        
+
         Args:
             model_id: The model ID to load
-            
+
         Returns:
             True if model loaded successfully, False otherwise
         """
@@ -221,7 +228,7 @@ class ServerManager:
     def get_server_stats(self) -> dict:
         """
         Get server statistics (CPU, memory usage, etc.)
-        
+
         Returns:
             Dictionary with server stats
         """
@@ -240,7 +247,7 @@ class ServerManager:
                     stats["cpu_percent"] = proc.cpu_percent(interval=0.1)
                     stats["memory_mb"] = proc.memory_info().rss / 1024 / 1024
                     stats["uptime"] = time.time() - proc.create_time()
-                except:
+                except Exception:
                     pass
 
             return stats
@@ -251,7 +258,7 @@ class ServerManager:
     def _wait_for_server(self) -> bool:
         """
         Wait for the server to be ready
-        
+
         Returns:
             True if server is ready, False if timeout
         """

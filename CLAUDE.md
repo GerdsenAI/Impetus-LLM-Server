@@ -105,7 +105,7 @@ Client (curl/SDK/Dashboard) → Flask App (main.py:create_app)
 
 - **`gerdsen_ai_server/src/routes/openai_api.py`** — Primary API surface. OpenAI-compatible `/v1/chat/completions` with streaming support and `/v1/models` listing. Handles both dict and Pydantic request objects.
 
-- **`gerdsen_ai_server/src/model_loaders/mlx_loader.py`** — MLX model loading and inference. Memory-mapped loading, auto-downloads from HuggingFace, supports 4-bit/8-bit quantized models (Mistral, Llama, Phi, Qwen).
+- **`gerdsen_ai_server/src/model_loaders/`** — Model loading and inference. `mlx_loader.py` (primary MLX inference, memory-mapped, auto-downloads from HuggingFace, 4-bit/8-bit quantized models), `coreml_loader.py` (Core ML/ANE), `compute_dispatcher.py` (routes to best backend), `mlx_embedding_loader.py` + `embedding_converter.py` (embedding models).
 
 - **`gerdsen_ai_server/src/config/settings.py`** — Pydantic settings classes (`ServerSettings`, `ModelSettings`, `InferenceSettings`, `HardwareSettings`). All overridable via `IMPETUS_` prefixed env vars.
 
@@ -113,17 +113,18 @@ Client (curl/SDK/Dashboard) → Flask App (main.py:create_app)
 
 - **`impetus-dashboard/`** — React 18 + Vite frontend with Three.js 3D visualization, Socket.IO real-time updates, and Recharts metrics. Vite proxies `/api`, `/v1`, `/socket.io` to backend port 8080.
 
-- **`gerdsen_ai_server/src/services/`** — Background services: `model_discovery.py` (HuggingFace search), `download_manager.py` (model downloads), `benchmark_service.py` (perf testing).
+- **`gerdsen_ai_server/src/services/`** — Background services: `model_discovery.py` (HuggingFace search), `download_manager.py` (model downloads), `benchmark_service.py` (perf testing), `rag_pipeline.py` (RAG orchestration), `vector_store.py` (vector storage), `embedding_bridge.py` (embedding generation), `model_warmup.py` (pre-loading models).
 
 - **`gerdsen_ai_server/src/inference/`** — KV cache management for multi-turn conversations (`kv_cache_manager.py`, `mlx_kv_generation.py`).
 
 ### Additional Route Blueprints
 
 All registered in `create_app()`:
-- `routes/models.py` — Model management (load/unload/list)
-- `routes/health.py` — Health endpoints (`/api/health/live`, `/api/health/ready`, `/api/health/status`)
-- `routes/hardware.py` — Hardware info (`/api/hardware/info`)
-- `routes/websocket.py` — Socket.IO real-time handlers
+- `routes/models.py` — Model management (load/unload/list) at `/api/models`
+- `routes/health.py` — Health endpoints (`/api/health`, `/api/health/live`, `/api/health/ready`, `/api/health/status`, `/api/metrics`, `/api/metrics/json`) at `/api`
+- `routes/hardware.py` — Hardware info, GPU metrics, compute capabilities, performance mode at `/api/hardware`
+- `routes/documents.py` — Document ingestion, semantic search, collection management at `/api/documents`
+- `routes/websocket.py` — Socket.IO real-time handlers (registered separately via SocketIO, not as a blueprint)
 
 ### Production Entry Points
 
@@ -137,7 +138,7 @@ All registered in `create_app()`:
 ## CI/CD
 
 GitHub Actions (`.github/workflows/ci.yml`):
-- **Backend**: ruff + mypy + pytest on Python 3.11/3.12, macOS runner
+- **Backend**: ruff + mypy + pytest on Python 3.11/3.12/3.13, macOS runner
 - **Frontend**: pnpm install + eslint + tsc + vite build, Ubuntu runner
 - **Security**: Trivy vulnerability scanner
 - **Integration**: Starts server, tests health/API endpoints (main branch + PRs)
@@ -157,3 +158,5 @@ GitHub Actions (`.github/workflows/ci.yml`):
 - `eventlet` is required for WebSocket/Socket.IO — falls back to threading mode without it
 - DMG/standalone app builds require an active virtual environment to properly bundle site-packages
 - The bundled app's `launcher.sh` sets `PYTHONPATH` to isolate from system Homebrew paths
+- Tests require `conftest.py` in `gerdsen_ai_server/tests/` for module namespace aliasing — without it, pytest can't resolve `src.*` imports
+- Pydantic v2 is used — validators use `@field_validator` (not the deprecated `@validator`)

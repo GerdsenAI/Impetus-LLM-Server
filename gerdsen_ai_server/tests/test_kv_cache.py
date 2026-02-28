@@ -55,10 +55,10 @@ class TestKVCacheManager:
 
     @patch('src.inference.kv_cache_manager.MLX_AVAILABLE', True)
     @patch('src.inference.kv_cache_manager.mx')
-    def test_create_cache(self, mock_mx, cache_manager):
+    def test_create_cache(self, mock_mx, cache_manager, mock_mlx_array):
         """Test cache creation"""
         # Mock mx.zeros
-        mock_mx.zeros.return_value = self.mock_mlx_array()
+        mock_mx.zeros.return_value = mock_mlx_array
 
         cache = cache_manager.create_cache(
             model_id="test-model",
@@ -95,11 +95,11 @@ class TestKVCacheManager:
 
     @patch('src.inference.kv_cache_manager.MLX_AVAILABLE', True)
     @patch('src.inference.kv_cache_manager.mx')
-    def test_update_cache(self, mock_mx, cache_manager):
+    def test_update_cache(self, mock_mx, cache_manager, mock_mlx_array):
         """Test cache update"""
         # Create initial cache
-        mock_mx.zeros.return_value = self.mock_mlx_array()
-        cache = cache_manager.create_cache(
+        mock_mx.zeros.return_value = mock_mlx_array
+        cache_manager.create_cache(
             model_id="test-model",
             conversation_id="test-conv",
             num_layers=1,
@@ -114,6 +114,7 @@ class TestKVCacheManager:
 
         concat_result = MagicMock()
         concat_result.shape = (1, 32, 30, 128)  # 10 + 20 tokens
+        concat_result.nbytes = 4 * 1 * 32 * 30 * 128  # float32
         mock_mx.concatenate.return_value = concat_result
 
         # Update cache
@@ -166,7 +167,7 @@ class TestKVCacheManager:
         import time
 
         # Set small limits
-        cache_manager.max_conversations = 2
+        cache_manager.max_conversations = 3
 
         # Add caches with different access times
         cache1 = CacheEntry(

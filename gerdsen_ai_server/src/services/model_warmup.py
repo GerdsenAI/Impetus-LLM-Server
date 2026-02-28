@@ -12,12 +12,13 @@ from typing import Any
 from loguru import logger
 
 try:
-    import mlx
     import mlx.core as mx
     from mlx_lm import generate
     MLX_AVAILABLE = True
 except ImportError:
     MLX_AVAILABLE = False
+    mx = None
+    generate = None
     logger.warning("MLX not available for model warmup")
 
 from ..config.settings import settings
@@ -38,7 +39,7 @@ class WarmupStatus:
 class ModelWarmupService:
     """
     Service for warming up models to eliminate cold start latency.
-    
+
     Pre-compiles Metal kernels and runs inference passes to ensure
     optimal performance for the first real user request.
     """
@@ -104,13 +105,13 @@ class ModelWarmupService:
                     async_warmup: bool = True) -> WarmupStatus:
         """
         Warm up a model by running inference on sample prompts.
-        
+
         Args:
             model: The MLX model instance
             model_id: Model identifier
             num_prompts: Number of warmup prompts to use (1-3)
             async_warmup: Whether to run warmup asynchronously
-            
+
         Returns:
             WarmupStatus object
         """
@@ -267,7 +268,7 @@ class ModelWarmupService:
     def benchmark_cold_vs_warm(self, model: Any, model_id: str) -> dict[str, Any]:
         """
         Benchmark cold vs warm inference performance.
-        
+
         Returns detailed timing information comparing cold start vs warmed model.
         """
         if not MLX_AVAILABLE:

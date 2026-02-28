@@ -2,6 +2,7 @@
 MLX model loader for Apple Silicon optimization
 """
 
+import contextlib
 import gc
 import json
 import time
@@ -19,15 +20,15 @@ from .base import BaseModel, BaseModelLoader, InferenceError, ModelLoadError, Mo
 
 # MLX imports with error handling
 try:
-    import mlx
     import mlx.core as mx
-    import mlx.nn as nn
     from mlx_lm import generate, load
-    from mlx_lm.tokenizer_utils import load_tokenizer
     MLX_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"MLX not available: {e}")
     MLX_AVAILABLE = False
+    mx = None
+    generate = None
+    load = None
 
 
 class MLXModel(BaseModel):
@@ -125,7 +126,7 @@ class MLXModel(BaseModel):
 
         except Exception as e:
             logger.error(f"Failed to load MLX model {self.model_id}: {e}")
-            raise ModelLoadError(f"Failed to load model: {e}")
+            raise ModelLoadError(f"Failed to load model: {e}") from e
 
     def unload(self) -> None:
         """Unload model from memory"""
@@ -137,10 +138,8 @@ class MLXModel(BaseModel):
             self.tokenizer_instance = None
 
             # Close memory mappings if any
-            try:
+            with contextlib.suppress(BaseException):
                 mmap_loader.close_all()
-            except:
-                pass
 
             # Force garbage collection
             gc.collect()
@@ -160,9 +159,9 @@ class MLXModel(BaseModel):
         try:
             # Extract generation parameters
             max_tokens = kwargs.get('max_tokens', settings.inference.max_tokens)
-            temperature = kwargs.get('temperature', settings.inference.temperature)
-            top_p = kwargs.get('top_p', settings.inference.top_p)
-            repetition_penalty = kwargs.get('repetition_penalty', settings.inference.repetition_penalty)
+            kwargs.get('temperature', settings.inference.temperature)
+            kwargs.get('top_p', settings.inference.top_p)
+            kwargs.get('repetition_penalty', settings.inference.repetition_penalty)
 
             # KV cache parameters
             use_cache = kwargs.get('use_cache', settings.inference.use_cache)
@@ -208,7 +207,7 @@ class MLXModel(BaseModel):
 
         except Exception as e:
             logger.error(f"Generation error: {e}")
-            raise InferenceError(f"Failed to generate text: {e}")
+            raise InferenceError(f"Failed to generate text: {e}") from e
 
     def generate_stream(self, prompt: str, **kwargs) -> Generator[str, None, None]:
         """Generate text in streaming mode with optional KV cache support"""
@@ -218,13 +217,13 @@ class MLXModel(BaseModel):
         try:
             # Extract generation parameters
             max_tokens = kwargs.get('max_tokens', settings.inference.max_tokens)
-            temperature = kwargs.get('temperature', settings.inference.temperature)
-            top_p = kwargs.get('top_p', settings.inference.top_p)
-            repetition_penalty = kwargs.get('repetition_penalty', settings.inference.repetition_penalty)
+            kwargs.get('temperature', settings.inference.temperature)
+            kwargs.get('top_p', settings.inference.top_p)
+            kwargs.get('repetition_penalty', settings.inference.repetition_penalty)
 
             # KV cache parameters
-            use_cache = kwargs.get('use_cache', settings.inference.use_cache)
-            conversation_id = kwargs.get('conversation_id', 'default')
+            kwargs.get('use_cache', settings.inference.use_cache)
+            kwargs.get('conversation_id', 'default')
 
             # Check if mlx_lm has streaming support
             if hasattr(generate, 'stream') or 'stream' in dir(self.model_instance):
@@ -235,8 +234,7 @@ class MLXModel(BaseModel):
 
             # Fallback: Generate in chunks for a streaming-like experience
             # This is more efficient than generating the full response at once
-            prompt_tokens = self.tokenize(prompt)
-            generated_tokens = []
+            self.tokenize(prompt)
             previous_text = ""
 
             # Generate tokens in small batches
@@ -259,8 +257,7 @@ class MLXModel(BaseModel):
                     previous_text = response
 
                     # Yield the new text
-                    for char in new_text:
-                        yield char
+                    yield from new_text
 
                     # Check if generation is complete
                     if len(new_text) == 0 or response.endswith(('.', '!', '?', '\n')):
@@ -273,7 +270,7 @@ class MLXModel(BaseModel):
 
         except Exception as e:
             logger.error(f"Streaming generation error: {e}")
-            raise InferenceError(f"Failed to generate text stream: {e}")
+            raise InferenceError(f"Failed to generate text stream: {e}") from e
 
     def tokenize(self, text: str) -> list[int]:
         """Tokenize text"""
@@ -409,7 +406,7 @@ class MLXModelLoader(BaseModelLoader):
                         logger.error(f"Error reading model config for {model_dir}: {e}")
 
         # Add loaded HuggingFace models
-        for model_id, model in self.loaded_models.items():
+        for model_id, _model in self.loaded_models.items():
             if '/' in model_id:  # HuggingFace model
                 models.append({
                     'id': model_id,

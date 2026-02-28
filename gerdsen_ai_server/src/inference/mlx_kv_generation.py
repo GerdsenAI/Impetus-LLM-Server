@@ -8,10 +8,7 @@ from typing import Any
 from loguru import logger
 
 try:
-    import mlx
     import mlx.core as mx
-    import mlx.nn as nn
-    from mlx_lm.models.base import KVCache
     from mlx_lm.sample_utils import top_p_sampling
     MLX_AVAILABLE = True
 except ImportError:
@@ -34,7 +31,7 @@ def generate_with_kv_cache(
 ) -> tuple[str, CacheEntry | None]:
     """
     Generate text using MLX model with KV cache support
-    
+
     Args:
         model: MLX model instance
         tokenizer: Tokenizer instance
@@ -45,7 +42,7 @@ def generate_with_kv_cache(
         repetition_penalty: Repetition penalty
         conversation_id: Conversation ID for caching
         use_cache: Whether to use KV cache
-        
+
     Returns:
         Generated text and updated cache entry
     """
@@ -83,7 +80,7 @@ def generate_with_kv_cache(
     past_key_values = cache_entry.keys if cache_entry else None
 
     # Generation loop
-    for i in range(max_tokens):
+    for _i in range(max_tokens):
         # Forward pass with cache
         if hasattr(model, 'forward'):
             # Get model output
@@ -110,11 +107,7 @@ def generate_with_kv_cache(
             next_token_logits = next_token_logits / temperature
 
         # Top-p sampling
-        if top_p < 1.0:
-            next_token = top_p_sampling(next_token_logits, top_p)
-        else:
-            # Greedy sampling
-            next_token = mx.argmax(next_token_logits, axis=-1)
+        next_token = top_p_sampling(next_token_logits, top_p) if top_p < 1.0 else mx.argmax(next_token_logits, axis=-1)
 
         # Add to generated tokens
         next_token_id = int(next_token.item())
@@ -137,8 +130,6 @@ def generate_with_kv_cache(
     # Update cache manager if we used cache
     if cache_entry and past_key_values:
         # Extract new KV states
-        new_keys = []
-        new_values = []
 
         # This would need proper extraction from the model outputs
         # For now, this is a placeholder
@@ -160,7 +151,7 @@ def generate_stream_with_kv_cache(
 ) -> Generator[str, None, None]:
     """
     Stream generate text using MLX model with KV cache support
-    
+
     Yields tokens as they are generated
     """
     if not MLX_AVAILABLE:
@@ -181,8 +172,7 @@ def generate_stream_with_kv_cache(
     )
 
     # Stream the text character by character
-    for char in text:
-        yield char
+    yield from text
 
 
 def clear_model_cache(model_id: str):

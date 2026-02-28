@@ -97,7 +97,7 @@ class TestModelsAPI:
         data = json.loads(response.data)
         assert data['status'] == 'success'
 
-    @patch('src.routes.models.MLXModelLoader')
+    @patch('src.model_loaders.mlx_loader.MLXModelLoader')
     @patch('src.routes.models.model_warmup_service')
     def test_load_model_with_warmup(self, mock_warmup_service, mock_loader_class, client, app):
         """Test loading model with auto warmup"""
@@ -126,7 +126,8 @@ class TestModelsAPI:
         mock_loader.load_model.assert_called_once_with(
             'test-model',
             auto_warmup=True,
-            warmup_async=True
+            warmup_async=True,
+            use_mmap=True
         )
 
     def test_unload_model_not_loaded(self, client):
@@ -317,7 +318,7 @@ class TestModelsAPI:
         mock_suite.results = [mock_result]
         mock_benchmark_service.benchmark_model.return_value = mock_suite
 
-        response = client.post('/api/models/benchmark/test-model')
+        response = client.post('/api/models/benchmark/test-model', json={})
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -326,8 +327,8 @@ class TestModelsAPI:
         assert len(data['results']) == 1
         assert data['results'][0]['tokens_per_second'] == 75.0
 
-    @patch('src.routes.models.download_manager')
-    @patch('src.routes.models.ModelDiscoveryService')
+    @patch('src.services.download_manager.download_manager')
+    @patch('src.services.model_discovery.ModelDiscoveryService')
     def test_download_model(self, mock_discovery_class, mock_download_manager, client):
         """Test model download endpoint"""
         # Mock discovery
@@ -341,7 +342,7 @@ class TestModelsAPI:
         mock_download_manager.check_disk_space.return_value = (True, 50.0)
         mock_download_manager.create_download_task.return_value = "task-123"
 
-        with patch('src.routes.models.Thread'):
+        with patch('threading.Thread'):
             response = client.post('/api/models/download', json={
                 'model_id': 'test-model',
                 'auto_load': False

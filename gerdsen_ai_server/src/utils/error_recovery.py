@@ -120,14 +120,14 @@ class ErrorRecoveryService:
             import mlx.core as mx
             mx.metal.clear_cache()
             logger.info("Cleared MLX Metal cache")
-        except:
+        except Exception:
             pass
 
         # 3. Unload least recently used model
         loaded_models = self.app_state.get('loaded_models', {})
         if loaded_models:
             # Simple LRU: unload first model (should track usage properly)
-            model_to_unload = list(loaded_models.keys())[0]
+            model_to_unload = next(iter(loaded_models.keys()))
             try:
                 model = loaded_models.pop(model_to_unload)
                 if hasattr(model, 'unload'):
