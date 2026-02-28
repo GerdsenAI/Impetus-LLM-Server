@@ -13,7 +13,7 @@ class PerformanceModeRequest(BaseModel):
     mode: Literal["efficiency", "balanced", "performance"] = Field(..., description="Performance mode to set")
 
     @validator('mode')
-    def validate_mode(cls, v):
+    def validate_mode(self, v):
         valid_modes = ["efficiency", "balanced", "performance"]
         if v not in valid_modes:
             raise ValueError(f"Mode must be one of: {', '.join(valid_modes)}")

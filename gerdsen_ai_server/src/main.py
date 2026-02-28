@@ -4,15 +4,15 @@ Impetus LLM Server - Main Server File
 Threading-compatible app factory for Python 3.13 and production WSGI.
 """
 
-from datetime import datetime
 import atexit
 import os
 import signal
 import sys
+from datetime import datetime
 from pathlib import Path
+
 from flask import Flask, jsonify
 from flask_cors import CORS
-
 
 # Exposed globals filled by create_app()
 app = None
@@ -96,7 +96,7 @@ def create_app():
               f"MLX={'yes' if compute_caps['mlx_installed'] else 'no'}")
     except Exception as e:
         compute_caps = {}
-        print(f"ℹ️ Compute dispatcher not initialised: {e}")
+        print(f"i Compute dispatcher not initialised: {e}")
 
     # App state shared across blueprints
     flask_app.config["app_state"] = {
@@ -162,7 +162,7 @@ def create_app():
             flask_app.register_blueprint(bp, url_prefix=prefix)
             print(f"✅ Registered {module_path} at {prefix}")
         except Exception as e:
-            print(f"ℹ️ Skipped registering {module_path}: {e}")
+            print(f"i Skipped registering {module_path}: {e}")
 
     # Use absolute import paths to work both as script and package
     _maybe_register("gerdsen_ai_server.src.routes.health", "bp", "/api")
@@ -189,7 +189,7 @@ def main():
     print("📡 Server will be available at: http://localhost:8080")
     print("📚 API Documentation: http://localhost:8080/docs")
     print(f"🐍 Python Version: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
-    print(f"🧵 Using threading mode (Python 3.13 compatible)")
+    print("🧵 Using threading mode (Python 3.13 compatible)")
     print(f"📡 SocketIO Available: {SOCKETIO_AVAILABLE}")
 
     # Check if we should use production server

@@ -15,7 +15,7 @@ class ModelDownloadRequest(BaseModel):
     force_download: bool | None = Field(False, description="Force re-download if model exists")
 
     @validator('model_identifier')
-    def validate_model_identifier(cls, v):
+    def validate_model_identifier(self, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
 
@@ -42,7 +42,7 @@ class ModelLoadRequest(BaseModel):
     force_reload: bool | None = Field(False, description="Force reload if already loaded")
 
     @validator('model_identifier')
-    def validate_model_identifier(cls, v):
+    def validate_model_identifier(self, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
         return v.strip()
@@ -54,7 +54,7 @@ class ModelUnloadRequest(BaseModel):
     force: bool | None = Field(False, description="Force unload even if in use")
 
     @validator('model_identifier')
-    def validate_model_identifier(cls, v):
+    def validate_model_identifier(self, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
         return v.strip()
@@ -79,7 +79,7 @@ class WarmupRequest(BaseModel):
     max_tokens: int | None = Field(50, ge=10, le=500, description="Maximum tokens for warmup")
 
     @validator('sample_prompts')
-    def validate_prompts(cls, v):
+    def validate_prompts(self, v):
         if v is not None:
             for prompt in v:
                 if not isinstance(prompt, str) or not prompt.strip():

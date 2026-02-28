@@ -99,7 +99,7 @@ class TestKVCacheManager:
         """Test cache update"""
         # Create initial cache
         mock_mx.zeros.return_value = self.mock_mlx_array()
-        cache = cache_manager.create_cache(
+        cache_manager.create_cache(
             model_id="test-model",
             conversation_id="test-conv",
             num_layers=1,

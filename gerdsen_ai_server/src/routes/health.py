@@ -152,7 +152,7 @@ def detailed_status():
         load_avg = psutil.getloadavg() if hasattr(psutil, 'getloadavg') else [0, 0, 0]
 
         # Get thermal state from hardware info
-        hardware_info = app_state.get('hardware_info', {})
+        app_state.get('hardware_info', {})
         thermal_state = 'nominal'  # Default
 
         system_health = SystemHealth(
@@ -322,7 +322,7 @@ def prometheus_metrics():
 
         # Per-model metrics
         for model_id in loaded_models:
-            safe_model_id = model_id.replace('/', '_').replace('-', '_')
+            model_id.replace('/', '_').replace('-', '_')
             output.append('# HELP impetus_model_loaded Model loaded status')
             output.append('# TYPE impetus_model_loaded gauge')
             output.append(f'impetus_model_loaded{{model=\"{model_id}\"}} 1')
@@ -345,7 +345,7 @@ def json_metrics():
         # Get system metrics
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
-        uptime = (datetime.now() - start_time).total_seconds()
+        (datetime.now() - start_time).total_seconds()
 
         # Get process metrics
         process = psutil.Process()

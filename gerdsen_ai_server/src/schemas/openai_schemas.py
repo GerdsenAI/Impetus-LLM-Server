@@ -16,7 +16,7 @@ class ChatMessage(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=64, description="An optional name for the participant")
 
     @validator('content')
-    def validate_content(cls, v):
+    def validate_content(self, v):
         if not v.strip():
             raise ValueError("Message content cannot be empty or only whitespace")
         return v.strip()
@@ -50,13 +50,13 @@ class ChatCompletionRequest(BaseModel):
     context_documents: list[str] | None = Field(None, description="Pre-retrieved context documents")
 
     @validator('model')
-    def validate_model(cls, v):
+    def validate_model(self, v):
         if not v.strip():
             raise ValueError("Model ID cannot be empty")
         return v.strip()
 
     @validator('messages')
-    def validate_messages(cls, v):
+    def validate_messages(self, v):
         if not v:
             raise ValueError("Messages list cannot be empty")
 
@@ -68,7 +68,7 @@ class ChatCompletionRequest(BaseModel):
         return v
 
     @validator('stop')
-    def validate_stop(cls, v):
+    def validate_stop(self, v):
         if isinstance(v, str):
             return [v]
         elif isinstance(v, list):
@@ -99,7 +99,7 @@ class CompletionRequest(BaseModel):
     user: str | None = Field(None, max_length=255, description="Unique identifier for the end-user")
 
     @validator('prompt')
-    def validate_prompt(cls, v):
+    def validate_prompt(self, v):
         if isinstance(v, str):
             if not v.strip():
                 raise ValueError("Prompt cannot be empty")

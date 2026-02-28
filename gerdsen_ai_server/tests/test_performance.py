@@ -51,18 +51,16 @@ class TestPerformanceRegression:
         loader = MemoryMappedLoader()
 
         # Mock file operations for speed
-        with patch('mmap.mmap') as mock_mmap:
-            with patch('builtins.open'):
-                with patch('pathlib.Path.stat') as mock_stat:
-                    mock_stat.return_value = MagicMock(st_size=1024*1024*100)  # 100MB
+        with patch('mmap.mmap'), patch('builtins.open'), patch('pathlib.Path.stat') as mock_stat:
+            mock_stat.return_value = MagicMock(st_size=1024*1024*100)  # 100MB
 
-                    start = time.time()
-                    # Simulate loading
-                    loader._load_safetensors(MagicMock(), read_only=True)
-                    load_time = (time.time() - start) * 1000
+            start = time.time()
+            # Simulate loading
+            loader._load_safetensors(MagicMock(), read_only=True)
+            load_time = (time.time() - start) * 1000
 
-                    # Should be well under baseline
-                    assert load_time < self.BASELINES['model_load_time_ms']['mmap']
+            # Should be well under baseline
+            assert load_time < self.BASELINES['model_load_time_ms']['mmap']
 
     @patch('src.services.model_warmup.MLX_AVAILABLE', True)
     @patch('src.services.model_warmup.generate')
@@ -182,7 +180,7 @@ class TestPerformanceRegression:
     @patch('src.services.benchmark_service.BenchmarkService')
     def test_benchmark_performance_targets(self, mock_benchmark_class):
         """Test benchmark results meet targets"""
-        mock_service = MagicMock()
+        MagicMock()
 
         # Create realistic benchmark results
         result = BenchmarkResult(
@@ -213,7 +211,7 @@ class TestPerformanceRegression:
         start = time.time()
 
         # Create cache
-        cache = manager.create_cache(
+        manager.create_cache(
             model_id="test",
             conversation_id="conv1",
             num_layers=32,
@@ -242,7 +240,7 @@ class TestPerformanceRegression:
 
         base_tokens_per_sec = 80
 
-        for state, multiplier in thermal_multipliers.items():
+        for _state, multiplier in thermal_multipliers.items():
             expected = base_tokens_per_sec * multiplier
             # System should adapt performance based on thermal state
             assert expected > 0  # Should never stop completely
@@ -264,7 +262,7 @@ class TestMemoryEfficiency:
         # With mmap, actual memory should be less
         mmap_efficiency = 0.7  # 30% savings expected
 
-        for model, size in model_sizes_gb.items():
+        for _model, size in model_sizes_gb.items():
             mmap_size = size * mmap_efficiency
             assert mmap_size < size
 

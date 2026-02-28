@@ -4,20 +4,26 @@ Impetus Menu Bar Application
 A native macOS menu bar app for managing the Impetus LLM Server
 """
 
-import rumps
-import webbrowser
-import threading
 import json
 import subprocess
-from pathlib import Path
-from datetime import datetime
-from typing import Optional, Dict, Any
+import threading
+import webbrowser
+
+import rumps
 
 from .config import (
-    APP_NAME, APP_VERSION, API_BASE_URL,
-    ICON_IDLE, ICON_ACTIVE, ICON_ERROR, ICON_LOADING,
-    DEFAULT_MODELS, PERFORMANCE_MODES,
-    ensure_directories, PREFERENCES_FILE, LOGS_DIR
+    API_BASE_URL,
+    APP_NAME,
+    APP_VERSION,
+    DEFAULT_MODELS,
+    ICON_ACTIVE,
+    ICON_ERROR,
+    ICON_IDLE,
+    ICON_LOADING,
+    LOGS_DIR,
+    PERFORMANCE_MODES,
+    PREFERENCES_FILE,
+    ensure_directories,
 )
 from .server_manager import ServerManager
 

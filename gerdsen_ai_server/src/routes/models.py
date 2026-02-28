@@ -4,6 +4,7 @@ Model management endpoints
 
 from pathlib import Path
 
+import psutil
 from flask import Blueprint, current_app, jsonify, request
 from loguru import logger
 
@@ -307,11 +308,7 @@ def download_model():
     discovery = ModelDiscoveryService()
     model_info = discovery.get_model_info(model_id)
 
-    if not model_info:
-        # Try to estimate size for unknown models
-        estimated_size = download_manager.get_download_size(model_id) or 5.0
-    else:
-        estimated_size = model_info.size_gb
+    estimated_size = download_manager.get_download_size(model_id) or 5.0 if not model_info else model_info.size_gb
 
     # Check disk space
     has_space, available_gb = download_manager.check_disk_space(estimated_size)
@@ -426,7 +423,7 @@ def optimize_model():
     """Optimize a model for Apple Silicon"""
     data = request.get_json()
     model_id = data.get('model_id')
-    optimization_type = data.get('type', 'quantize')  # quantize, compile, etc.
+    data.get('type', 'quantize')  # quantize, compile, etc.
 
     if not model_id:
         return jsonify({'error': 'model_id is required'}), 400
@@ -929,7 +926,7 @@ def benchmark_mmap_loading():
             }), 400
 
         # Use first loaded model
-        model_id = list(loaded_models.keys())[0]
+        model_id = next(iter(loaded_models.keys()))
         model_path = settings.model.models_dir / model_id.replace('/', '_')
     else:
         model_path = Path(model_path)

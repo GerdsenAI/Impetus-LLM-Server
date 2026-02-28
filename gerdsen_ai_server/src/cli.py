@@ -97,7 +97,7 @@ def validate():
     # Check if models directory exists
     models_dir = Path.home() / ".impetus" / "models"
     models_exist = models_dir.exists()
-    results.append(("Models Dir", "✓" if models_exist else "ℹ", str(models_dir)))
+    results.append(("Models Dir", "✓" if models_exist else "i", str(models_dir)))
 
     # Create results table
     table = Table(title="System Validation Results")
@@ -112,7 +112,7 @@ def validate():
             style = "red"
         elif status == "⚠":
             style = "yellow"
-        elif status == "ℹ":
+        elif status == "i":
             style = "blue"
         else:
             style = "green"
@@ -217,7 +217,7 @@ def server(check, port, host):
                 console.print(f"✓ Server is running on port {port}", style="green")
             else:
                 console.print(f"✗ Server responded but unhealthy: {resp.status_code}", style="red")
-        except:
+        except Exception:
             console.print(f"✗ Server is not running on port {port}", style="yellow")
         return
 
