@@ -105,6 +105,29 @@ disable_error_code = [
     "misc",           # catch-all
 ]
 
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "src/menubar/*",
+    "src/mcp/*",
+    "src/debug/*",
+    "src/research/*",
+    "src/cli.py",
+    "src/config/production.py",
+    "src/utils/logger.py",
+    "src/utils/openapi_generator.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.",
+    "if TYPE_CHECKING:",
+    "except ImportError",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
