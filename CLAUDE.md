@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Impetus-LLM-Server is a local LLM inference server optimized for Apple Silicon, providing an OpenAI-compatible API powered by MLX. It includes a native macOS menu bar app, a React+Three.js dashboard, and production deployment tooling.
+Impetus-LLM-Server is a local LLM inference server optimized for Apple Silicon, providing an OpenAI-compatible API powered by MLX. It includes a native macOS menu bar app, a React dashboard with real-time hardware/performance monitoring, and production deployment tooling.
 
 **Requirements**: macOS 14.0+ (Sonoma), Apple Silicon (M1+), Python 3.11+, 8GB RAM (16GB recommended)
 
@@ -70,9 +70,9 @@ ruff check src/ tests/ --output-format=github
 # Type check
 mypy src/ --ignore-missing-imports
 
-# Format
-black src/ tests/        # line length 120
-isort src/ tests/
+# Format (ruff replaces black + isort)
+ruff format src/ tests/
+ruff check --select I --fix src/ tests/
 ```
 
 ### Building for Distribution
@@ -111,7 +111,7 @@ Client (curl/SDK/Dashboard) → Flask App (main.py:create_app)
 
 - **`gerdsen_ai_server/src/menubar/`** — Native macOS menu bar app using rumps + PyObjC. `server_manager.py` manages server process lifecycle, `permissions_manager.py` handles macOS permissions, `onboarding.py` provides first-run tour.
 
-- **`impetus-dashboard/`** — React 18 + Vite frontend with Three.js 3D visualization, Socket.IO real-time updates, and Recharts metrics. Vite proxies `/api`, `/v1`, `/socket.io` to backend port 8080.
+- **`impetus-dashboard/`** — React 18 + Vite frontend with Socket.IO real-time updates, Recharts performance charts, and hardware monitoring. Three.js/R3F still in `package.json` but not currently used. Vite proxies `/api`, `/v1`, `/socket.io` to backend port 8080.
 
 - **`gerdsen_ai_server/src/services/`** — Background services: `model_discovery.py` (HuggingFace search), `download_manager.py` (model downloads), `benchmark_service.py` (perf testing), `rag_pipeline.py` (RAG orchestration), `vector_store.py` (vector storage), `embedding_bridge.py` (embedding generation), `model_warmup.py` (pre-loading models).
 
@@ -172,7 +172,7 @@ The model loader resolves paths as: `settings.model.models_dir / model_id` (for 
 
 GitHub Actions (`.github/workflows/ci.yml`):
 - **Backend**: ruff + mypy + pytest on Python 3.11/3.12/3.13, macOS runner
-- **Frontend**: pnpm install + eslint + tsc + vite build, Ubuntu runner
+- **Frontend**: npm install + eslint + tsc + vite build, Ubuntu runner
 - **Security**: Trivy vulnerability scanner
 - **Integration**: Starts server, tests health/API endpoints (main branch + PRs)
 
