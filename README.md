@@ -145,19 +145,23 @@ psutil==7.0.0             # System monitoring
 
 ### API Usage
 
+The server auto-generates an API key on the first `/v1/*` request and prints it to the console. Save this key for subsequent requests.
+
 ```python
 from openai import OpenAI
 
 client = OpenAI(
     base_url="http://localhost:8080/v1",
-    api_key="your-api-key"  # Get from ~/.impetus/config
+    api_key="impetus-<key-from-server-console>"  # Check server console output
 )
 
 response = client.chat.completions.create(
-    model="mistral-7b",
+    model="Qwen3-4B-Instruct-2507-MLX-4bit",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
+
+> **Tip**: Set `IMPETUS_API_KEY=my-secret-key` as an environment variable for a persistent key that won't change on restart.
 
 ### Configuration
 

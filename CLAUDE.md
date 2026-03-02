@@ -126,6 +126,39 @@ All registered in `create_app()`:
 - `routes/documents.py` — Document ingestion, semantic search, collection management at `/api/documents`
 - `routes/websocket.py` — Socket.IO real-time handlers (registered separately via SocketIO, not as a blueprint)
 
+### API Key Authentication
+
+The server auto-generates a secure API key on the **first request** to any `/v1/*` endpoint. The key is printed to the server console:
+
+```
+🔑 Generated API key: impetus-<random-token>
+💡 Save this key for future API requests!
+```
+
+- All subsequent `/v1/*` requests require `Authorization: Bearer <key>`
+- The key changes every time the server restarts
+- To set a persistent key, use the `IMPETUS_API_KEY` environment variable:
+  ```bash
+  IMPETUS_API_KEY=my-secret-key python gerdsen_ai_server/src/main.py
+  ```
+- The first request to `/v1/*` after startup (before auth is generated) will succeed without a key
+
+### Loading Local MLX Models
+
+Models are stored in `~/.impetus/models/`. To use existing MLX models from another location (e.g., LM Studio models), **symlink** them:
+
+```bash
+# Symlink a local model into the models directory
+ln -sf "/path/to/your/Model-Name-MLX-4bit" "$HOME/.impetus/models/Model-Name-MLX-4bit"
+
+# Then load via API
+curl -X POST http://127.0.0.1:8080/api/models/load \
+  -H "Content-Type: application/json" \
+  -d '{"model_id": "Model-Name-MLX-4bit"}'
+```
+
+The model loader resolves paths as: `settings.model.models_dir / model_id` (for local names) or `settings.model.models_dir / model_id.replace('/', '_')` (for HuggingFace-style IDs like `mlx-community/Mistral-7B`). If the local path doesn't exist, it falls back to downloading from HuggingFace Hub.
+
 ### Production Entry Points
 
 | Entry | Use |
@@ -160,3 +193,6 @@ GitHub Actions (`.github/workflows/ci.yml`):
 - The bundled app's `launcher.sh` sets `PYTHONPATH` to isolate from system Homebrew paths
 - Tests require `conftest.py` in `gerdsen_ai_server/tests/` for module namespace aliasing — without it, pytest can't resolve `src.*` imports
 - Pydantic v2 is used — validators use `@field_validator` (not the deprecated `@validator`)
+- The `.env` file must only contain `IMPETUS_`-prefixed vars, or the `Settings` class needs `extra="ignore"` in its `model_config` — otherwise Pydantic rejects unknown env vars and all route blueprints fail to register silently
+- The API key is auto-generated on the first `/v1/*` request and printed to the server console — it changes on every restart (set `IMPETUS_API_KEY` for persistence)
+- macOS reports high `memory.percent` due to filesystem caching — memory checks should use `available` GB rather than `percent` to avoid false rejections on Apple Silicon

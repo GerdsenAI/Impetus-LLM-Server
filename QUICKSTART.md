@@ -28,12 +28,28 @@ v1.0.2 – Get up and running with Impetus in under 60 seconds
 - **8GB RAM** minimum (16GB recommended)
 - **10GB disk space** for models
 
+## API Key
+
+The server **auto-generates** a secure API key on the first request to any `/v1/*` endpoint. The key is printed to the server console:
+
+```
+🔑 Generated API key: impetus-<random-token>
+💡 Save this key for future API requests!
+```
+
+- All subsequent `/v1/*` requests require `Authorization: Bearer <key>`
+- The key **changes every restart** — check the server console output each time
+- To set a **persistent** key, use the environment variable:
+  ```bash
+  IMPETUS_API_KEY=my-secret-key python gerdsen_ai_server/src/main.py
+  ```
+
 ## Using Impetus with VS Code
 
 Configure your AI extension (Continue.dev, Cursor, Cline, etc.):
 - **API Base**: `http://localhost:8080/v1`
-- **API Key**: Check `~/Library/Application Support/Impetus/config/server.env`
-- **Model**: Use the model ID from the dashboard
+- **API Key**: Check the server console output for the auto-generated key, or set `IMPETUS_API_KEY` for a persistent key
+- **Model**: Use the model ID from the dashboard or `curl http://127.0.0.1:8080/v1/models`
 
 ## For Developers
 
@@ -83,25 +99,54 @@ docker-compose up -d
 
 ### Test the API
 ```bash
-# Health and docs
+# Health check (no auth needed)
 curl -sS http://localhost:8080/api/health/status | jq
 open http://localhost:8080/docs
 
-# List available models (OpenAI-compatible)
-curl -sS http://localhost:8080/v1/models | jq
+# First request to /v1/* triggers API key generation (check server console)
+curl -sS http://127.0.0.1:8080/v1/models | jq
 
-# Chat completion (replace YOUR_API_KEY)
-curl -X POST http://localhost:8080/v1/chat/completions \
+# Save the key printed in the server console, then use it:
+export IMPETUS_KEY="impetus-<your-generated-key>"
+
+# List models
+curl -sS -H "Authorization: Bearer $IMPETUS_KEY" \
+  http://127.0.0.1:8080/v1/models | jq
+
+# Load a model
+curl -X POST http://127.0.0.1:8080/api/models/load \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"model_id": "Qwen3-4B-Instruct-2507-MLX-4bit"}'
+
+# Chat completion
+curl -X POST http://127.0.0.1:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $IMPETUS_KEY" \
   -d '{
-    "model": "mistral-7b",
-    "messages": [{"role": "user", "content": "Hello!"}]
+    "model": "Qwen3-4B-Instruct-2507-MLX-4bit",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "max_tokens": 512
   }'
 ```
 
 ### API Documentation
 Open http://localhost:8080/docs for interactive API documentation
+
+## Loading Local MLX Models
+
+If you already have MLX models downloaded (e.g., from LM Studio), symlink them into the models directory instead of re-downloading:
+
+```bash
+# Symlink an existing model
+ln -sf "/path/to/your/Model-Name-MLX-4bit" "$HOME/.impetus/models/Model-Name-MLX-4bit"
+
+# Then load it via the API
+curl -X POST http://127.0.0.1:8080/api/models/load \
+  -H "Content-Type: application/json" \
+  -d '{"model_id": "Model-Name-MLX-4bit"}'
+```
+
+Models must be in MLX safetensors format with a `config.json` file.
 
 ## Configuration
 
@@ -143,12 +188,16 @@ tail -n 200 "${HOME}/Library/Application Support/Impetus/logs/impetus_server.log
 
 ## Recommended Models
 
-| Model | Size | Speed | Quality | Best For |
-|-------|------|-------|---------|----------|
-| **Mistral 7B** | 4GB | Fast | Great | General use |
-| **Llama 3 8B** | 5GB | Fast | Excellent | Conversations |
-| **Phi-3 Mini** | 2GB | Very Fast | Good | Quick tasks |
-| **Qwen 2.5** | 4GB | Fast | Great | Code & technical |
+All models should be MLX-format safetensors (e.g., from `mlx-community` or `lmstudio-community` on HuggingFace).
+
+| Model | Size | Speed | Best For |
+|-------|------|-------|----------|
+| **Qwen3-4B-Instruct-2507-MLX-4bit** | 2.1GB | Very Fast | Quick tasks, testing |
+| **DeepSeek-R1-0528-Qwen3-8B-MLX-4bit** | 4.3GB | Fast | Reasoning |
+| **Qwen3-14B-MLX-4bit** | 7.8GB | Fast | Higher quality |
+| **Qwen3-Coder-30B-A3B-Instruct-MLX-4bit** | 16GB | Moderate | Code review & generation |
+| **Phi-4-reasoning-plus-MLX-4bit** | 7.7GB | Fast | Reasoning tasks |
+| **Magistral-Small-2509-MLX-4bit** | 13GB | Moderate | General use |
 
 ## Next Steps
 
