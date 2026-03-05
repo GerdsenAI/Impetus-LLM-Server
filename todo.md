@@ -74,9 +74,9 @@
 ## In Progress
 
 ### Phase 4: Testing & Release Prep
-- [ ] Increase test coverage to 80% backend
-- [ ] Add Playwright E2E tests for dashboard
-- [ ] Performance regression benchmarks vs v1.0.2
+- [x] Increase test coverage to 80% backend (achieved 80.57%, 432 tests)
+- [x] Add Playwright E2E tests for dashboard (23 tests, 4 spec files)
+- [x] Performance regression benchmarks vs v1.0.2 (MetricsCalculator, perf_baselines.json)
 - [ ] DMG/standalone app packaging with ChromaDB bundled
 - [ ] Test ChromaDB in sandboxed macOS app (file permissions)
 - [ ] Security scan (Trivy, zero critical vulns)
@@ -161,4 +161,4 @@ All research documents in `docs/research/`:
 ---
 
 **Status:** v2.0 Phases 1–3.5 complete | Phase 4 (testing & packaging) next | v1.0.2 production stable
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-04
