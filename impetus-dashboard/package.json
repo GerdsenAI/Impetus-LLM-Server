@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@react-three/drei": "^9.108.3",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.7.0",
+    "@playwright/test": "^1.58.2",
     "@types/node": "^25.3.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",

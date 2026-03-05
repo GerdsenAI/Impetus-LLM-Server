@@ -92,7 +92,7 @@ class TestDownloadManager:
     def test_check_disk_space_sufficient(self, manager):
         """check_disk_space returns (True, available_gb) when free space exceeds 1.2x the required amount."""
         DiskUsage = namedtuple("DiskUsage", ["total", "used", "free"])
-        free_bytes = int(20 * 1024**3)  # 20 GB free
+        free_bytes = 20 * 1024**3  # 20 GB free
         with patch("shutil.disk_usage", return_value=DiskUsage(total=0, used=0, free=free_bytes)):
             has_space, available_gb = manager.check_disk_space(required_gb=10.0)
         assert has_space is True
@@ -101,7 +101,7 @@ class TestDownloadManager:
     def test_check_disk_space_insufficient(self, manager):
         """check_disk_space returns (False, available_gb) when free space is below 1.2x the required amount."""
         DiskUsage = namedtuple("DiskUsage", ["total", "used", "free"])
-        free_bytes = int(5 * 1024**3)  # 5 GB free
+        free_bytes = 5 * 1024**3  # 5 GB free
         with patch("shutil.disk_usage", return_value=DiskUsage(total=0, used=0, free=free_bytes)):
             has_space, available_gb = manager.check_disk_space(required_gb=10.0)
         assert has_space is False
@@ -128,6 +128,63 @@ class TestDownloadManager:
         """A model id without a recognized size pattern defaults to 5.0 GB."""
         size = manager.get_download_size("mlx-community/some-custom-model")
         assert size == 5.0
+
+
+    # ── download size estimation (additional variants) ─────────────────
+
+    def test_get_download_size_9b(self, manager):
+        """A model id containing '9B' estimates 5.2 GB for 4bit."""
+        size = manager.get_download_size("mlx-community/model-9B-4bit")
+        assert size == 5.2
+
+    def test_get_download_size_9b_full(self, manager):
+        """A model id containing '9B' without 4bit estimates 10.5 GB."""
+        size = manager.get_download_size("mlx-community/model-9B")
+        assert size == 10.5
+
+    def test_get_download_size_3b_full(self, manager):
+        """A model id containing '3B' without 4bit estimates 4.0 GB."""
+        size = manager.get_download_size("mlx-community/model-3B")
+        assert size == 4.0
+
+    def test_get_download_size_7b_full(self, manager):
+        """A model id containing '7B' without 4bit estimates 8.0 GB."""
+        size = manager.get_download_size("mlx-community/model-7B")
+        assert size == 8.0
+
+    def test_get_download_size_8b_full(self, manager):
+        """A model id containing '8B' without 4bit estimates 9.0 GB."""
+        size = manager.get_download_size("mlx-community/model-8B")
+        assert size == 9.0
+
+    # ── progress callback registration ─────────────────────────────────
+
+    def test_register_progress_callback(self, manager):
+        """register_progress_callback stores the callback."""
+        task_id = manager.create_download_task("model/test")
+        cb = lambda p: None  # noqa: E731
+        manager.register_progress_callback(task_id, cb)
+        assert manager.progress_callbacks[task_id] is cb
+
+    # ── cleanup_failed_downloads ───────────────────────────────────────
+
+    def test_cleanup_removes_incomplete(self, manager, tmp_path):
+        """cleanup_failed_downloads removes dirs without config.json."""
+        incomplete = manager.downloads_dir / "incomplete-model"
+        incomplete.mkdir(parents=True)
+        (incomplete / "partial.bin").write_bytes(b"\x00" * 10)
+
+        manager.cleanup_failed_downloads()
+        assert not incomplete.exists()
+
+    def test_cleanup_keeps_complete(self, manager, tmp_path):
+        """cleanup_failed_downloads keeps dirs with config.json."""
+        complete = manager.downloads_dir / "complete-model"
+        complete.mkdir(parents=True)
+        (complete / "config.json").write_text("{}")
+
+        manager.cleanup_failed_downloads()
+        assert complete.exists()
 
 
 if __name__ == "__main__":

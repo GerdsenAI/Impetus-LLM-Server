@@ -2,11 +2,9 @@
 Unit tests for MLX GPU embedding model loader (model_loaders/mlx_embedding_loader.py).
 """
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from src.model_loaders.mlx_embedding_loader import MLXEmbeddingModel, MLXEmbeddingModelLoader
 
 

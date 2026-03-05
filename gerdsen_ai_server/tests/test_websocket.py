@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Flask
 from flask_socketio import SocketIO
-
 from src.routes.websocket import gather_hardware_status, gather_metrics, register_handlers
 
 
@@ -46,7 +45,7 @@ class TestWebSocketHandlers:
 
     def test_connect_emits_hardware_info(self, client, app):
         """On connect the server emits a 'hardware_info' event with cached hardware data."""
-        _, _, app_state = app
+        _, _, _app_state = app
         received = client.get_received()
         hardware_events = [e for e in received if e["name"] == "hardware_info"]
         assert len(hardware_events) == 1
@@ -231,7 +230,7 @@ class TestWebSocketHandlers:
         """Connecting adds the client to active_sessions with metadata."""
         _, _, app_state = app
         assert len(app_state["active_sessions"]) == 1
-        session = list(app_state["active_sessions"].values())[0]
+        session = next(iter(app_state["active_sessions"].values()))
         assert "connected_at" in session
         assert isinstance(session["rooms"], set)
 
@@ -242,7 +241,7 @@ class TestWebSocketHandlers:
         client.emit("subscribe", {"room": "metrics"})
         client.get_received()
 
-        session = list(app_state["active_sessions"].values())[0]
+        session = next(iter(app_state["active_sessions"].values()))
         assert "metrics" in session["rooms"]
 
     def test_unsubscribe_removes_room_from_session(self, client, app):
@@ -254,7 +253,7 @@ class TestWebSocketHandlers:
         client.emit("unsubscribe", {"room": "logs"})
         client.get_received()
 
-        session = list(app_state["active_sessions"].values())[0]
+        session = next(iter(app_state["active_sessions"].values()))
         assert "logs" not in session["rooms"]
 
 

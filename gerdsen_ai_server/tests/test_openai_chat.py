@@ -7,10 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
-
 from src.routes.openai_api import bp, convert_messages_to_prompt
 from src.schemas.openai_schemas import ChatMessage
-
 
 # ---------------------------------------------------------------------------
 # Helpers

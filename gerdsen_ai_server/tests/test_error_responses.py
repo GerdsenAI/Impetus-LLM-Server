@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
-
 from src.utils.error_responses import ErrorResponse, handle_error
 
 
@@ -92,6 +91,61 @@ class TestErrorResponse:
             data = json.loads(response.data)
             assert "thermal" in data["error"].lower()
 
+    def test_model_load_failed_permission_error(self, app):
+        """model_load_failed adds permission suggestion for permission errors."""
+        with app.app_context():
+            response, _status = ErrorResponse.model_load_failed("test", "Permission denied")
+            data = json.loads(response.data)
+            assert any("permission" in s.lower() for s in data["suggestions"])
+
+    def test_model_load_failed_corrupt_error(self, app):
+        """model_load_failed adds re-download suggestion for corrupt errors."""
+        with app.app_context():
+            response, _status = ErrorResponse.model_load_failed("test", "File is corrupt")
+            data = json.loads(response.data)
+            assert any("re-download" in s.lower() for s in data["suggestions"])
+
+    def test_download_failed_generic(self, app):
+        """download_failed returns 500 with generic suggestions."""
+        with app.app_context():
+            response, status = ErrorResponse.download_failed("model/test", "Network error")
+            assert status == 500
+            data = json.loads(response.data)
+            assert data["model_id"] == "model/test"
+            assert any("internet" in s.lower() for s in data["suggestions"])
+
+    def test_download_failed_disk_space(self, app):
+        """download_failed adds disk space suggestion when error mentions space."""
+        with app.app_context():
+            response, _status = ErrorResponse.download_failed("model/test", "Not enough space")
+            data = json.loads(response.data)
+            assert any("free up" in s.lower() for s in data["suggestions"])
+
+    def test_download_failed_auth_error(self, app):
+        """download_failed adds token suggestion when error mentions auth."""
+        with app.app_context():
+            response, _status = ErrorResponse.download_failed("model/test", "Auth token invalid")
+            data = json.loads(response.data)
+            assert any("hf_token" in s.lower() for s in data["suggestions"])
+
+    def test_generic_error_timeout(self, app):
+        """generic_error adds timeout suggestion for timeout errors."""
+        with app.app_context():
+            response, _status = ErrorResponse.generic_error(
+                RuntimeError("Request timeout"), "inference"
+            )
+            data = json.loads(response.data)
+            assert any("timeout" in s.lower() for s in data["suggestions"])
+
+    def test_generic_error_connection(self, app):
+        """generic_error adds connection suggestion for connection errors."""
+        with app.app_context():
+            response, _status = ErrorResponse.generic_error(
+                RuntimeError("Connection refused"), "api"
+            )
+            data = json.loads(response.data)
+            assert any("services" in s.lower() for s in data["suggestions"])
+
 
 class TestHandleError:
     """Tests for the handle_error routing function."""
@@ -103,10 +157,10 @@ class TestHandleError:
         app.config["TESTING"] = True
         return app
 
-    @patch("src.utils.error_responses.psutil")
-    def test_routes_memory_error(self, mock_psutil, app):
+    @patch("psutil.virtual_memory")
+    def test_routes_memory_error(self, mock_vm, app):
         """Memory-related errors route to insufficient_memory."""
-        mock_psutil.virtual_memory.return_value = MagicMock(available=4 * 1024**3)
+        mock_vm.return_value = MagicMock(available=4 * 1024**3)
         with app.app_context():
             _, status = handle_error(RuntimeError("Out of memory"), "loading model")
             assert status == 507
@@ -122,6 +176,16 @@ class TestHandleError:
         with app.app_context():
             _, status = handle_error(RuntimeError("thermal throttling detected"), "inference")
             assert status == 503
+
+    def test_routes_port_error(self, app):
+        """Port-related errors route to port_in_use with extracted port."""
+        with app.app_context():
+            response, status = handle_error(
+                OSError("address already in use on port 9090"), "startup"
+            )
+            assert status == 500
+            data = json.loads(response.data)
+            assert data["port"] == 9090
 
     def test_routes_generic_error(self, app):
         """Unknown errors route to generic_error."""

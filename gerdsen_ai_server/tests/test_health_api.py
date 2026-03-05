@@ -8,7 +8,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
-
 from src.routes.health import bp as health_bp
 
 

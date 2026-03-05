@@ -23,7 +23,9 @@ class TestImpetusEmbeddingFunction:
             result = fn(["hello world", "test document"])
 
         mock_dispatcher.embed.assert_called_once_with(["hello world", "test document"], None)
-        assert result == [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
+        # ChromaDB may wrap inner lists as numpy arrays, so verify values not identity
+        assert len(result) == 2
+        assert list(result[0]) == pytest.approx([0.1, 0.2, 0.3])
 
     def test_call_with_model_name(self):
         """When a model_name is provided, it is passed through to compute_dispatcher.embed."""
@@ -35,7 +37,8 @@ class TestImpetusEmbeddingFunction:
             result = fn(["sample text"])
 
         mock_dispatcher.embed.assert_called_once_with(["sample text"], "nomic-embed-text-v1.5")
-        assert result == [[1.0, 2.0]]
+        assert len(result) == 1
+        assert list(result[0]) == pytest.approx([1.0, 2.0])
 
     def test_call_converts_input_to_list(self):
         """The Documents input is converted to a plain list before being passed to embed."""

@@ -5,7 +5,6 @@ Unit tests for MLX generation with KV cache (inference/mlx_kv_generation.py).
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from src.inference.mlx_kv_generation import clear_model_cache, get_cache_stats
 
 

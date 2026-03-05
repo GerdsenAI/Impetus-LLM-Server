@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
-
 from src.routes.hardware import bp as hardware_bp
 
 

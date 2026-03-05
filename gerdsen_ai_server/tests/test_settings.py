@@ -3,9 +3,6 @@ Unit tests for application settings (config/settings.py).
 """
 
 from pathlib import Path
-from unittest.mock import patch
-
-import pytest
 
 from src.config.settings import (
     ComputeSettings,

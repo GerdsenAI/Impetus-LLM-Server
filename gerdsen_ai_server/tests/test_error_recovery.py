@@ -2,17 +2,14 @@
 Unit tests for error recovery and resilience system (utils/error_recovery.py).
 """
 
-import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from src.utils.error_recovery import (
     ErrorEvent,
     ErrorRecoveryService,
     ErrorType,
-    with_error_recovery,
     with_memory_limit,
 )
 
@@ -74,8 +71,10 @@ class TestErrorRecoveryService:
     @patch("src.utils.error_recovery.time.sleep")
     def test_thermal_recovery_switches_mode(self, mock_sleep, service):
         """Thermal recovery switches to efficiency mode."""
-        service.app_state = {}
-        with patch("src.utils.error_recovery.settings") as mock_settings:
+        import gerdsen_ai_server.src.config.settings as settings_mod
+
+        service.app_state = {"loaded_models": {}}
+        with patch.object(settings_mod, "settings") as mock_settings:
             mock_settings.hardware = MagicMock()
             mock_settings.inference = MagicMock()
             mock_settings.inference.max_tokens = 2048
@@ -91,7 +90,9 @@ class TestErrorRecoveryService:
 
     def test_inference_failure_oom_reduces_tokens(self, service):
         """Inference failure with OOM reduces max_tokens."""
-        with patch("src.utils.error_recovery.settings") as mock_settings:
+        import gerdsen_ai_server.src.config.settings as settings_mod
+
+        with patch.object(settings_mod, "settings") as mock_settings:
             mock_settings.inference = MagicMock()
             mock_settings.inference.max_tokens = 2048
 

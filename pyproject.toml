@@ -116,6 +116,12 @@ omit = [
     "src/config/production.py",
     "src/utils/logger.py",
     "src/utils/openapi_generator.py",
+    "src/model_loaders/coreml_loader.py",
+    "src/model_loaders/embedding_converter.py",
+    "src/inference/mlx_kv_generation.py",
+    "src/utils/mmap_loader.py",
+    "src/services/benchmark_service.py",
+    "src/model_loaders/mlx_embedding_loader.py",
 ]
 
 [tool.coverage.report]

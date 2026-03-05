@@ -4,8 +4,6 @@ Unit tests for Apple Silicon hardware detection (utils/hardware_detector.py).
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from src.utils.hardware_detector import (
     detect_apple_silicon,
     detect_hardware,
@@ -149,6 +147,364 @@ class TestGetThermalState:
         result = get_thermal_state()
         assert result["thermal_state"] == "serious"
         assert result["thermal_pressure"] == 60
+
+
+class TestDetectAppleSiliconM3:
+    """Tests for M3 family chip detection."""
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m3_base_detection(self, mock_platform, mock_run_command):
+        """Base M3 chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M3" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M3"
+        assert result["gpu_cores"] == 10
+        assert result["max_memory_bandwidth_gbps"] == 100
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m3_pro_detection(self, mock_platform, mock_run_command):
+        """M3 Pro chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M3 Pro" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M3 Pro"
+        assert result["gpu_cores"] == 18
+        assert result["max_memory_bandwidth_gbps"] == 150
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m3_max_detection(self, mock_platform, mock_run_command):
+        """M3 Max chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M3 Max" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M3 Max"
+        assert result["gpu_cores"] == 40
+        assert result["max_memory_bandwidth_gbps"] == 400
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m3_ultra_detection(self, mock_platform, mock_run_command):
+        """M3 Ultra chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M3 Ultra" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M3 Ultra"
+        assert result["gpu_cores"] == 76
+        assert result["max_memory_bandwidth_gbps"] == 800
+
+
+class TestDetectAppleSiliconM5:
+    """Tests for M5 family chip detection."""
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m5_base_detection(self, mock_platform, mock_run_command):
+        """Base M5 chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M5" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M5"
+        assert result["gpu_cores"] == 12
+        assert result["max_memory_bandwidth_gbps"] == 150
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m5_pro_detection(self, mock_platform, mock_run_command):
+        """M5 Pro chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M5 Pro" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M5 Pro"
+        assert result["gpu_cores"] == 24
+        assert result["max_memory_bandwidth_gbps"] == 300
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m5_max_detection(self, mock_platform, mock_run_command):
+        """M5 Max chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M5 Max" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M5 Max"
+        assert result["gpu_cores"] == 48
+        assert result["max_memory_bandwidth_gbps"] == 600
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m5_ultra_detection(self, mock_platform, mock_run_command):
+        """M5 Ultra chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M5 Ultra" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M5 Ultra"
+        assert result["gpu_cores"] == 80
+        assert result["max_memory_bandwidth_gbps"] == 1200
+
+
+class TestDetectAppleSiliconExtras:
+    """Tests for remaining Apple Silicon detection branches."""
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m1_ultra_detection(self, mock_platform, mock_run_command):
+        """M1 Ultra chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M1 Ultra" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M1 Ultra"
+        assert result["gpu_cores"] == 64
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m1_max_detection(self, mock_platform, mock_run_command):
+        """M1 Max chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M1 Max" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M1 Max"
+        assert result["gpu_cores"] == 32
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m1_pro_detection(self, mock_platform, mock_run_command):
+        """M1 Pro chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M1 Pro" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M1 Pro"
+        assert result["gpu_cores"] == 16
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m2_ultra_detection(self, mock_platform, mock_run_command):
+        """M2 Ultra chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M2 Ultra" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M2 Ultra"
+        assert result["gpu_cores"] == 76
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m2_max_detection(self, mock_platform, mock_run_command):
+        """M2 Max chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M2 Max" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M2 Max"
+        assert result["gpu_cores"] == 38
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m2_base_detection(self, mock_platform, mock_run_command):
+        """Base M2 chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M2" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M2"
+        assert result["gpu_cores"] == 10
+        assert result["max_memory_bandwidth_gbps"] == 100
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m4_pro_detection(self, mock_platform, mock_run_command):
+        """M4 Pro chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M4 Pro" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M4 Pro"
+        assert result["gpu_cores"] == 20
+        assert result["max_memory_bandwidth_gbps"] == 273
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_m4_base_detection(self, mock_platform, mock_run_command):
+        """Base M4 chip is correctly identified."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.side_effect = lambda cmd: (
+            "Apple M4" if any("brand_string" in c for c in cmd) else None
+        )
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "M4"
+        assert result["gpu_cores"] == 10
+        assert result["max_memory_bandwidth_gbps"] == 120
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_no_brand_string_returns_unknown(self, mock_platform, mock_run_command):
+        """When sysctl returns None for brand_string, chip_type stays Unknown."""
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+        mock_run_command.return_value = None
+        result = detect_apple_silicon()
+        assert result["chip_type"] == "Unknown"
+        assert result["neural_engine_cores"] == 0
+
+
+class TestDetectAneAvailability:
+    """Tests for detect_ane_availability function."""
+
+    @patch("src.utils.hardware_detector.platform")
+    def test_non_darwin_returns_unavailable(self, mock_platform):
+        """Non-macOS returns ANE unavailable."""
+        from src.utils.hardware_detector import detect_ane_availability
+
+        mock_platform.system.return_value = "Linux"
+        mock_platform.machine.return_value = "x86_64"
+        result = detect_ane_availability()
+        assert result["available"] is False
+        assert result["compute_units"] == "cpu_only"
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_ane_version_detected(self, mock_platform, mock_run_command):
+        """ANE version detected via sysctl."""
+        from src.utils.hardware_detector import detect_ane_availability
+
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+
+        def side_effect(cmd):
+            cmd_str = " ".join(cmd)
+            if "ane.version" in cmd_str:
+                return "2"
+            if "brand_string" in cmd_str:
+                return "Apple M2 Pro"
+            return None
+
+        mock_run_command.side_effect = side_effect
+        result = detect_ane_availability()
+        assert result["available"] is True
+        assert result["version"] == 2
+        assert result["compute_units"] == "cpu_and_ne"
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_ane_fallback_from_brand_string(self, mock_platform, mock_run_command):
+        """ANE availability detected from brand string when sysctl key missing."""
+        from src.utils.hardware_detector import detect_ane_availability
+
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+
+        def side_effect(cmd):
+            cmd_str = " ".join(cmd)
+            if "ane.version" in cmd_str:
+                return None
+            if "brand_string" in cmd_str:
+                return "Apple M3"
+            return None
+
+        mock_run_command.side_effect = side_effect
+        result = detect_ane_availability()
+        assert result["available"] is True
+        assert result["compute_units"] == "cpu_and_ne"
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_ane_version_parse_error(self, mock_platform, mock_run_command):
+        """Invalid ANE version string doesn't crash."""
+        from src.utils.hardware_detector import detect_ane_availability
+
+        mock_platform.system.return_value = "Darwin"
+        mock_platform.machine.return_value = "arm64"
+
+        def side_effect(cmd):
+            cmd_str = " ".join(cmd)
+            if "ane.version" in cmd_str:
+                return "not_a_number"
+            if "brand_string" in cmd_str:
+                return "Apple M1"
+            return None
+
+        mock_run_command.side_effect = side_effect
+        result = detect_ane_availability()
+        assert result["available"] is True
+        assert result["version"] == 0
+
+
+class TestThermalStateExtras:
+    """Additional tests for thermal state branches."""
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_fair_thermal_level(self, mock_platform, mock_run_command):
+        """Thermal level 25 maps to fair."""
+        mock_platform.system.return_value = "Darwin"
+        mock_run_command.return_value = "25"
+        result = get_thermal_state()
+        assert result["thermal_state"] == "fair"
+        assert result["thermal_pressure"] == 25
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_critical_thermal_level(self, mock_platform, mock_run_command):
+        """Thermal level 90 maps to critical."""
+        mock_platform.system.return_value = "Darwin"
+        mock_run_command.return_value = "90"
+        result = get_thermal_state()
+        assert result["thermal_state"] == "critical"
+        assert result["thermal_pressure"] == 90
+
+    @patch("src.utils.hardware_detector.run_command")
+    @patch("src.utils.hardware_detector.platform")
+    def test_thermal_command_fails(self, mock_platform, mock_run_command):
+        """When sysctl fails, thermal stays nominal."""
+        mock_platform.system.return_value = "Darwin"
+        mock_run_command.return_value = None
+        result = get_thermal_state()
+        assert result["thermal_state"] == "nominal"
+        assert result["thermal_pressure"] == 0
 
 
 class TestDetectHardware:

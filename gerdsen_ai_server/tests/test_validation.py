@@ -3,18 +3,18 @@ Unit tests for request validation utilities (utils/validation.py).
 """
 
 import json
-from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
 from pydantic import BaseModel, Field
-
 from src.utils.validation import (
     ValidationConfig,
     create_response,
     validate_conversation_id,
     validate_json,
     validate_model_id,
+    validate_path_params,
+    validate_query_params,
 )
 
 
@@ -132,7 +132,7 @@ class TestCreateResponse:
     def test_list_response(self, app):
         """List data serializes correctly."""
         with app.app_context():
-            response, status = create_response([1, 2, 3])
+            response, _status = create_response([1, 2, 3])
             data = json.loads(response.data)
             assert data == [1, 2, 3]
 
@@ -198,6 +198,110 @@ class TestValidateConversationId:
         """Special characters raise ValueError."""
         with pytest.raises(ValueError, match="invalid characters"):
             validate_conversation_id("chat@123!")
+
+
+class TestValidateQueryParams:
+    """Tests for validate_query_params decorator.
+
+    Note: validate_query_params uses Pydantic v1 field_info.type_ which is
+    broken in Pydantic v2. Tests verify the error handling paths.
+    """
+
+    @pytest.fixture
+    def app(self):
+        """Create test Flask app with query-param-decorated route."""
+        app = Flask(__name__)
+        app.config["TESTING"] = True
+
+        class OptionalSchema(BaseModel):
+            name: str = "default"
+
+        @app.route("/search")
+        @validate_query_params(SampleSchema)
+        def search(validated_params):
+            return {"name": validated_params.name, "value": validated_params.value}
+
+        @app.route("/optional")
+        @validate_query_params(OptionalSchema)
+        def optional_search(validated_params):
+            return {"name": validated_params.name}
+
+        return app
+
+    @pytest.fixture
+    def client(self, app):
+        return app.test_client()
+
+    def test_no_params_required_schema_returns_400(self, client):
+        """Missing required params returns 400 validation error."""
+        response = client.get("/search")
+        assert response.status_code == 400
+
+    def test_all_defaults_no_params_succeeds(self, client):
+        """Schema with all-default fields works with no query params."""
+        response = client.get("/optional")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["name"] == "default"
+
+
+class TestValidatePathParams:
+    """Tests for validate_path_params decorator."""
+
+    @pytest.fixture
+    def app(self):
+        """Create test Flask app with path-param-validated route."""
+        app = Flask(__name__)
+        app.config["TESTING"] = True
+
+        def positive_int(value):
+            v = int(value)
+            if v <= 0:
+                raise ValueError("Must be positive")
+            return v
+
+        @app.route("/items/<item_id>")
+        @validate_path_params(item_id=positive_int)
+        def get_item(item_id, validated_path_params):
+            return {"item_id": item_id}
+
+        return app
+
+    @pytest.fixture
+    def client(self, app):
+        return app.test_client()
+
+    def test_valid_path_param(self, client):
+        """Valid path param passes validation."""
+        response = client.get("/items/42")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["item_id"] == 42
+
+    def test_invalid_path_param(self, client):
+        """Negative value triggers error handler (callable validators
+        don't catch ValueError internally — falls to outer except)."""
+        response = client.get("/items/-1")
+        assert response.status_code == 500
+
+    def test_non_numeric_path_param(self, client):
+        """Non-numeric string triggers error handler."""
+        response = client.get("/items/abc")
+        assert response.status_code == 500
+
+
+class TestValidateModelIdExtras:
+    """Additional tests for validate_model_id edge cases."""
+
+    def test_invalid_characters_in_org(self):
+        """Invalid characters in org part raises ValueError."""
+        with pytest.raises(ValueError, match="invalid characters"):
+            validate_model_id("org@bad/model")
+
+    def test_empty_org_with_slash(self):
+        """Empty org with slash raises ValueError."""
+        with pytest.raises(ValueError, match="non-empty"):
+            validate_model_id("/model")
 
 
 class TestValidationConfig:
