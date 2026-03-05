@@ -132,17 +132,20 @@ python3 -c "import mlx; print(mlx.__version__)"
 **Solutions**:
 1. Try smaller model:
    - Use 4-bit quantized versions
-   - Try Phi-3 Mini (1.4GB) instead of Mistral 7B
+   - Try Qwen3-4B (2.1GB) instead of a 14B model
 
 2. Free up memory:
    - Close other applications
-   - Unload unused models
+   - Unload unused models via `POST /api/models/unload`
    - Restart Mac to clear memory
 
-3. Adjust memory limit in `.env`:
+3. Check actual available memory vs model size:
    ```bash
-   export IMPETUS_MAX_MEMORY_PERCENT=85
+   # Check available memory
+   python3 -c "import psutil; m=psutil.virtual_memory(); print(f'Available: {m.available/1024**3:.1f}GB')"
    ```
+
+> **Note**: The memory check compares actual available GB against the model's disk size × 1.2, with a 2GB safety buffer. On Apple Silicon, macOS reports high `memory.percent` due to filesystem caching, but this memory is reclaimable.
 
 #### "Model not found"
 **Symptom**: Can't find downloaded model
@@ -233,11 +236,26 @@ Another process is using the port. Solutions:
    IMPETUS_PORT=8081 python gerdsen_ai_server/src/main.py
    ```
 
-#### "API key required"
-Set API key in `.env`:
+#### "API key required" / "Invalid API key"
+The server **auto-generates** an API key on the first request to any `/v1/*` endpoint. The key is printed to the server console:
+
 ```
-IMPETUS_API_KEY=your-secret-key
+🔑 Generated API key: impetus-<random-token>
+💡 Save this key for future API requests!
 ```
+
+**Solutions**:
+1. Check the server console output for the generated key
+2. Use it in requests: `Authorization: Bearer <key>`
+3. The key **changes on every server restart**
+4. For a persistent key, set it as an environment variable:
+   ```bash
+   IMPETUS_API_KEY=my-secret-key python gerdsen_ai_server/src/main.py
+   ```
+5. Or add to `.env`:
+   ```
+   IMPETUS_API_KEY=my-secret-key
+   ```
 
 ### 📱 Dashboard Issues
 

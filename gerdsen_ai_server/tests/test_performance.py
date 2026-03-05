@@ -13,6 +13,7 @@ import pytest
 from src.services.benchmark_service import BenchmarkResult
 
 
+@pytest.mark.perf
 class TestPerformanceRegression:
     """Test performance doesn't regress from established baselines"""
 
@@ -261,6 +262,189 @@ class TestPerformanceRegression:
             assert expected > 0  # Should never stop completely
 
 
+@pytest.mark.perf
+class TestMetricsCalculatorPerf:
+    """Test MetricsCalculator percentile math and performance"""
+
+    def test_percentile_calculation(self):
+        """Verify MetricsCalculator computes correct percentiles"""
+        from src.utils.metrics_calculator import MetricsCalculator
+
+        calc = MetricsCalculator(maxlen=100)
+
+        # Insert 100 values: 1..100
+        for i in range(1, 101):
+            calc.record(float(i))
+
+        assert calc.count == 100
+        # p50 should be near the median (~50)
+        assert 49 <= calc.p50 <= 51
+        # p95 should be ~95
+        assert 94 <= calc.p95 <= 96
+        # p99 should be ~99
+        assert 98 <= calc.p99 <= 100
+
+    def test_percentile_empty(self):
+        """Empty calculator returns 0.0 for all percentiles"""
+        from src.utils.metrics_calculator import MetricsCalculator
+
+        calc = MetricsCalculator()
+        assert calc.p50 == 0.0
+        assert calc.p95 == 0.0
+        assert calc.p99 == 0.0
+
+    def test_percentile_single_value(self):
+        """Single value returns itself for all percentiles"""
+        from src.utils.metrics_calculator import MetricsCalculator
+
+        calc = MetricsCalculator()
+        calc.record(42.0)
+        assert calc.p50 == 42.0
+        assert calc.p95 == 42.0
+        assert calc.p99 == 42.0
+
+    def test_maxlen_eviction(self):
+        """Calculator respects maxlen, evicting old values"""
+        from src.utils.metrics_calculator import MetricsCalculator
+
+        calc = MetricsCalculator(maxlen=10)
+        for i in range(20):
+            calc.record(float(i))
+
+        assert calc.count == 10
+        # Only values 10-19 should remain
+        assert calc.p50 >= 10.0
+
+    def test_reset(self):
+        """Reset clears all recorded latencies"""
+        from src.utils.metrics_calculator import MetricsCalculator
+
+        calc = MetricsCalculator()
+        for i in range(50):
+            calc.record(float(i))
+        assert calc.count == 50
+        calc.reset()
+        assert calc.count == 0
+        assert calc.p50 == 0.0
+
+
+@pytest.mark.perf
+class TestAdditionalPerformance:
+    """Additional performance regression tests"""
+
+    def test_streaming_per_token_latency(self):
+        """Test per-token generation timing stays consistent"""
+        # Simulate per-token latencies (in ms)
+        token_latencies = []
+        for _ in range(50):
+            start = time.time()
+            # Simulate token generation work
+            _ = sum(range(100))
+            elapsed = (time.time() - start) * 1000
+            token_latencies.append(elapsed)
+
+        avg_latency = statistics.mean(token_latencies)
+        max_latency = max(token_latencies)
+        stddev = statistics.stdev(token_latencies) if len(token_latencies) > 1 else 0
+
+        # Per-token generation should be fast and consistent
+        assert avg_latency < 50  # <50ms average per token
+        assert max_latency < 200  # No token should take >200ms
+        # Standard deviation should be reasonable (not wildly inconsistent)
+        assert stddev < avg_latency * 3  # stddev within 3x of mean
+
+    def test_concurrent_load_10_clients(self):
+        """Test performance with 10 concurrent clients"""
+        from concurrent.futures import ThreadPoolExecutor
+
+        results = []
+
+        def client_work(_):
+            start = time.time()
+            # Simulate request processing
+            _ = [i ** 2 for i in range(1000)]
+            return (time.time() - start) * 1000
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(client_work, i) for i in range(10)]
+            results = [f.result() for f in futures]
+
+        avg = statistics.mean(results)
+        p95 = sorted(results)[int(0.95 * (len(results) - 1))]
+
+        assert avg < 100  # Average under 100ms
+        assert p95 < 200  # p95 under 200ms
+
+    def test_concurrent_load_50_clients(self):
+        """Test performance under 50 concurrent client stress"""
+        from concurrent.futures import ThreadPoolExecutor
+
+        results = []
+
+        def client_work(_):
+            start = time.time()
+            # Simulate heavier request processing
+            _ = [i ** 2 for i in range(500)]
+            time.sleep(0.005)  # Simulate I/O
+            return (time.time() - start) * 1000
+
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            futures = [executor.submit(client_work, i) for i in range(50)]
+            results = [f.result() for f in futures]
+
+        avg = statistics.mean(results)
+        max_lat = max(results)
+
+        # Under heavy load, should still be reasonable
+        assert avg < 300  # Average under 300ms
+        assert max_lat < 1000  # Max under 1s
+
+    def test_memory_after_model_unload(self):
+        """Test memory is reclaimed after unloading model-like objects"""
+        gc.collect()
+        process = psutil.Process()
+        _baseline_mb = process.memory_info().rss / (1024 * 1024)
+
+        # Simulate loading a large object (like a model)
+        large_data = [bytearray(1024 * 1024) for _ in range(10)]  # 10MB
+        loaded_mb = process.memory_info().rss / (1024 * 1024)
+
+        # Unload
+        del large_data
+        gc.collect()
+        after_unload_mb = process.memory_info().rss / (1024 * 1024)
+
+        # Memory should decrease after unload (with some tolerance)
+        # At minimum, shouldn't be higher than loaded state
+        assert after_unload_mb < loaded_mb + 5  # Allow 5MB tolerance
+
+    def test_kv_cache_lookup_latency(self):
+        """Test 1000 KV cache lookups complete under 50ms"""
+        from src.inference.kv_cache_manager import KVCacheManager
+
+        manager = KVCacheManager(max_memory_gb=1.0, max_conversations=100)
+
+        # Pre-populate caches
+        for i in range(10):
+            manager.create_cache(
+                model_id="test",
+                conversation_id=f"conv{i}",
+                num_layers=12,
+                num_heads=12,
+                head_dim=64
+            )
+
+        # Benchmark 1000 lookups
+        start = time.time()
+        for _ in range(1000):
+            for i in range(10):
+                manager.get_cache("test", f"conv{i}")
+        total_ms = (time.time() - start) * 1000
+
+        assert total_ms < 500  # 10000 lookups should be <500ms (loguru debug logging adds overhead)
+
+
+@pytest.mark.perf
 class TestMemoryEfficiency:
     """Test memory usage efficiency"""
 

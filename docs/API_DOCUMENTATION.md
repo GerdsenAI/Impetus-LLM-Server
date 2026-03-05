@@ -11,11 +11,23 @@ Impetus LLM Server provides a RESTful API with OpenAI-compatible endpoints for s
 - **Production**: `https://your-domain.com`
 
 ### Authentication
-All API endpoints require Bearer token authentication:
+
+The server auto-generates a secure API key on the **first request** to any `/v1/*` endpoint. The key is printed to the server console:
+
+```
+🔑 Generated API key: impetus-<random-token>
+💡 Save this key for future API requests!
+```
+
+All subsequent `/v1/*` requests require Bearer token authentication:
 
 ```http
-Authorization: Bearer your-api-key
+Authorization: Bearer impetus-<your-generated-key>
 ```
+
+- The key changes on every server restart
+- To set a persistent key, use the `IMPETUS_API_KEY` environment variable
+- The `/api/*` endpoints (health, models management, hardware) do **not** require authentication
 
 ### Interactive Documentation
 - **Swagger UI**: Available at `/docs` or `/api/docs`

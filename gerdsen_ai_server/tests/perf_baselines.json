@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "description": "Performance baselines for Impetus-LLM-Server regression testing",
+  "baselines": {
+    "model_load_time_ms": {
+      "mmap": 5000,
+      "regular": 30000
+    },
+    "first_token_latency_ms": {
+      "cold": 2000,
+      "warm": 200
+    },
+    "tokens_per_second": {
+      "M1": 40,
+      "M2": 60,
+      "M3": 80,
+      "M4": 100
+    },
+    "memory_overhead_mb": 500,
+    "api_latency_ms": 50,
+    "warmup_time_ms": 5000,
+    "per_token_latency_ms": 50,
+    "concurrent_10_avg_ms": 100,
+    "concurrent_50_avg_ms": 300,
+    "kv_cache_1000_lookups_ms": 50
+  },
+  "regression_threshold_percent": 20
+}

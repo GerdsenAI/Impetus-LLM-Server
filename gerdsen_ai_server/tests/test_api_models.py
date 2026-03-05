@@ -355,5 +355,269 @@ class TestModelsAPI:
         assert data['estimated_size_gb'] == 3.5
 
 
+class TestGetAvailableModels:
+    """Tests for get_available_models function."""
+
+    @pytest.fixture
+    def app(self):
+        """Create test Flask app with models blueprint."""
+        app = Flask(__name__)
+        app.config["TESTING"] = True
+        app.register_blueprint(models_bp, url_prefix="/api/models")
+        app.config["app_state"] = {
+            "loaded_models": {},
+            "hardware_info": {"chip_type": "M1"},
+            "model_benchmarks": {},
+            "socketio": None,
+        }
+        return app
+
+    @patch("src.routes.models.settings")
+    def test_models_dir_not_exists(self, mock_settings, app):
+        """Returns empty list when models directory doesn't exist."""
+        from src.routes.models import get_available_models
+
+        mock_settings.model.models_dir = MagicMock()
+        mock_settings.model.models_dir.exists.return_value = False
+        with app.app_context():
+            result = get_available_models()
+        assert result == []
+
+    @patch("src.routes.models.settings")
+    def test_mlx_model_detected(self, mock_settings, app, tmp_path):
+        """MLX model detected via config.json."""
+        from src.routes.models import get_available_models
+
+        model_dir = tmp_path / "test-model"
+        model_dir.mkdir()
+        (model_dir / "config.json").write_text("{}")
+        (model_dir / "weights.safetensors").write_bytes(b"\x00" * 1024)
+
+        mock_settings.model.models_dir = tmp_path
+        with app.app_context():
+            result = get_available_models()
+        assert len(result) == 1
+        assert result[0]["format"] == "mlx"
+        assert result[0]["id"] == "test-model"
+        assert result[0]["size_gb"] > 0
+
+    @patch("src.routes.models.settings")
+    def test_gguf_model_detected(self, mock_settings, app, tmp_path):
+        """GGUF model detected via .gguf file."""
+        from src.routes.models import get_available_models
+
+        model_dir = tmp_path / "gguf-model"
+        model_dir.mkdir()
+        (model_dir / "model.gguf").write_bytes(b"\x00" * 2048)
+
+        mock_settings.model.models_dir = tmp_path
+        with app.app_context():
+            result = get_available_models()
+        assert len(result) == 1
+        assert result[0]["format"] == "gguf"
+
+    @patch("src.routes.models.settings")
+    def test_loaded_model_marked(self, mock_settings, app, tmp_path):
+        """Loaded model is marked as loaded=True."""
+        from src.routes.models import get_available_models
+
+        model_dir = tmp_path / "loaded-model"
+        model_dir.mkdir()
+        (model_dir / "config.json").write_text("{}")
+
+        mock_settings.model.models_dir = tmp_path
+        app.config["app_state"]["loaded_models"]["loaded-model"] = MagicMock()
+        with app.app_context():
+            result = get_available_models()
+        assert result[0]["loaded"] is True
+
+    @patch("src.routes.models.settings")
+    def test_hub_model_added(self, mock_settings, app, tmp_path):
+        """Hub-downloaded model (not on disk) added to list."""
+        from src.routes.models import get_available_models
+
+        mock_settings.model.models_dir = tmp_path
+        app.config["app_state"]["loaded_models"]["hub-model"] = MagicMock()
+        with app.app_context():
+            result = get_available_models()
+        assert len(result) == 1
+        assert result[0]["id"] == "hub-model"
+        assert result[0]["path"] == "hub"
+        assert result[0]["loaded"] is True
+
+
+class TestDownloadRoutes:
+    """Tests for download-related route handlers."""
+
+    @pytest.fixture
+    def app(self):
+        app = Flask(__name__)
+        app.config["TESTING"] = True
+        app.register_blueprint(models_bp, url_prefix="/api/models")
+        app.config["app_state"] = {
+            "loaded_models": {},
+            "hardware_info": {"chip_type": "M1"},
+            "model_benchmarks": {},
+            "socketio": None,
+        }
+        return app
+
+    @pytest.fixture
+    def client(self, app):
+        return app.test_client()
+
+    @patch("src.routes.models.download_manager")
+    def test_get_download_status_found(self, mock_dm, client):
+        """Get download status for existing task returns 200."""
+        from datetime import datetime
+
+        mock_task = MagicMock()
+        mock_task.task_id = "task-123"
+        mock_task.model_id = "test-model"
+        mock_task.status.value = "downloading"
+        mock_task.progress = 0.5
+        mock_task.downloaded_bytes = 2 * 1024**3
+        mock_task.total_bytes = 4 * 1024**3
+        mock_task.speed_mbps = 50.0
+        mock_task.eta_seconds = 40
+        mock_task.error = None
+        mock_task.started_at = datetime(2024, 1, 1)
+        mock_task.completed_at = None
+        mock_dm.get_task_status.return_value = mock_task
+
+        response = client.get("/api/models/download/task-123")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["task_id"] == "task-123"
+        assert data["status"] == "downloading"
+        assert data["progress"] == 0.5
+
+    @patch("src.routes.models.download_manager")
+    def test_get_download_status_not_found(self, mock_dm, client):
+        """Get download status for unknown task returns 404."""
+        mock_dm.get_task_status.return_value = None
+        response = client.get("/api/models/download/nonexistent")
+        assert response.status_code == 404
+
+    @patch("src.routes.models.download_manager")
+    def test_list_downloads_empty(self, mock_dm, client):
+        """List downloads returns empty list when no tasks exist."""
+        mock_dm.get_all_tasks.return_value = {}
+        response = client.get("/api/models/downloads")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["downloads"] == []
+        assert data["total"] == 0
+
+    @patch("src.routes.models.download_manager")
+    def test_list_downloads_with_tasks(self, mock_dm, client):
+        """List downloads returns all tasks."""
+        mock_task = MagicMock()
+        mock_task.task_id = "task-1"
+        mock_task.model_id = "model-a"
+        mock_task.status.value = "completed"
+        mock_task.progress = 1.0
+        mock_task.started_at = None
+        mock_dm.get_all_tasks.return_value = {"task-1": mock_task}
+
+        response = client.get("/api/models/downloads")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["total"] == 1
+        assert data["downloads"][0]["task_id"] == "task-1"
+
+    @patch("src.routes.models.download_manager")
+    def test_cancel_download_success(self, mock_dm, client):
+        """Cancel download returns success when task is cancellable."""
+        mock_dm.cancel_download.return_value = True
+        response = client.delete("/api/models/download/task-1")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "cancelled"
+
+    @patch("src.routes.models.download_manager")
+    def test_cancel_download_failure(self, mock_dm, client):
+        """Cancel download returns 400 when task can't be cancelled."""
+        mock_dm.cancel_download.return_value = False
+        response = client.delete("/api/models/download/task-1")
+        assert response.status_code == 400
+
+    def test_unload_model_missing_id(self, client):
+        """Unload without model_id returns 400."""
+        response = client.post("/api/models/unload", json={})
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data["error"] == "model_id is required"
+
+
+class TestLoadModelInternal:
+    """Tests for _load_model_internal function."""
+
+    @pytest.fixture
+    def app(self):
+        app = Flask(__name__)
+        app.config["TESTING"] = True
+        app.register_blueprint(models_bp, url_prefix="/api/models")
+        app.config["app_state"] = {
+            "loaded_models": {},
+            "hardware_info": {"chip_type": "M1"},
+            "model_benchmarks": {},
+            "socketio": None,
+        }
+        return app
+
+    @patch("src.routes.models.settings")
+    @patch("src.routes.models.psutil")
+    def test_already_loaded(self, mock_psutil, mock_settings, app):
+        """Returns already_loaded status for duplicate load request."""
+        from src.routes.models import _load_model_internal
+
+        app_state = {"loaded_models": {"test-model": MagicMock()}}
+        with app.app_context():
+            result = _load_model_internal("test-model", app_state)
+        assert result["status"] == "already_loaded"
+
+    @patch("src.routes.models.settings")
+    @patch("psutil.virtual_memory")
+    def test_insufficient_memory(self, mock_memory, mock_settings, app):
+        """Returns error when insufficient memory available."""
+        from src.routes.models import _load_model_internal
+
+        mock_mem = MagicMock()
+        mock_mem.available = 3 * 1024**3  # Only 3GB free
+        mock_memory.return_value = mock_mem
+
+        mock_settings.model.models_dir = MagicMock()
+        model_dir = MagicMock()
+        model_dir.exists.return_value = False
+        mock_settings.model.models_dir.__truediv__ = MagicMock(return_value=model_dir)
+
+        app_state = {"loaded_models": {}}
+        with app.app_context():
+            result = _load_model_internal("big-model", app_state)
+        assert "error" in result
+
+    @patch("src.routes.models.settings")
+    @patch("psutil.virtual_memory")
+    def test_model_limit_reached(self, mock_memory, mock_settings, app):
+        """Returns error when max_loaded_models reached."""
+        from src.routes.models import _load_model_internal
+
+        mock_mem = MagicMock()
+        mock_mem.available = 32 * 1024**3
+        mock_memory.return_value = mock_mem
+
+        mock_settings.model.models_dir = MagicMock()
+        model_dir = MagicMock()
+        model_dir.exists.return_value = False
+        mock_settings.model.models_dir.__truediv__ = MagicMock(return_value=model_dir)
+        mock_settings.model.max_loaded_models = 1
+
+        app_state = {"loaded_models": {"existing-model": MagicMock()}}
+        with app.app_context():
+            result = _load_model_internal("new-model", app_state)
+        assert result["error"] == "Model limit reached"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

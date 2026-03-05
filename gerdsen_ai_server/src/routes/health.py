@@ -21,6 +21,7 @@ from ..schemas.health_schemas import (
     ReadinessResponse,
     SystemHealth,
 )
+from ..utils.metrics_calculator import metrics_calculator
 from ..utils.validation import create_response
 
 bp = Blueprint('health', __name__)
@@ -358,9 +359,9 @@ def json_metrics():
             failed_requests=metrics.get('failed_requests', 0),
             requests_per_minute=metrics.get('requests_per_minute', 0.0),
             avg_response_time_ms=metrics.get('average_latency_ms', 0.0),
-            p50_response_time_ms=metrics.get('p50_latency_ms', 0.0),
-            p95_response_time_ms=metrics.get('p95_latency_ms', 0.0),
-            p99_response_time_ms=metrics.get('p99_latency_ms', 0.0),
+            p50_response_time_ms=metrics_calculator.p50,
+            p95_response_time_ms=metrics_calculator.p95,
+            p99_response_time_ms=metrics_calculator.p99,
             error_rate_percent=metrics.get('error_rate_percent', 0.0),
             error_count_5min=metrics.get('error_count_5min', 0),
             cpu_usage_percent=cpu_percent,

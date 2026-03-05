@@ -16,6 +16,7 @@ from ..schemas.openai_schemas import (
     ChatMessage,
     EmbeddingRequest,
 )
+from ..utils.metrics_calculator import metrics_calculator
 from ..utils.validation import validate_json
 
 bp = Blueprint('openai_api', __name__)
@@ -296,6 +297,9 @@ def generate_chat_stream(model, messages, temperature: float,
         metrics = app_state.get('metrics', {})
         metrics['tokens_generated'] = metrics.get('tokens_generated', 0) + tokens_generated
 
+        # Record latency for percentile tracking
+        metrics_calculator.record(elapsed)
+
         # Update average latency
         total_requests = metrics.get('requests_total', 1)
         current_avg = metrics.get('average_latency_ms', 0)
@@ -359,6 +363,9 @@ def generate_chat_completion(model, messages, temperature: float,
         total_requests = metrics.get('requests_total', 1)
         current_avg = metrics.get('average_latency_ms', 0)
         metrics['average_latency_ms'] = ((current_avg * (total_requests - 1)) + elapsed) / total_requests
+
+        # Record latency for percentile tracking
+        metrics_calculator.record(elapsed)
 
         # Calculate tokens per second
         tokens_per_second = completion_tokens / (elapsed / 1000) if elapsed > 0 else 0

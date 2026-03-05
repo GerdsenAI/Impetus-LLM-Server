@@ -27,8 +27,8 @@ def validate_json(schema: type[T], required: bool = True) -> T | dict:
         @wraps(f)
         def decorated_function(*args, **kwargs):
             try:
-                # Get JSON data
-                json_data = request.get_json()
+                # Get JSON data (silent=True to return None instead of raising)
+                json_data = request.get_json(silent=True)
 
                 # Check if JSON is required
                 if required and json_data is None:
